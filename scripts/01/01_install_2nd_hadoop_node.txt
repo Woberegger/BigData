@@ -1,0 +1,67 @@
+## Anleitung, um einen 2. oder 3. Knoten aufzusetzen, die als reine Datanodes, d.h. Rechenknechte, dienen.
+# In virtualbox am besten Snapshot erstellen und klonen (linked Clone, da kaum Speicher drauf geht) und dann am besten ein internes Netzwerk mit fixen IPs anlegen
+# in meinem Beispiel in Range 10.0.3.0/24.
+
+# wir müssen einen anderen hostnamen vergeben, ein Aufruf von "hostname" allein reicht nicht.
+hostname UbuntuBigDataNode1
+echo "UbuntuBigDataNode1" >/etc/hostname
+
+sudo -s
+cat >>/etc/hosts <<!
+10.0.3.15 master namenode UbuntuBigData
+10.0.3.16 UbuntuBigDataNode1
+!
+
+# normalerweise sollten die keys existieren, weil eben die Maschinen geklont wurden, andernfalls wechselseitig austauschen
+ssh-keygen -t rsa -P ""
+ssh-copy-id -i ~/.ssh/id_rsa.pub hduser@namenode
+# einmalig einloggen, um Abfrage wegzubekommen
+ssh hduser@namenode
+
+#### for cluster zusätzliche config in yarn-site.xml ("UbuntuBigData" ist der Hostname, den mit dem Wert des Ressource Manager Hosts ersetzen):
+	<property>
+		<name>yarn.resourcemanager.resource-tracker.address</name>
+		<value>UbuntuBigData:8031</value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.scheduler.address</name>
+		<value>UbuntuBigData:8030</value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.address</name>
+		<value>UbuntuBigData:8032</value>
+	</property>
+## in hdfs-site.xml den Wert für dfs.replication auf 2 erhöhen
+
+# und dem master alle workers bekanntmachen
+echo "UbuntuBigDataNode1" >$HADOOP_HOME/etc/hadoop/slaves
+echo "UbuntuBigData" >$HADOOP_HOME/etc/hadoop/masters
+cp $HADOOP_HOME/etc/hadoop/slaves $HADOOP_HOME/etc/hadoop/workers
+
+# und damit Dateien doppelt abgelegt werden, sollte man in hdfs-site.xml die Variable dfs.replication auf Wert 2 setzen
+<configuration>
+        <property>
+                <name>dfs.replication</name>
+                <value>2</value>
+        </property>
+        <property>
+                <name>dfs.permissions</name>
+                <value>false</value>
+        </property>
+        <property>
+                <name>dfs.namenode.name.dir</name>
+                <value>file:/usr/local/hadoop/hadoopdata/hdfs/namenode</value>
+        </property>
+        <property>
+                <name>dfs.datanode.data.dir</name>
+                <value>file:/usr/local/hadoop/hadoopdata/hdfs/datanode</value>
+        </property>
+</configuration>
+
+### Test call	
+
+##Hadoop starten (als hduser) auf beiden Knoten
+start-dfs.sh
+start-yarn.sh
+
+hadoop jar ./hadoopwordcnt.jar file:/tmp/Bibel.txt file:/home/hduser/hadoopwordcnt/output
