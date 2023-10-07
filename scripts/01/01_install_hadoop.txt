@@ -21,7 +21,8 @@ sudo apt-get install net-tools
 sudo -s
 cd /usr/lib/jvm/
 ln -s java-11-openjdk-amd64 jdk
-echo "export JAVA_HOME=/usr/lib/jvm/jdk" >/etc/profile.d/java.sh
+# better than seting /usr/lib/jvm/jdk is to verify, that in /etc/alternatives points to correct java version
+echo "export JAVA_HOME=/etc/alternatives/java" >/etc/profile.d/java.sh
 
 ##Benutzer und Gruppe einrichten; als Passwort für hduser hduser verwenden
 groupadd hadoop
@@ -40,16 +41,15 @@ ssh localhost
 exit
 exit
 
-##Download Hadoop 3.3.5 und entpacken (in Firefox Browser herunterladen)
+##Download Hadoop 3.2.4 und entpacken (in Browser herunterladen oder per wget/curl)
 sudo -s
 cd /usr/local
 wget https://dlcdn.apache.org/hadoop/common/hadoop-3.2.4/hadoop-3.2.4.tar.gz --no-check-certificate
 wget https://downloads.apache.org/hadoop/common/hadoop-3.2.4/hadoop-3.2.4.tar.gz.sha512 --no-check-certificate
-##wget  https://downloads.apache.org/hadoop/common/hadoop-3.3.5/hadoop-3.3.5.tar.gz --no-check-certificate
-##wget https://downloads.apache.org/hadoop/common/hadoop-3.3.5/hadoop-3.3.5.tar.gz.sha512 --no-check-certificate
 shasum -a 512 hadoop-3.2.4.tar.gz -c hadoop-3.2.4.tar.gz.sha512
 
-tar -xzvf hadoop-3.2.4.tar.gz
+tar -xzf hadoop-3.2.4.tar.gz
+# oder gzip -d hadoop-3.2.4.tar.gz && tar -xf hadoop-3.2.4.tar
 ln -sf hadoop-3.2.4 hadoop
 
 chown -R hduser:hadoop hadoop*
@@ -60,7 +60,7 @@ chown -R hduser:hadoop hadoop*
 su - hduser
 cat >>~hduser/.bashrc <<!
 # Java (a copy of what is already in /etc/profile.d/java.sh)
-export JAVA_HOME=/usr/lib/jvm/jdk
+export JAVA_HOME=/etc/alternatives/java # better than /usr/lib/jvm/jdk
 
 # Hadoop export
 export HADOOP_INSTALL=/usr/local/hadoop
@@ -85,7 +85,7 @@ source ~/.bashrc
 
 ##Hadoop Konfigurationsdateien anpassen (als hduser)
 # leider wird das auch in dieser Datei redundanterweise verlangt
-echo "export JAVA_HOME=/usr/lib/jvm/jdk" >>usr/local/hadoop/etc/hadoop/hadoop-env.sh
+echo "export JAVA_HOME=/usr/lib/jvm/jdk" >>/usr/local/hadoop/etc/hadoop/hadoop-env.sh
 
 ##Editieren Sie core-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
 # um idente files bei Clusterverwendung zu haben, besser anstelle von "localhost" einen Namen lt. /etc/hosts eintragen
