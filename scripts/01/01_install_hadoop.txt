@@ -1,8 +1,10 @@
 ## Anleitung am besten aus dem Buch "Big data in der Praxis" oder z.B. von https://www.digitalocean.com/community/tutorials/how-to-install-hadoop-in-stand-alone-mode-on-ubuntu-20-04 oder https://tecadmin.net/how-to-install-apache-hadoop-on-ubuntu-22-04/ --
 
 # Damit jeder individuelle Screenshots erstellen muss, bitte unique hostnamen erstellen - der 2. Befehl ist nötig, damit dies auch nach Restart erhalten bleibt!
+sudo -s
 hostname <MatrikelNr>
 echo "<MatrikelNr>" >/etc/hostname
+echo "10.0.2.15 <MatrikelNr>" >>/etc/hosts
 
 ##Packages Installieren
 sudo apt-get update
@@ -159,14 +161,14 @@ echo "export JAVA_HOME=/usr/lib/jvm/jdk" >>/usr/local/hadoop/etc/hadoop/hadoop-e
 		<value>false</value>
 	</property>
 
-##Erstellen Sie die für Hadoop benötigten Verzeichnisse (als User hduser')
+##Erstellen Sie die für Hadoop benötigten Verzeichnisse (als User hduser)
 
 mkdir -p /usr/local/hadoop/hadoopdata/hdfs/tmp
 mkdir -p /usr/local/hadoop/hadoopdata/hdfs/namenode
 mkdir -p /usr/local/hadoop/hadoopdata/hdfs/datanode
 mkdir -p /usr/local/hadoop/hadoopdata/hdfs/input
 
-##Formatieren des HDFS File Systems (als User hduser)
+##Formatieren des HDFS File Systems (einmalig(!) auszuführen als User hduser)
 hdfs namenode -format
 
 ##Hadoop starten (als hduser)
@@ -193,15 +195,16 @@ jps | sort -k2
 6024 ResourceManager
 7642 SecondaryNameNode
 
-##GUI starten
-Namenode -> http://localhost:9870/
-ResourceManager -> http://localhost:8088/
-#MapReduce JobHistory Server -> http://localhost:19888/
+##Web-GUI starten (als der eingeloggte User, wegen $DISPLAY variable)
+# Namenode 
+firefox -new-tab http://localhost:9870/
+# ResourceManager 
+firefox -new-tab http://localhost:8088/
 
 
 ##Hadoop stoppen (als hduser)
 stop-dfs.sh
-stop-yarn.shcd 
+stop-yarn.sh 
 
 
 ##oder
