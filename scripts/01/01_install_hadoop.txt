@@ -2,9 +2,8 @@
 
 # Damit jeder individuelle Screenshots erstellen muss, bitte unique hostnamen erstellen - der 2. Befehl ist nötig, damit dies auch nach Restart erhalten bleibt!
 sudo -s
-hostname <MatrikelNr>
-echo "<MatrikelNr>" >/etc/hostname
-echo "10.0.2.15 <MatrikelNr>" >>/etc/hosts
+hostname swd<MatrikelNr>
+echo "swd<MatrikelNr>" >/etc/hostname
 
 ##Packages Installieren
 sudo apt-get update
