@@ -69,7 +69,7 @@ start-dfs.sh
 start-yarn.sh
 
 # das folgende erstellt HDFS-Verzeichnis und eine Datei   
-hdfs dfs -mkdir /user/hduser/data
+hdfs dfs -mkdir -p /user/hduser/data
 hdfs dfs -put <myTestfile> /user/hduser/data
 
 # im Browser im Folgenden Pfad zu finden - bitte prüfen, ob der "Replication" Wert dem Wert 2 entspricht
