@@ -22,8 +22,8 @@ sudo apt-get install net-tools
 sudo -s
 cd /usr/lib/jvm/
 ln -s java-11-openjdk-amd64 jdk
-# better than seting /usr/lib/jvm/jdk is to verify, that in /etc/alternatives points to correct java version
-echo "export JAVA_HOME=/etc/alternatives/java" >/etc/profile.d/java.sh
+# additionally it is good practice to verify, that /etc/alternatives/java points to correct java version
+echo "export JAVA_HOME=/usr/lib/jvm/jdk" >/etc/profile.d/java.sh
 
 ##Benutzer und Gruppe einrichten; als Passwort für hduser hduser verwenden
 groupadd hadoop
@@ -61,7 +61,7 @@ chown -R hduser:hadoop hadoop*
 su - hduser
 cat >>~hduser/.bashrc <<!
 # Java (a copy of what is already in /etc/profile.d/java.sh)
-export JAVA_HOME=/etc/alternatives/java # better than /usr/lib/jvm/jdk
+export JAVA_HOME=/usr/lib/jvm/jdk
 
 # Hadoop export
 export HADOOP_INSTALL=/usr/local/hadoop
