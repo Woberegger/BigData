@@ -1,0 +1,18 @@
+[Unit]
+Description=HDFS-filesystem
+After=syslog.target network-online.target
+
+[Service]
+Type=oneshot
+User=hduser
+#Environment=JAVA_HOME=/usr/lib/jvm/jdk
+#Environment=HADOOP_HOME=/usr/local/hadoop
+ExecStart=/usr/local/hadoop/sbin/start-dfs.sh
+ExecStop=/usr/local/hadoop/sbin/stop-dfs.sh
+Restart=on-failure
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target # in runlevels 2-5
+Alias=hdfs.service
+

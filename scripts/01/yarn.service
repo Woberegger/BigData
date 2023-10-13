@@ -1,0 +1,18 @@
+[Unit]
+Description=Yarn DFS-Resource Manager
+After=syslog.target network-online.target hdfs.service
+
+[Service]
+Type=oneshot
+User=hduser
+#Environment=JAVA_HOME=/usr/lib/jvm/jdk
+#Environment=HADOOP_HOME=/usr/local/hadoop
+ExecStart=/usr/local/hadoop/sbin/start-yarn.sh
+ExecStop=/usr/local/hadoop/sbin/stop-yarn.sh
+Restart=on-failure
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target 
+Alias=yarnd.service
+
