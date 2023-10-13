@@ -14,5 +14,3 @@ RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target 
-Alias=yarnd.service
-
