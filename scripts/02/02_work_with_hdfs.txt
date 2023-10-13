@@ -1,0 +1,69 @@
+# nach dem Installieren wollen wir evaluieren, wo und wie HDFS die Dateien ablegt
+
+# eine gute Testdatei, die wir auch später für Mapreduce Beispiele verwenden, ist die folgende:
+wget https://github.com/DistrictDataLabs/transportation-project-1/blob/master/airdelayhist/data/airline_delay_causes.csv /tmp/
+
+# siehe Liste der Kommandos unter https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/FileSystemShell.html
+z.B.:hdfs dfs -ls # die letzten Kommandos mit '-' Prefix ähneln Linux OS-Kommandos
+
+# optional sieht man Dateien/Ordner über "firefox -new-tab http://localhost:9870/explorer.html#/"
+
+# reingehängt haben wir das HDFS-Filesystem an folgendem Mountpoint
+# mit folgendem Kommando zwischendurch prüfen, ob und auf welchem Knoten das nach einem "put" etc. sich verändert
+du -d0 /usr/local/hadoop/hadoopdata
+
+hdfs dfs -mkdir /user/hduser/testdir
+hdfs dfs -ls -R /user/hduser/testdir # -R listet rekursiv
+hdfs dfs -put -l /tmp/airline_delay_causes.csv /user/hduser/testdir/ # -l ... overruled die replications und speichert nur 1 Instanz
+
+# versuchen, Trashbin zu aktivieren (prüfen, über welche Option) und dann verifizieren, ob die Datei wirklich dort landet
+hdfs dfs -rm -r -skipTrash /user/hduser/testdir/Bibel.txt
+hdfs dfs -ls -R /user/hduser/.Trash/
+
+# schauen, was passiert - werden auch die Replikas behalten im Trashbin?
+
+# Herauf- und Heruntersetzen der Replikaanzahl "-setrep" call - was passiert? Prüfen über web GUI.
+hdfs dfs -setrep -R 3 /user/hduser
+hdfs dfs -setrep -R 2 /user/hduser
+
+# Versuchen, die Blocksize bei einzelnen Files zu ändern - am besten eine recht große Datei verwenden, wo dann mehr als 2 Blöcke entstehen
+hdfs dfs -D dfs.blocksize=16777216 -put /tmp/Airline_Delay_Cause.csv /user/hduser/data/BlockSize16MB.csv
+
+# Prüfen, über welchen Parameter man einstellen kann, ab wann auf einen toten DataNode reagiert wird. Ändern auf 60 Sekunden - siehe https://hadoop.apache.org/docs/r3.2.4/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml
+# Runterfahren des 2. Knotens und schauen, was nach 60 Sekunden mit den Replikas des Knotens passiert.
+# Wenn man nur 1 Knoten betreibt, funktioniert das auch, man muss nur den DataNode Prozess killen über z.B.
+kill $(jps | grep DataNode | cut -d' ' -f1)
+
+# Timeout equals to 2 * heartbeat.recheck.interval + 10 * heartbeat.interval. Default for heartbeat.interval is 3 seconds, default for recheck-intervall is 300000
+<property>
+ <name>dfs.namenode.heartbeat.recheck-interval</name>
+ <value>15000</value>
+ <description>Determines datanode heartbeat interval in milliseconds</description>
+</property>
+
+# Einstellen von Erasure Coding auf einem bestimmten Verzeichnis, nachdem dort einige sehr große Dateien abgelegt wurden. Was ändert sich am benötigten Space?
+hdfs ec -listPolicies
+
+# "hdfs fsck" und "hdfs dfsadmin" Kommandos ausprobieren.
+hdfs fsck  /user/hduser  -files -blocks -replicaDetails # hier sieht man, auf welchen Knoten die Repliken liegen, wieviele Blocks belegt werden usw.
+#z.B. hdfs dfsadmin -allowSnapshot|-getDatanodeInfo <NodeName:Port>|-printTopology|-refreshNodes
+# Sinn von Snapshots erheben und ausprobieren - was dauert lange und belegt Platz, das Anlegen oder erst das Ändern einer Datei?
+
+# Zusatzaufgabe: Was könnte folgende Fehlermeldung bedeuten - wann tritt sie auf, wie ist sie zu umgehen?
+dfs dfs -put airline_delay_causes.csv /user/hduser/data/
+
+### put: Cannot create file/user/hduser/data/airline_delay_causes.csv._COPYING_. Name node is in safe mode. ###
+
+
+# Zusatzaufgabe:
+# suche Möglichkeit, hdfs-Filesysteme z.B. in NFS zu mounten (Anleitung unter https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsNfsGateway.html)
+# oder per fuse über https://cwiki.apache.org/confluence/display/HADOOP2/MountableHDFS
+
+# folgende Anleitung läuft beim letzten Kommando auf Fehler, d.h. hier müsste man schauen, was hier noch fehlt:
+sudo apt install rpcbind
+sudo apt install nfs-common
+su – hduser –c "hdfs --daemon start nfs3; jps | grep Nfs3" # oder im Vordergrund über "hdfs nfs3"
+sudo mkdir /mnt/hdfs
+sudo mount -t nfs -o vers=3,proto=tcp,nolock,noacl,sync localhost:/ /mnt/hdfs -vvvv
+
+
