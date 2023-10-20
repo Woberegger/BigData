@@ -1,12 +1,12 @@
 # nach dem Installieren wollen wir evaluieren, wo und wie HDFS die Dateien ablegt
 
 # eine gute Testdatei, die wir auch später für Mapreduce Beispiele verwenden, ist die folgende:
-wget https://github.com/DistrictDataLabs/transportation-project-1/blob/master/airdelayhist/data/airline_delay_causes.csv /tmp/
+cd /tmp && wget https://github.com/DistrictDataLabs/transportation-project-1/blob/master/airdelayhist/data/airline_delay_causes.csv
 
 # siehe Liste der Kommandos unter https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/FileSystemShell.html
 z.B.:hdfs dfs -ls # die letzten Kommandos mit '-' Prefix ähneln Linux OS-Kommandos
 
-# optional sieht man Dateien/Ordner über "firefox -new-tab http://localhost:9870/explorer.html#/"
+# optional sieht man Dateien/Ordner über "firefox -new-tab http://localhost:9870/explorer.html#/" (als der User, unter dem man in GUI eingeloggt ist)
 
 # reingehängt haben wir das HDFS-Filesystem an folgendem Mountpoint
 # mit folgendem Kommando zwischendurch prüfen, ob und auf welchem Knoten das nach einem "put" etc. sich verändert
