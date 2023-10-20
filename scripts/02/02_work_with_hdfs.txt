@@ -17,6 +17,8 @@ hdfs dfs -ls -R /user/hduser/testdir # -R listet rekursiv
 hdfs dfs -put -l /tmp/airline_delay_causes.csv /user/hduser/testdir/ # -l ... overruled die replications und speichert nur 1 Instanz
 
 # versuchen, Trashbin zu aktivieren (prüfen, über welche Option) und dann verifizieren, ob die Datei wirklich dort landet
+hdfs dfs -put /tmp/airline_delay_causes.csv /user/hduser/testdir/copy_to_delete.csv
+hdfs dfs -rm -r /user/hduser/testdir/copy_to_delete.csv
 hdfs dfs -rm -r -skipTrash /user/hduser/testdir/airline_delay_causes.csv
 hdfs dfs -ls -R /user/hduser/.Trash/
 
