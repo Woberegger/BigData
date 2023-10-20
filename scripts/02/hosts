@@ -1,0 +1,10 @@
+{
+   "hostName": "UbuntuBigDataNode1.myguest.virtualbox.org",
+   "port": 9866,
+   "adminState": "NORMAL"
+}
+{
+   "hostName": "UbuntuBigData.myguest.virtualbox.org",
+   "port": 9866,
+   "adminState": "NORMAL"
+}
