@@ -1,7 +1,7 @@
 # nach dem Installieren wollen wir evaluieren, wo und wie HDFS die Dateien ablegt
 
 # eine gute Testdatei, die wir auch später für Mapreduce Beispiele verwenden, ist die folgende:
-cd /tmp && wget https://github.com/DistrictDataLabs/transportation-project-1/blob/master/airdelayhist/data/airline_delay_causes.csv
+cd /tmp && wget https://github.com/DistrictDataLabs/transportation-project-1/raw/master/airdelayhist/data/airline_delay_causes.csv
 
 # siehe Liste der Kommandos unter https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/FileSystemShell.html
 z.B.:hdfs dfs -ls # die letzten Kommandos mit '-' Prefix ähneln Linux OS-Kommandos
@@ -17,7 +17,7 @@ hdfs dfs -ls -R /user/hduser/testdir # -R listet rekursiv
 hdfs dfs -put -l /tmp/airline_delay_causes.csv /user/hduser/testdir/ # -l ... overruled die replications und speichert nur 1 Instanz
 
 # versuchen, Trashbin zu aktivieren (prüfen, über welche Option) und dann verifizieren, ob die Datei wirklich dort landet
-hdfs dfs -rm -r -skipTrash /user/hduser/testdir/Bibel.txt
+hdfs dfs -rm -r -skipTrash /user/hduser/testdir/airline_delay_causes.csv
 hdfs dfs -ls -R /user/hduser/.Trash/
 
 # schauen, was passiert - werden auch die Replikas behalten im Trashbin?
