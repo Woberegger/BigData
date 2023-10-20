@@ -1,9 +1,8 @@
 ## Anleitung am besten aus dem Buch "Big data in der Praxis" oder z.B. von https://www.digitalocean.com/community/tutorials/how-to-install-hadoop-in-stand-alone-mode-on-ubuntu-20-04 oder https://tecadmin.net/how-to-install-apache-hadoop-on-ubuntu-22-04/ --
 
-# Damit jeder individuelle Screenshots erstellen muss, bitte unique hostnamen erstellen - der 2. Befehl ist nötig, damit dies auch nach Restart erhalten bleibt!
+# Damit jeder individuelle Screenshots erstellen muss, bitte unique hostnamen erstellen - wichtig ist, dass Hostname mit Buchstaben beginnt
 sudo -s
-hostname swd<MatrikelNr>
-echo "swd<MatrikelNr>" >/etc/hostname
+hostnamectl set-hostname swd<MatrikelNr>
 
 ##Packages Installieren
 sudo apt-get update
@@ -21,7 +20,9 @@ sudo apt-get install net-tools
 ##Symbolischen Link für Java erstellen
 sudo -s
 cd /usr/lib/jvm/
-ln -s java-11-openjdk-amd64 jdk
+# abhängig von der Rechnerarchitektur könnte die Ausgabe von "dpkg --print-architecture" amd64 oder arm64 oder ??? liefern
+# wenn dpkg Befehl nicht funktioniert, liefert auch "uname -m" Info zur Architektur, die jedoch dann interpretiert werden muss, da z.B. x86_64 als amd64 zu interpretieren ist
+ln -s java-11-openjdk-$(dpkg --print-architecture) jdk
 # additionally it is good practice to verify, that /etc/alternatives/java points to correct java version
 echo "export JAVA_HOME=/usr/lib/jvm/jdk" >/etc/profile.d/java.sh
 
