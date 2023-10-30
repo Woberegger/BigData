@@ -43,7 +43,7 @@ kill $(jps | grep DataNode | cut -d' ' -f1)
  <description>Determines datanode heartbeat interval in milliseconds</description>
 </property>
 # einen zuvor gekillten Datanode startet man danach am besten wieder direkt auf dem Datanode über:
-dfs --daemon start datanode
+hdfs --daemon start datanode
 
 # Einstellen von Erasure Coding auf einem bestimmten Verzeichnis, nachdem dort einige sehr große Dateien abgelegt wurden. Was ändert sich am benötigten Space?
 hdfs ec -listPolicies
@@ -54,7 +54,7 @@ hdfs fsck  /user/hduser  -files -blocks -replicaDetails # hier sieht man, auf we
 # Sinn von Snapshots erheben und ausprobieren - was dauert lange und belegt Platz, das Anlegen oder erst das Ändern einer Datei?
 
 # Zusatzaufgabe: Was könnte folgende Fehlermeldung bedeuten - wann tritt sie auf, was kann man unternehmen?
-dfs dfs -put airline_delay_causes.csv /user/hduser/data/
+hdfs dfs -put /tmp/airline_delay_causes.csv /user/hduser/data/
 
 ### put: Cannot create file/user/hduser/data/airline_delay_causes.csv._COPYING_. Name node is in safe mode. ###
 
