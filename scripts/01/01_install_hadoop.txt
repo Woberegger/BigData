@@ -127,7 +127,8 @@ echo "export JAVA_HOME=/usr/lib/jvm/jdk" >>/usr/local/hadoop/etc/hadoop/hadoop-e
 		<value>mapreduce_shuffle</value>
 	</property>
 	<property>
-		<name>yarn.Node Manager.aux-services.mapreduce.shuffle.class</name> <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+		<name>yarn.Node Manager.aux-services.mapreduce.shuffle.class</name>
+      <value>org.apache.hadoop.mapred.ShuffleHandler</value>
 	</property>
 	<property>
 		<name>yarn.Node Manager.vmem-pmem-ratio</name>
