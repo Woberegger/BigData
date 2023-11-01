@@ -1,0 +1,131 @@
+#wichtig: Zur Sicherheit vorher Snapshot der virtuellen Maschine erstellen!
+
+cd /usr/local
+wget https://dlcdn.apache.org/hbase/2.5.5/hbase-2.5.5-bin.tar.gz
+wget https://dlcdn.apache.org/hbase/2.5.5/hbase-2.5.5-bin.tar.gz.sha512
+#gpg --verify hbase-2.5.5-bin.tar.gz.asc
+shasum -a 512 hbase-2.5.5-bin.tar.gz; cat hbase-2.5.5-bin.tar.gz.sha512
+tar -xzvf hbase-2.5.5-bin.tar.gz
+chown -R hduser:hadoop /usr/local/hbase-2.5.5 
+ln -s /usr/local/hbase-2.5.5 HBase
+
+# all other actions shall be done as hduser
+su - hduser
+
+cat >>~/.bashrc <<!
+export HBASE_HOME=/usr/local/HBase
+export PATH=\$PATH:\$HBASE_HOME/bin
+# maybe we need this for HBase Java programs
+#export HADOOP_CLASSPATH=\$HBASE_HOME/lib:\$HBASE_HOME/lib/client-facing-thirdparty
+!
+
+source ~/.bashrc
+
+# Ändern der Datei $HBASE_HOME/conf/hbase-env.sh
+
+#Java Home should already be set in .bashrc from hadoop installation, pls verify
+env | grep JAVA_HOME
+#export JAVA_HOME=/usr/lib/jvm/jdk/
+# besser auch das Regionserver File konfigurieren, falls später weitere Nodes dazukommen
+#export HBASE_REGIONSERVERS=${HBASE_HOME}/conf/regionservers
+
+# Konfiguration anpassen
+cd $HBASE_HOME/conf
+
+# in Datei $HBASE_HOME/conf/hbase-env.sh das JAVA_HOME korrekt setzen, z.B.:
+JAVA_HOME=/usr/lib/jvm/jdk
+
+#Sicherungskopie von hbase-site.xml anlegen und dann bearbeiten
+# Frage: was macht das "-p" Flag?
+cp -p hbase-site.xml hbase-site.xml.orig
+
+#Eventuell für Angabe in hbase-site.xml die URL and Port von HDFS checken (für hbase.rootdir property):
+hdfs getconf -confKey fs.defaultFS
+
+# Ändern der Datei $HBASE_HOME/conf/hbase-site.xml
+
+   <property>
+     <name>hbase.tmp.dir</name>
+     <value>./tmp</value>
+   </property>
+   <property>
+     <name>hbase.unsafe.stream.capability.enforce</name>
+     <value>false</value>
+   </property>
+   <property>
+      <name>hbase.rootdir</name>
+      <value>hdfs://namenode:9000/hbase</value> <!-- Ausgabe von hdfs getconf -confKey fs.defaultFS -->
+   </property>
+	
+   <property>
+      <name>hbase.zookeeper.property.dataDir</name>
+      <!--verify path, if this matches -->
+      <value>/usr/local/hadoop/zookeeper</value>
+   </property>
+   
+   <property>
+     <name>hbase.cluster.distributed</name>
+     <value>true</value>
+   </property>
+
+   <property>
+     <name>hbase.wal.provider</name>
+  	  <value>filesystem</value>
+   </property>
+   
+ 
+#der Ordner "hadoop" gehört ohnehin bereits dem hduser
+mkdir /usr/local/hadoop/zookeeper
+
+#Testen von HBase
+#1.) Hadoop starten
+start-dfs.sh
+start-yarn.sh
+
+#mit jps testen, ob Hadoop erfolgreich gestartet
+
+#2.) HBase starten
+$HBASE_HOME/bin/start-hbase.sh
+
+#Anmerkung: beim ersten Start ist der Fingerprint hinzuzufügen
+
+#3.) Prüfen ob HBase Ordner in HDFS angelegt wurden
+hdfs dfs -ls hbase
+
+# andernfall händisch anlegen über
+hdfs dfs -mkdir hbase
+# wenn es Meldung gibt, dass Namenode im save mode ist, dann wie folgt verlassen
+hdfs dfsadmin -safemode leave
+ 
+#4.) check status in web browserstatus
+firefox -new-tab http://localhost:16010/master-status
+
+#5.) HBase Shell öffnen und Tutorial aus HBase_Shell.pdf versuchen (Daten in HBase anlegen)
+hbase shell
+
+# Befehl "status" sollte eine Ausgabe wie die folgende liefern
+# 1 active master, 0 backup masters, 1 servers, 0 dead, 3.0000 average load
+
+# Inhalt von 04_HBase_Shell_commands.txt und 04_HBase_Shell_split_table.txt ausführen
+# Cheat Sheet für HBase shell commands z.B. unter https://sparkbyexamples.com/hbase/hbase-shell-commands-cheat-sheet/
+
+#6.) nach dem Anlegen der Tabellen sollten die auch in folgender Web-GUI sichtbar sein
+
+firefox -new-tab http://localhost:16010/master-status#userTables
+
+#7.) Java Programm für Zugriff auf HBase kompilieren und auf davor über 04_HBase_Shell_commands.txt angelegte "people" Tabelle zugreifen
+https://github.com/Woberegger/BigData/tree/main/src/myHBase
+# Aufruf auf Kommandozeile:
+hadoop jar myHBase.jar
+
+#################################
+Optionen:
+#a) Wenn man mehrere Regionserver ausprobieren will, muss man auf allen hbase installieren und folgende Datei um die anderen Server erweitern (und hbase services neu starten)
+$HBASE_HOME/conf/regionservers
+
+# Dazu muss man jedoch hbase auf allen Nodes installieren und dort folgendes ausführen
+$HBASE_HOME/bin/hbase-daemon.sh --config $HBASE_HOME/conf start regionserver
+
+
+#b) Hbase analog zu HDFS in Autostart reinhängen und ebenso stoppen beim Runterfahren der VM (systemctl Script unter /etc/systemd/system anlegen)
+# siehe z.B. Anleitung unter https://blog.hartinger.net/ubuntu-server-autostart-eines-commands-einrichten/

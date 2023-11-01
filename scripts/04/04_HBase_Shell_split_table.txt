@@ -1,0 +1,23 @@
+# create table with more than 1 column family
+create 'people2', 'id', 'property', 'specialdate'
+
+
+put 'people2', 'row1', 'id:email', 'chef@jofre.de'
+put 'people2', 'row1', 'property:age', '28'
+put 'people2', 'row1', 'specialdate:birthday', '1999-01-23'
+put 'people2', 'row2', 'id:name', 'Rene K.' ''
+put 'people2', 'row2', 'property:job', 'Consultant' '2023'
+put 'people2', 'row2', 'specialdate:wedding', '03.05.2007'
+
+get 'people2', 'row1'
+
+# create table to split across multiple regions by ID - can be even multiple regions on 1 server - see http://localhost:16010/table.jsp?name=emp
+create 'emp', 'id', 'office', SPLITS => ['1', '20']
+
+put 'emp', '1' , 'office:name', 'Scott'
+put 'emp', '21' , 'office:name', 'Mark'     
+put 'emp', '21' , 'office:gender', 'M'     
+put 'emp', '21' , 'office:age', '30'
+put 'emp', '21' , 'office:age', '50'
+
+get 'emp', '21'
