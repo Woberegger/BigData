@@ -12,7 +12,7 @@ z.B.:hdfs dfs -ls # die letzten Kommandos mit '-' Prefix ähneln Linux OS-Komman
 # mit folgendem Kommando zwischendurch prüfen, ob und auf welchem Knoten das nach einem "put" etc. sich verändert
 du -d0 /usr/local/hadoop/hadoopdata
 
-hdfs dfs -mkdir /user/hduser/testdir
+hdfs dfs -mkdir -p /user/hduser/testdir
 hdfs dfs -ls -R /user/hduser/testdir # -R listet rekursiv
 hdfs dfs -put -l /tmp/airline_delay_causes.csv /user/hduser/testdir/ # -l ... overruled die replications und speichert nur 1 Instanz
 
