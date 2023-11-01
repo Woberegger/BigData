@@ -1,0 +1,135 @@
+# Hive downloaden
+# Man kann auch von Source installieren - siehe Anleitung unter https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-BuildingHivefromSource
+# if you should need "--no-check-certificate" with wget, better do the following beforehand
+sudo update-ca-certificates -f
+# Attention: Take care, that your hadoop version matches the hive version - see https://hive.apache.org/general/downloads/
+
+a) binary
+
+#wget https://dlcdn.apache.org/hive/hive-3.1.3/apache-hive-3.1.3-bin.tar.gz.asc
+#wget https://dlcdn.apache.org/hive/hive-3.1.3/apache-hive-3.1.3-bin.tar.gz 
+wget https://dlcdn.apache.org/hive/hive-4.0.0-alpha-1/apache-hive-4.0.0-alpha-1-bin.tar.gz 
+#gpg --verify apache-hive-3.1.3-bin.tar.gz.asc apache-hive-3.1.3-bin.tar.gz  
+#gpg --keyserver pgpkeys.mit.edu --recv-key 0042A0F10D90BFE892F15E7886E88370ED75ECEE
+
+
+sudo mv apache-hive-3.1.3-bin /usr/local
+sudo ln -s /usr/local/apache-hive-3.1.3-bin /usr/local/hive
+
+b) source (building from source will take several minutes!)
+git clone https://github.com/apache/hive.git
+cd hive
+git checkout master # or maybe origin/branch-3
+# important to set -DskipTests, otherwise this fails because of missing dependencies
+mvn clean package -Pdist -DskipTests -Dmaven.javadoc.skip=true
+
+#########################################################
+
+sudo chown -R hduser:hadoop /usr/local/*hive*
+
+# connect as hduser
+
+su - hduser
+cat >>~/.bashrc <<!
+export HIVE_HOME=/usr/local/hive
+export HCAT_HOME=\$HIVE_HOME/hcatalog
+export PATH=\$PATH:\$HIVE_HOME/bin
+!
+
+# wichtig: Änderung an bashrc wird erst nach Neustart der Shell aktiv! Oder nach Ausführen von [TODO]
+
+# start HADOOP, if not running yet
+
+start-dfs.sh
+start-yarn.sh
+
+# create directories for Hive
+# if you see errors in $HADOOP_HOME/logs, if your Virtual disk is too small, in that case you should execute the following
+#LC_ALL=C
+#growpart /dev/sda 1
+#resize2fs /dev/sda1
+#hdfs dfsadmin -safemode leave|enter
+
+hdfs dfs -mkdir -p /tmp
+hdfs dfs -mkdir -p /user/hive/warehouse
+hdfs dfs -chmod g+w /tmp
+hdfs dfs -chmod g+w /user/hive/warehouse
+
+# adapt hive-site.xml (take care to not copy a config file from a different version, as they might not be compatible)
+
+cd /usr/local/hive/conf
+cp hive-default.xml.template hive-site.xml
+
+-Folgendes Property am Begin nach Tag <configuration> einfügen
+
+ <property>
+   <name>system:java.io.tmpdir</name>
+   <value>/tmp/hive/java</value>
+ </property>
+ <property>
+   <name>system:user.name</name>
+   <value>${user.name}</value>
+ </property>
+
+# check for following tag and change it to same directory as used with the hdfs command above (take care, that hduser was write permissions)
+    <name>hive.metastore.warehouse.dir</name>
+    <value>/user/hive/warehouse</value>
+
+hive
+#
+
+# bei folgendem Fehler passen die Versionen von hadoop und hive nicht zusammen, obwohl das auf der Downloadseite anders beschrieben ist:
+# java.lang.NoSuchMethodError - siehe Fix unter https://issues.apache.org/jira/browse/HIVE-22915
+rm $HIVE_HOME/lib/guava-19.0.jar /tmp
+ln -s $HADOOP_HOME/share/hadoop/hdfs/lib/guava-27.0-jre.jar $HIVE_HOME/lib/
+
+# Wenn es Fehler gibt, dann das hive-site.xml File nochmal prüfen, im default File gibt es bei gewissen Versionen folgenden Fehler, der händisch zu beheben ist (Sonderzeichen in Kommentar bei property hive.txn.xlock.iow)
+#Caused by: com.ctc.wstx.exc.WstxParsingException: Illegal character entity: expansion character (code 0x8
+# at [row,col,system-id]: [3221,96,"file:/usr/local/apache-hive-3.1.3-bin/conf/hive-site.xml"]
+
+# init schema 
+cd /usr/local/hive/bin
+
+./schematool -initSchema -dbType derby
+
+
+-- use and test hive
+
+#beeline -u jdbc:hive2://127.0.0.1:10000 scott tiger
+beeline -u jdbc:hive2:// scott tiger <<!
+   set hive.execution.engine=mr;
+   set hive.metastore.warehouse.dir;
+   show databases;
+   use default;
+   --
+CREATE TABLE IF NOT EXISTS default.employee (
+id int,
+name string,
+age int,
+gender string )
+COMMENT 'Employee Table'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+ 
+CREATE TABLE IF NOT EXISTS addresses (
+cust_id STRING,
+first_name STRING,
+last_name STRING,
+company_name STRING,
+address STRING,
+city STRING,
+county STRING,
+state STRING,
+zip STRING,
+phone1 STRING,
+phone2 STRING,
+email STRING,
+web STRING )
+COMMENT 'Adresses'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION '/tmp/addresses';
+--
+   show tables;
+!
