@@ -28,8 +28,9 @@ echo "export JAVA_HOME=/usr/lib/jvm/jdk" >/etc/profile.d/java.sh
 
 ##Benutzer und Gruppe einrichten; als Passwort für hduser hduser verwenden
 groupadd hadoop
-useradd -g hadoop -s /bin/bash -m hduser
+useradd -g hadoop -s /bin/bash -m hduser 
 passwd hduser
+usermod -G vboxsf hduser # Gruppe vboxsf ist nur für VirtualBox zu setzen, damit kann der User auf shared directories zugreifen, bei anderen Virtualisierungslösungen bitte anpassen
 
 ##SSH Schlüssel erzeugen und hinzufügen
 su - hduser
