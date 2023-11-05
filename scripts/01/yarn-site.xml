@@ -13,26 +13,14 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 <configuration>
-<!-- Site specific YARN configuration properties (for several data nodes) -->
+    <!-- Site specific YARN configuration properties (for several data nodes) -->
 	<property>
 		<name>yarn.Node Manager.aux-services</name>
 		<value>mapreduce_shuffle</value>
 	</property>
 	<property>
 		<name>yarn.Node Manager.aux-services.mapreduce.shuffle.class</name>
-      <value>org.apache.hadoop.mapred.ShuffleHandler</value>
-	</property>
-	<property>
-		<name>yarn.resourcemanager.resource-trackerr.address</name>
-		<value>8031</value>
-	</property>
-	<property>
-		<name>yarn.resourcemanager.scheduler.address</name>
-		<value>8030</value>
-	</property>
-	<property>
-		<name>yarn.resourcemanager.address</name>
-		<value>8032</value>
+		<value>org.apache.hadoop.mapred.ShuffleHandler</value>
 	</property>
 	<property>
 		<name>yarn.Node Manager.vmem-pmem-ratio</name>
@@ -45,5 +33,17 @@
 	<property>
 		<name>yarn.nodemanager.vmem-check-enabled</name>
 		<value>false</value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.address</name>
+		<value>namenode:8032</value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.scheduler.address</name>
+		<value>namenode:8030</value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.resource-tracker.address</name>
+		<value>namenode:8031</value>
 	</property>
 </configuration>
