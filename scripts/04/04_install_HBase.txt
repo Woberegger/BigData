@@ -1,13 +1,15 @@
 #wichtig: Zur Sicherheit vorher Snapshot der virtuellen Maschine erstellen!
 
+sudo -s
 cd /usr/local
-wget https://dlcdn.apache.org/hbase/2.5.5/hbase-2.5.5-bin.tar.gz
-wget https://dlcdn.apache.org/hbase/2.5.5/hbase-2.5.5-bin.tar.gz.sha512
-#gpg --verify hbase-2.5.5-bin.tar.gz.asc
-shasum -a 512 hbase-2.5.5-bin.tar.gz; cat hbase-2.5.5-bin.tar.gz.sha512
-tar -xzvf hbase-2.5.5-bin.tar.gz
-chown -R hduser:hadoop /usr/local/hbase-2.5.5 
-ln -s /usr/local/hbase-2.5.5 HBase
+wget https://dlcdn.apache.org/hbase/2.5.6/hbase-2.5.6-bin.tar.gz
+wget https://dlcdn.apache.org/hbase/2.5.6/hbase-2.5.6-bin.tar.gz
+wget https://dlcdn.apache.org/hbase/2.5.6/hbase-2.5.6-bin.tar.gz.sha512
+#gpg --verify hbase-2.5.6-bin.tar.gz.asc
+shasum -a 512 hbase-2.5.6-bin.tar.gz; cat hbase-2.5.6-bin.tar.gz.sha512
+tar -xzvf hbase-2.5.6-bin.tar.gz
+chown -R hduser:hadoop /usr/local/hbase-2.5.6 
+ln -s /usr/local/hbase-2.5.6 HBase
 
 # all other actions shall be done as hduser
 su - hduser
@@ -22,18 +24,11 @@ export PATH=\$PATH:\$HBASE_HOME/bin
 source ~/.bashrc
 
 # Ändern der Datei $HBASE_HOME/conf/hbase-env.sh
-
-#Java Home should already be set in .bashrc from hadoop installation, pls verify
-env | grep JAVA_HOME
-#export JAVA_HOME=/usr/lib/jvm/jdk/
+cd $HBASE_HOME/conf
+#in Datei $HBASE_HOME/conf/hbase-env.sh das JAVA_HOME korrekt setzen, z.B.:
+#JAVA_HOME=/usr/lib/jvm/jdk
 # besser auch das Regionserver File konfigurieren, falls später weitere Nodes dazukommen
 #export HBASE_REGIONSERVERS=${HBASE_HOME}/conf/regionservers
-
-# Konfiguration anpassen
-cd $HBASE_HOME/conf
-
-# in Datei $HBASE_HOME/conf/hbase-env.sh das JAVA_HOME korrekt setzen, z.B.:
-JAVA_HOME=/usr/lib/jvm/jdk
 
 #Sicherungskopie von hbase-site.xml anlegen und dann bearbeiten
 # Frage: was macht das "-p" Flag?
@@ -90,17 +85,21 @@ $HBASE_HOME/bin/start-hbase.sh
 #Anmerkung: beim ersten Start ist der Fingerprint hinzuzufügen
 
 #3.) Prüfen ob HBase Ordner in HDFS angelegt wurden
-hdfs dfs -ls hbase
+hdfs dfs -ls /hbase
 
 # andernfall händisch anlegen über
-hdfs dfs -mkdir hbase
+hdfs dfs -mkdir /hbase
+
+# wenn man später mal die Übung von vorne beginnen will, reicht es, folgendes auszuführen:
+# hdfs dfs -rm -R /hbase
+
 # wenn es Meldung gibt, dass Namenode im save mode ist, dann wie folgt verlassen
 hdfs dfsadmin -safemode leave
  
 #4.) check status in web browserstatus
 firefox -new-tab http://localhost:16010/master-status
 
-#5.) HBase Shell öffnen und Tutorial aus HBase_Shell.pdf versuchen (Daten in HBase anlegen)
+#5.) HBase Shell öffnen und einfache Tabellen mit Daten anlegen
 hbase shell
 
 # Befehl "status" sollte eine Ausgabe wie die folgende liefern
