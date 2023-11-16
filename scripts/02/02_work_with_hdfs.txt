@@ -136,7 +136,7 @@ sudo apt install rpcbind
 sudo systemctl start rpcbind
 sudo apt install nfs-common
 su – hduser
-   stop-df.sh
+   stop-dfs.sh
    start-dfs.sh
    hdfs --daemon start nfs3
    jps | grep Nfs3 # oder im Vordergrund über "hdfs nfs3"
