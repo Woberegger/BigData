@@ -1,0 +1,8 @@
+hdfs dfs -mkdir -p /import/input
+hdfs dfs -put /tmp/people.csv /import/input/
+
+hbase org.apache.hadoop.hbase.mapreduce.ImportTsv -Dimporttsv.columns="HBASE_ROW_KEY,id:name,property:job" -Dimporttsv.separator=',' -Dimporttsv.bulk.output=/import/output people /import/input
+
+hbase shell <<!
+   get 'people', 'row1'
+!

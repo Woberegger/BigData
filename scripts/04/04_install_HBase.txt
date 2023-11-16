@@ -134,7 +134,11 @@ Optionen:
 #   (Achtung: Die Numerierung im pdf ist um Wert 14 höher als die Seitenanzahl im Buch also, geht zu Seite 216 zur Anzeige von Seite 202)
 https://elearning.fh-joanneum.at/pluginfile.php/96582/mod_resource/content/1/BigDataInderPraxis_Auflage1.pdf
 
-# Zum Laden in die Tabelle "peoples" bitte Datei https://github.com/Woberegger/BigData/blob/main/data/people.csv verwenden
+# Zum Laden in die Tabelle "peoples" bitte Datei https://github.com/Woberegger/BigData/blob/main/data/people.csv und script 04_HBase_import.txt verwenden
+
+# Wenn man gerade beim Datenladen einen Fehler wie den Folgenden bekommt, dann bitte mit "netstat -an | grep 16020" prüfen, ob der Regionserver nicht auf localhost nur lauscht
+# Einträge in /etc/hosts und in File "regionservers" kontrollieren.
+# Connection refused: <hostname>/<ip>:16020
 
 #b) Wenn man mehrere Regionserver ausprobieren will, muss man auf allen hbase installieren und folgende Datei um die anderen Server erweitern (und hbase services neu starten)
 $HBASE_HOME/conf/regionservers
