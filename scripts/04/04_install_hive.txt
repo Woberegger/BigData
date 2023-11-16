@@ -3,17 +3,18 @@
 # if you should need "--no-check-certificate" with wget, better do the following beforehand
 sudo update-ca-certificates -f
 # Attention: Take care, that your hadoop version matches the hive version - see https://hive.apache.org/general/downloads/
+#            Unfortunately this is wrong, better use latest version, 3.1.3 does not seem to work with our version
 
-a) binary
+a) binary (preferred, if it works)
 
+cd /usr/local
 #wget https://dlcdn.apache.org/hive/hive-3.1.3/apache-hive-3.1.3-bin.tar.gz.asc
-#wget https://dlcdn.apache.org/hive/hive-3.1.3/apache-hive-3.1.3-bin.tar.gz 
-wget https://dlcdn.apache.org/hive/hive-4.0.0-alpha-1/apache-hive-4.0.0-alpha-1-bin.tar.gz 
+#sudo wget https://dlcdn.apache.org/hive/hive-3.1.3/apache-hive-3.1.3-bin.tar.gz
+sudo wget --no-check-certificate https://dlcdn.apache.org/hive/hive-4.0.0-beta-1/apache-hive-4.0.0-beta-1-bin.tar.gz
 #gpg --verify apache-hive-3.1.3-bin.tar.gz.asc apache-hive-3.1.3-bin.tar.gz  
 #gpg --keyserver pgpkeys.mit.edu --recv-key 0042A0F10D90BFE892F15E7886E88370ED75ECEE
 
-
-sudo mv apache-hive-3.1.3-bin /usr/local
+sudo tar -xzf apache-hive-3.1.3-bin.tar.gz
 sudo ln -s /usr/local/apache-hive-3.1.3-bin /usr/local/hive
 
 b) source (building from source will take several minutes!)
@@ -36,6 +37,8 @@ export HCAT_HOME=\$HIVE_HOME/hcatalog
 export PATH=\$PATH:\$HIVE_HOME/bin
 !
 
+source ~/.bashrc
+
 # wichtig: Änderung an bashrc wird erst nach Neustart der Shell aktiv! Oder nach Ausführen von [TODO]
 
 # start HADOOP, if not running yet
@@ -46,7 +49,7 @@ start-yarn.sh
 # create directories for Hive
 # if you see errors in $HADOOP_HOME/logs, if your Virtual disk is too small, in that case you should execute the following
 #LC_ALL=C
-#growpart /dev/sda 1
+#growpart /dev/sda1
 #resize2fs /dev/sda1
 #hdfs dfsadmin -safemode leave|enter
 
@@ -54,6 +57,8 @@ hdfs dfs -mkdir -p /tmp
 hdfs dfs -mkdir -p /user/hive/warehouse
 hdfs dfs -chmod g+w /tmp
 hdfs dfs -chmod g+w /user/hive/warehouse
+hdfs dfs -mkdir /user/hduser/hive_external
+hdfs dfs -chmod g+w /user/hduser/hive_external
 
 # adapt hive-site.xml (take care to not copy a config file from a different version, as they might not be compatible)
 
@@ -75,12 +80,16 @@ cp hive-default.xml.template hive-site.xml
     <name>hive.metastore.warehouse.dir</name>
     <value>/user/hive/warehouse</value>
 
+# better also set the external dir
+    <name>hive.metastore.warehouse.external.dir</name>
+    <value>/user/hduser/hive_external</value>
+
 hive
 #
 
 # bei folgendem Fehler passen die Versionen von hadoop und hive nicht zusammen, obwohl das auf der Downloadseite anders beschrieben ist:
 # java.lang.NoSuchMethodError - siehe Fix unter https://issues.apache.org/jira/browse/HIVE-22915
-rm $HIVE_HOME/lib/guava-19.0.jar /tmp
+mv $HIVE_HOME/lib/guava-19.0.jar /tmp
 ln -s $HADOOP_HOME/share/hadoop/hdfs/lib/guava-27.0-jre.jar $HIVE_HOME/lib/
 
 # Wenn es Fehler gibt, dann das hive-site.xml File nochmal prüfen, im default File gibt es bei gewissen Versionen folgenden Fehler, der händisch zu beheben ist (Sonderzeichen in Kommentar bei property hive.txn.xlock.iow)
