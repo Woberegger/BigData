@@ -13,6 +13,7 @@ Restart=on-failure
 RemainAfterExit=yes
 
 [Install]
-WantedBy=multi-user.target # in runlevels 2-5
+# in runlevels 2-5
+WantedBy=multi-user.target
 Alias=hdfs.service
 
