@@ -82,7 +82,14 @@ start-yarn.sh
 #2.) HBase starten
 $HBASE_HOME/bin/start-hbase.sh
 
-#Anmerkung: beim ersten Start ist der Fingerprint hinzuzufügen
+# möglicherweise gibt es Fehler beim Hochstarten wie folgt:
+#a) /usr/local/hadoop/libexec/hadoop-functions.sh: line 2369: HADOOP_ORG.APACHE.HADOOP.HBASE.UTIL.GETJAVAPROPERTY_USER: invalid variable name 
+# Lösung: setze Folgendes in hbase-env.sh: export HBASE_DISABLE_HADOOP_CLASSPATH_LOOKUP="true"
+#b) duplicate implementation von log4j:
+# Lösung: Datei $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar umbenennen auf log4j-slf4j-impl-2.17.2.jar.duplicate
+#c) Fehler mit ssh:
+# Lösung in hbase-env.sh: export HBASE_SSH_OPTS="-p 22 -l hduser"
+
 
 #3.) Prüfen ob HBase Ordner in HDFS angelegt wurden
 hdfs dfs -ls /hbase
