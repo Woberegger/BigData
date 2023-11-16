@@ -2364,10 +2364,8 @@ function hadoop_verify_user_perm
 
   uvar=$(hadoop_build_custom_subcmd_var "${program}" "${command}" USER)
 
-  if [ -n "${uvar}" ]; then
-  #if [[ -n ${!uvar} ]]; then
-    if [[ ${uvar} !=  "${USER}" ]]; then
-    #if [[ ${!uvar} !=  "${USER}" ]]; then
+  if [[ -n ${!uvar} ]]; then
+    if [[ ${!uvar} !=  "${USER}" ]]; then
       hadoop_error "ERROR: ${command} can only be executed by ${uvar}."
       exit 1
     fi
