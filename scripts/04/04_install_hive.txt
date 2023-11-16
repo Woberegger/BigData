@@ -103,6 +103,8 @@ cd /usr/local/hive/bin
 
 
 -- use and test hive
+# alternative in beeline:
+!connect jdbc:hive2:// scott
 
 #beeline -u jdbc:hive2://127.0.0.1:10000 scott tiger
 beeline -u jdbc:hive2:// scott tiger <<!
