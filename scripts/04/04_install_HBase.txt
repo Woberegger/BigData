@@ -89,6 +89,9 @@ $HBASE_HOME/bin/start-hbase.sh
 # Lösung: Datei $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar umbenennen auf log4j-slf4j-impl-2.17.2.jar.duplicate
 #c) Fehler mit ssh:
 # Lösung in hbase-env.sh: export HBASE_SSH_OPTS="-p 22 -l hduser"
+#d) Fehler wie folgt:
+# HADOOP_ORG.APACHE.HADOOP.HBASE.UTIL.GETJAVAPROPERTY_USER: invalid variable name
+# Lösung: ersetze Datei $HADOOP_HOME/libexec/hadoop-functions.sh durch folgende Version https://github.com/Woberegger/BigData/blob/main/scripts/04/hadoop-functions.sh
 
 
 #3.) Prüfen ob HBase Ordner in HDFS angelegt wurden
@@ -126,12 +129,18 @@ hadoop jar myHBase.jar
 
 #################################
 Optionen:
-#a) Wenn man mehrere Regionserver ausprobieren will, muss man auf allen hbase installieren und folgende Datei um die anderen Server erweitern (und hbase services neu starten)
+
+#a) weitere Beispiele, z.B. Anzeigen, Zählen oder zum Laden von Daten ausprobieren: Siehe Buch Seiten 202-203,207-209
+#   (Achtung: Die Numerierung im pdf ist um Wert 14 höher als die Seitenanzahl im Buch also, geht zu Seite 216 zur Anzeige von Seite 202)
+https://elearning.fh-joanneum.at/pluginfile.php/96582/mod_resource/content/1/BigDataInderPraxis_Auflage1.pdf
+
+# Zum Laden in die Tabelle "peoples" bitte Datei https://github.com/Woberegger/BigData/blob/main/data/people.csv verwenden
+
+#b) Wenn man mehrere Regionserver ausprobieren will, muss man auf allen hbase installieren und folgende Datei um die anderen Server erweitern (und hbase services neu starten)
 $HBASE_HOME/conf/regionservers
 
 # Dazu muss man jedoch hbase auf allen Nodes installieren und dort folgendes ausführen
 $HBASE_HOME/bin/hbase-daemon.sh --config $HBASE_HOME/conf start regionserver
 
-
-#b) Hbase analog zu HDFS in Autostart reinhängen und ebenso stoppen beim Runterfahren der VM (systemctl Script unter /etc/systemd/system anlegen)
+#c) Hbase analog zu HDFS in Autostart reinhängen und ebenso stoppen beim Runterfahren der VM (systemctl Script unter /etc/systemd/system anlegen)
 # siehe z.B. Anleitung unter https://blog.hartinger.net/ubuntu-server-autostart-eines-commands-einrichten/
