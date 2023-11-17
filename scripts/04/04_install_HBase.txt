@@ -120,11 +120,6 @@ hbase shell
 
 firefox -new-tab http://localhost:16010/master-status#userTables
 
-#7.) Java Programm für Zugriff auf HBase kompilieren und auf davor über 04_HBase_Shell_commands.txt angelegte "people" Tabelle zugreifen
-https://github.com/Woberegger/BigData/tree/main/src/myHBase
-# Aufruf auf Kommandozeile:
-hadoop jar myHBase.jar
-
 #################################
 Optionen:
 
