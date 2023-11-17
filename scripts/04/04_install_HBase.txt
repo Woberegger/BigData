@@ -34,6 +34,9 @@ cp -p hbase-site.xml hbase-site.xml.orig
 
 #Eventuell für Angabe in hbase-site.xml die URL and Port von HDFS checken (für hbase.rootdir property):
 hdfs getconf -confKey fs.defaultFS
+ 
+#Verzeichnis für zookeeper-Daten und logs anlegen (der Ordner "hadoop" gehört ohnehin bereits dem hduser)
+mkdir /usr/local/hadoop/zookeeper
 
 # Ändern der Datei $HBASE_HOME/conf/hbase-site.xml
 
@@ -52,7 +55,7 @@ hdfs getconf -confKey fs.defaultFS
 	
    <property>
       <name>hbase.zookeeper.property.dataDir</name>
-      <!--verify path, if this matches -->
+      <!--wie oben mit mkdir angelegt -->
       <value>/usr/local/hadoop/zookeeper</value>
    </property>
    
@@ -66,10 +69,6 @@ hdfs getconf -confKey fs.defaultFS
   	  <value>filesystem</value>
    </property>
    
- 
-#der Ordner "hadoop" gehört ohnehin bereits dem hduser
-mkdir /usr/local/hadoop/zookeeper
-
 #Testen von HBase
 #1.) Hadoop starten
 start-dfs.sh
