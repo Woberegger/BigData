@@ -3,26 +3,22 @@
 # if you should need "--no-check-certificate" with wget, better do the following beforehand
 sudo update-ca-certificates -f
 # Attention: Take care, that your hadoop version matches the hive version - see https://hive.apache.org/general/downloads/
-#            Unfortunately this is wrong, better use latest version, 3.1.3 does not seem to work with our version
+#            Unfortunately this is wrong, better use latest version 4.x, 3.1.3 does not seem to work with our version
 
 a) binary (preferred, if it works)
 
 cd /usr/local
-#wget https://dlcdn.apache.org/hive/hive-3.1.3/apache-hive-3.1.3-bin.tar.gz.asc
-#sudo wget https://dlcdn.apache.org/hive/hive-3.1.3/apache-hive-3.1.3-bin.tar.gz
 sudo wget --no-check-certificate https://dlcdn.apache.org/hive/hive-4.0.0-beta-1/apache-hive-4.0.0-beta-1-bin.tar.gz
-#gpg --verify apache-hive-3.1.3-bin.tar.gz.asc apache-hive-3.1.3-bin.tar.gz  
-#gpg --keyserver pgpkeys.mit.edu --recv-key 0042A0F10D90BFE892F15E7886E88370ED75ECEE
 
-sudo tar -xzf apache-hive-3.1.3-bin.tar.gz
-sudo ln -s /usr/local/apache-hive-3.1.3-bin /usr/local/hive
+sudo tar -xzf apache-hive-4.0.0-beta-1-bin.tar.gz
+sudo ln -s /usr/local/apache-hive-4.0.0-beta-1-bin /usr/local/hive
 
-b) source (building from source will take several minutes!)
-git clone https://github.com/apache/hive.git
-cd hive
-git checkout master # or maybe origin/branch-3
-# important to set -DskipTests, otherwise this fails because of missing dependencies
-mvn clean package -Pdist -DskipTests -Dmaven.javadoc.skip=true
+#########b) source (building from source will take several minutes!)
+#########git clone https://github.com/apache/hive.git
+#########cd hive
+#########git checkout master # or maybe origin/branch-3
+########## important to set -DskipTests, otherwise this fails because of missing dependencies
+#########mvn clean package -Pdist -DskipTests -Dmaven.javadoc.skip=true
 
 #########################################################
 
@@ -37,9 +33,8 @@ export HCAT_HOME=\$HIVE_HOME/hcatalog
 export PATH=\$PATH:\$HIVE_HOME/bin
 !
 
+# damit Änderungen aktiv werden
 source ~/.bashrc
-
-# wichtig: Änderung an bashrc wird erst nach Neustart der Shell aktiv! Oder nach Ausführen von [TODO]
 
 # start HADOOP, if not running yet
 
