@@ -3,9 +3,7 @@
 sudo -s
 cd /usr/local
 wget https://dlcdn.apache.org/hbase/2.5.6/hbase-2.5.6-bin.tar.gz
-wget https://dlcdn.apache.org/hbase/2.5.6/hbase-2.5.6-bin.tar.gz
 wget https://dlcdn.apache.org/hbase/2.5.6/hbase-2.5.6-bin.tar.gz.sha512
-#gpg --verify hbase-2.5.6-bin.tar.gz.asc
 shasum -a 512 hbase-2.5.6-bin.tar.gz; cat hbase-2.5.6-bin.tar.gz.sha512
 tar -xzvf hbase-2.5.6-bin.tar.gz
 chown -R hduser:hadoop /usr/local/hbase-2.5.6 
