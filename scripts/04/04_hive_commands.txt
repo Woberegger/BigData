@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS sales(
     STORED AS TEXTFILE
     LOCATION '/user/hduser/hive_external/sales';
 
+-- der folgende Befehl läuft auf Fehler (zumindest bei Version 4.0 beta)
 select a.last_name, sum(s.sales) as summe from sales s inner join adresses a on s.cust_id = a.cust_id group by a.last_name order by summe asc;
 
 --- WordCount (der INPATH ist in Pfad innerhalb von hdfs) ---

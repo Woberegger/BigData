@@ -87,6 +87,9 @@ hive
 mv $HIVE_HOME/lib/guava-19.0.jar /tmp
 ln -s $HADOOP_HOME/share/hadoop/hdfs/lib/guava-27.0-jre.jar $HIVE_HOME/lib/
 
+# die Warnings für log4j sollte man auch loswerden, indem man Folgendes verschiebt:
+mv $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar /tmp
+
 # Wenn es Fehler gibt, dann das hive-site.xml File nochmal prüfen, im default File gibt es bei gewissen Versionen folgenden Fehler, der händisch zu beheben ist (Sonderzeichen in Kommentar bei property hive.txn.xlock.iow)
 #Caused by: com.ctc.wstx.exc.WstxParsingException: Illegal character entity: expansion character (code 0x8
 # at [row,col,system-id]: [3221,96,"file:/usr/local/apache-hive-3.1.3-bin/conf/hive-site.xml"]

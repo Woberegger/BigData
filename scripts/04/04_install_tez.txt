@@ -1,0 +1,82 @@
+sudo -s
+cd /usr/local
+export TEZ_VERSION=0.10.2
+wget https://dlcdn.apache.org/tez/${TEZ_VERSION}/apache-tez-${TEZ_VERSION}-bin.tar.gz
+tar -xzf apache-tez-${TEZ_VERSION}-bin.tar.gz
+ln -s apache-tez-${TEZ_VERSION}-bin tez
+chown -R hduser:hadoop apache-tez-${TEZ_VERSION}-bin
+
+su - hduser
+export TEZ_VERSION=0.10.2
+export TEZ_HOME=/usr/local/tez
+cd $TEZ_HOME
+
+# damit tez als Engine verwendet werden kann, muss es ins hdfs selbst reingeladen werden
+hdfs dfs -mkdir -p /apps/tez-${TEZ_VERSION}
+hdfs dfs -put share/tez.tar.gz /apps/tez-${TEZ_VERSION}/
+# add to hdfs-site.xml:
+  <property>
+   <name>dfs.namenode.decommission.interval</name>
+   <value>30</value>
+  </property>
+  <property>
+   <name>dfs.client.datanode-restart.timeout</name>
+   <value>30</value>
+  </property>
+
+cd ${TEZ_HOME}/conf
+cp tez-default-template.xml tez-site.xml
+
+# Setze Folgendes in tez-site.xml (mit korrekter TEZ-Version), wie wir es vorher ins dfs geladen haben
+  <property>
+          <name>tez.lib.uris</name>
+          <value>/apps/tez-0.10.2/tez.tar.gz</value>
+    <type>string</type>
+  </property>
+
+
+cat >> ${HIVE_HOME}/conf/hive-env.sh <<!
+export HADOOP_CLASSPATH=${TEZ_HOME}/conf:${TEZ_HOME}/*:${TEZ_HOME}/lib/*
+!
+
+# damit es nicht Exception gibt wegen doppelter Implementierung ist folgendes File zu löschen oder nach /tmp zu verschieben
+mv $TEZ_HOME/lib/slf4j-reload4j-*.jar /tmp/
+
+cat >> ~/.bashrc <<!
+export TEZ_VERSION=0.10.2
+export TEZ_HOME=/usr/local/tez
+export TEZ_CONF_DIR=\$TEZ_HOME/conf
+export TEZ_JARS=\$TEZ_HOME
+
+# For enabling hive to use the Tez engine
+if [ -z "\$HIVE_AUX_JARS_PATH" ]; then
+   export HIVE_AUX_JARS_PATH="\$TEZ_JARS"
+else
+   export HIVE_AUX_JARS_PATH="\$HIVE_AUX_JARS_PATH:\$TEZ_JARS"
+fi
+
+export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:\${TEZ_CONF_DIR}:\${TEZ_JARS}/*:\${TEZ_JARS}/lib/*
+!
+
+source ~/.bashrc
+
+# for Jetty GUI runner für TEZ GUI
+cd $TEZ_HOME
+wget https://repository.apache.org/content/repositories/releases/org/apache/tez/tez-ui/${TEZ_VERSION}/tez-ui-${TEZ_VERSION}.war
+export JETTY_VERSION=11.0.18
+wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-runner/${JETTY_VERSION}/jetty-runner-${JETTY_VERSION}.jar
+
+java -jar $(ls jetty-runner*.jar) tez-ui-${TEZ_VERSION}.war --port 8080 &
+
+# derzeit funktioniert das bei mir noch nicht, man sollte als ersten Schritt mal den Wordcount Job testen
+hadoop har HadoopWordCount.jar /input/Bibel.txt /output/Bibel.tez
+
+# und wenn das funktioniert, die Anleitung zum Tez-Job in 04_hive_commands.txt ausführen und danach in tez-Variante
+
+set hive.execution.engine=tez
+
+CREATE TABLE IF NOT EXISTS word_counts_tez AS
+SELECT word, count(1) AS count FROM
+ (SELECT explode(split(line, ' ')) AS word FROM docs) temp
+GROUP BY temp.word
+ORDER BY temp.word;
