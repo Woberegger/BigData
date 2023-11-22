@@ -1,0 +1,65 @@
+sudo -s
+cd /usr/local
+export FLUME_VERSION=1.11.0
+wget https://archive.apache.org/dist/flume/${FLUME_VERSION}/apache-flume-${FLUME_VERSION}-bin.tar.gz
+tar -xzf apache-flume-${FLUME_VERSION}-bin.tar.gz
+ln -s apache-flume-${FLUME_VERSION}-bin flume
+chown -R hduser:hadoop apache-flume-${FLUME_VERSION}-bin
+
+su - hduser
+
+cat >> ~/.bashrc <<!
+export FLUME_HOME=/usr/local/flume
+export PATH=\$PATH:\$FLUME_HOME/bin
+if [ -z "\$CLASSPATH" ]; then
+   export CLASSPATH=\$FLUME_HOME/lib
+else
+   export CLASSPATH=\$CLASSPATH:\$FLUME_HOME/lib
+fi
+!
+
+source ~/.bashrc
+
+cd $FLUME_HOME/conf
+
+cp -p  flume-env.sh.template flume-env.sh
+cp -p flume-conf.properties.template flume-conf.properties
+
+# entweder ans Ende der Datei hängen oder besser im File an der Stelle ersetzen
+cat >>flume-env.sh <<!
+export JAVA_HOME=/usr/lib/jvm/jdk
+export JAVA_OPTS="-Xms100m -Xmx2000m -Dcom.sun.management.jmxremote"
+export FLUME_CLASSPATH="/usr/local/flume/lib/*"
+!
+
+flume-ng version
+
+# erzeuge Sequence Generator
+cat >$FLUME_HOME/conf/seq_gen.conf <<!
+
+# Naming the components on the current agent 
+
+SeqGenAgent.sources = SeqSource   
+SeqGenAgent.channels = MemChannel 
+SeqGenAgent.sinks = HDFS 
+ 
+# Describing/Configuring the source 
+SeqGenAgent.sources.SeqSource.type = seq
+  
+# Describing/Configuring the sink
+SeqGenAgent.sinks.HDFS.type = hdfs 
+SeqGenAgent.sinks.HDFS.hdfs.path = hdfs://namenode:9000/user/hduser
+SeqGenAgent.sinks.HDFS.hdfs.filePrefix = log 
+SeqGenAgent.sinks.HDFS.hdfs.rollInterval = 0
+SeqGenAgent.sinks.HDFS.hdfs.rollCount = 10000
+SeqGenAgent.sinks.HDFS.hdfs.fileType = DataStream 
+ 
+# Describing/Configuring the channel 
+SeqGenAgent.channels.MemChannel.type = memory 
+SeqGenAgent.channels.MemChannel.capacity = 1000 
+SeqGenAgent.channels.MemChannel.transactionCapacity = 100 
+ 
+# Binding the source and sink to the channel 
+SeqGenAgent.sources.SeqSource.channels = MemChannel
+SeqGenAgent.sinks.HDFS.channel = MemChannel
+!

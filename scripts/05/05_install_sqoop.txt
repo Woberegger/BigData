@@ -1,0 +1,31 @@
+sudo -s
+cd /usr/local
+export SQOOP_VERSION=1.4.7
+wget https://archive.apache.org/dist/sqoop/${SQOOP_VERSION}/sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz
+tar -xzf sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz
+ln -s sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0 sqoop
+chown -R hduser:hadoop sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0
+
+su - hduser
+
+cat >> ~/.bashrc <<!
+export SQOOP_HOME=/usr/local/sqoop
+export ACCUMULO_HOME=\$SQOOP_HOME # just to get rid of warning, we will not need this
+export ZOOKEEPER_HOME=\$HADOOP_HOME/zookeeper # just to get rid of warning
+export PATH=\$PATH:\$SQOOP_HOME/bin
+!
+
+source ~/.bashrc
+
+cd $SQOOP_HOME/conf
+
+cp -p sqoop-env-template.sh sqoop-env.sh
+# entweder ans Ende der Datei hängen oder besser im File an der Stelle ersetzen
+cat >>sqoop-env.sh <<!
+export HADOOP_COMMON_HOME=/usr/local/hadoop
+export HADOOP_MAPRED_HOME=/usr/local/hadoop
+export HBASE_HOME=/usr/local/HBase
+export HIVE_HOME=/usr/local/hive
+!
+
+sqoop version
