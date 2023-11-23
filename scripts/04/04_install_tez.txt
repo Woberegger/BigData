@@ -34,7 +34,7 @@ cp tez-default-template.xml tez-site.xml
     <type>string</type>
   </property>
 
-
+# Prüfen, ob das korrekt ist oder um andere HADOOP-Pfade zu ergänzen wäre...
 cat >> ${HIVE_HOME}/conf/hive-env.sh <<!
 export HADOOP_CLASSPATH=${TEZ_HOME}/conf:${TEZ_HOME}/*:${TEZ_HOME}/lib/*
 !
@@ -54,8 +54,6 @@ if [ -z "\$HIVE_AUX_JARS_PATH" ]; then
 else
    export HIVE_AUX_JARS_PATH="\$HIVE_AUX_JARS_PATH:\$TEZ_JARS"
 fi
-
-export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:\${TEZ_CONF_DIR}:\${TEZ_JARS}/*:\${TEZ_JARS}/lib/*
 !
 
 source ~/.bashrc
@@ -73,7 +71,7 @@ hadoop har HadoopWordCount.jar /input/Bibel.txt /output/Bibel.tez
 
 # und wenn das funktioniert, die Anleitung zum Tez-Job in 04_hive_commands.txt ausführen und danach in tez-Variante
 
-set hive.execution.engine=tez
+set hive.execution.engine=tez;
 
 CREATE TABLE IF NOT EXISTS word_counts_tez AS
 SELECT word, count(1) AS count FROM
