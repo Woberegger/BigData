@@ -18,7 +18,8 @@ beeline -u jdbc:hive2:// scott tiger
    show tables;
    use default;
 
-CREATE TABLE IF NOT EXISTS adresses(
+-- diese 2 sind sogenannte "external tables"
+CREATE EXTERNAL TABLE IF NOT EXISTS adresses(
     cust_id INT, first_name STRING,last_name STRING,company_name STRING,address STRING,city STRING,county STRING,state STRING,zip STRING,phone1 STRING,phone2 STRING,email STRING,web STRING)
     COMMENT 'Adresses'
     ROW FORMAT DELIMITED
@@ -26,15 +27,30 @@ CREATE TABLE IF NOT EXISTS adresses(
     STORED AS TEXTFILE
     LOCATION '/user/hduser/hive_external/adr';
 
-CREATE TABLE IF NOT EXISTS sales(
+CREATE EXTERNAL TABLE IF NOT EXISTS sales(
     cust_id INT,Product_ID STRING,Category STRING,SubCategory STRING,ProductName STRING,Sales DOUBLE,Quantity DOUBLE,Discount  DOUBLE,Profit DOUBLE)
     COMMENT 'Sales'
     ROW FORMAT DELIMITED
     FIELDS TERMINATED BY ';'
     STORED AS TEXTFILE
     LOCATION '/user/hduser/hive_external/sales';
+    
+-- und dann legen wir internal tables mit denselben Inhalten an (die werden unter /user/hive/warehouse angelegt)
+CREATE TABLE IF NOT EXISTS adresses_internal(
+    cust_id INT, first_name STRING,last_name STRING,company_name STRING,address STRING,city STRING,county STRING,state STRING,zip STRING,phone1 STRING,phone2 STRING,email STRING,web STRING)
+    COMMENT 'Adresses managed as internal table';
+CREATE TABLE IF NOT EXISTS sales_internal(
+    cust_id INT,Product_ID STRING,Category STRING,SubCategory STRING,ProductName STRING,Sales DOUBLE,Quantity DOUBLE,Discount  DOUBLE,Profit DOUBLE)
+    COMMENT 'Sales managed as internal table';
 
--- der folgende Befehl läuft auf Fehler (zumindest bei Version 4.0 beta)
+INSERT OVERWRITE TABLE adresses_internal SELECT * FROM adresses;
+INSERT OVERWRITE TABLE sales_internal SELECT * FROM sales;
+
+-- die einfache Abfrage auf nur 1 Tabelle
+select s.cust_id, sum(s.sales) as summe from sales s group by cust_id limit 20;
+
+-- wenn der folgende Befehl auf Fehler läuft (und es passiert auch, wenn man die internen Tabellen statt den externen verwendet),
+-- dann muss man prüfen, ob in hive-site.xml das Property hive.auto.convert.join auf false gesetzt wurde - dann sollte es funktionieren
 select a.last_name, sum(s.sales) as summe from sales s inner join adresses a on s.cust_id = a.cust_id group by a.last_name order by summe asc;
 
 --- WordCount (der INPATH ist in Pfad innerhalb von hdfs) ---

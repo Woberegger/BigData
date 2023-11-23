@@ -60,7 +60,7 @@ hdfs dfs -chmod g+w /user/hduser/hive_external
 cd /usr/local/hive/conf
 cp hive-default.xml.template hive-site.xml
 
--Folgendes Property am Begin nach Tag <configuration> einfügen
+#Folgendes Property am Begin nach Tag <configuration> einfügen
 
  <property>
    <name>system:java.io.tmpdir</name>
@@ -78,6 +78,13 @@ cp hive-default.xml.template hive-site.xml
 # better also set the external dir
     <name>hive.metastore.warehouse.external.dir</name>
     <value>/user/hduser/hive_external</value>
+
+# und ganz wichtig: der folgende Wert muss ersetzt auf "false" gesetzt werden, bei "true" gibt es Exceptions bei join über 2 oder mehr Tabellen
+  <property>
+    <name>hive.auto.convert.join</name>
+    <value>false</value>
+    <description>Whether Hive enables the optimization about converting common join into mapjoin based on the input file size</description>
+  </property>
 
 hive
 #
