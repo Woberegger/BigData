@@ -1,0 +1,69 @@
+# und damit man mit Sqoop auf Datenbanken zugreifen kann, braucht man z.B. einen entspr. JDBC Connector
+# fuer mySQL
+
+su - hduser
+cd $SQOOP_HOME
+# fuer ubuntu könnte man auch ein Debian-Package verwenden, aber wir bleiben bei den generischen tar-Files:
+MYSQLCON_VERSION=8.0.29
+wget http://ftp.ntu.edu.tw/MySQL/Downloads/Connector-J/mysql-connector-java-${MYSQLCON_VERSION}.tar.gz
+# wir müssen nur das jar-File verwenden und ins lib-Directory kopieren
+tar -xzf mysql-connector-java-${MYSQLCON_VERSION}.tar.gz
+cp -p mysql-connector-java-${MYSQLCON_VERSION}/mysql-connector-java-${MYSQLCON_VERSION}.jar lib/
+
+# und dann halt mySQL selber (entweder direkt oder als docker container)
+sudo apt install mysql-server
+sudo systemctl start mysql.service
+sudo mysql <<!
+   ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
+!
+# relogin mit dem gesetzten Passwort:
+mysql -u root -p <<!
+
+CREATE DATABASE IF NOT EXISTS testdb;
+show databases;
+use testdb;
+
+CREATE TABLE IF NOT EXISTS students (
+    id INT PRIMARY KEY,
+    first_name VARCHAR(80) NOT NULL,
+    last_name VARCHAR(80) NOT NULL,
+    entry_date DATE,
+    course VARCHAR(80) NOT NULL
+);
+show tables;
+!
+
+# jetzt legen wir eine idente Tabelle in Hive an
+beeline -u jdbc:hive2:// scott tiger <<!
+   set hive.execution.engine=mr;
+   set hive.metastore.warehouse.dir;
+   create database if not exists fh;
+   show databases;
+   use fh;
+   show tables;
+   DROP table students;
+   CREATE TABLE IF NOT EXISTS students( id INT , first_name STRING, last_name STRING, entry_date DATE, course STRING)
+      COMMENT 'Students to sync with mySQL'
+      ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';
+   describe students;
+!
+
+# dann generiere ein csv-File über https://generatedata.com/ mit den benötigten Daten.
+# die generierten Daten ev. noch nachbearbeiten:
+# a) Split auf Vorname+Nachname:
+#    sed -i 's/ /,/g' students.csv
+# b) passendes Datumsformat mit padding:
+#    TODO
+
+# wir können die Datei ins hdfs reinladen oder benutzen hier mal das "LOCAL INPATH" zum Laden von lokaler Datei
+# hdfs dfs -put BigData/data/students.csv /tmp/
+beeline -u jdbc:hive2:// scott tiger <<!
+   LOAD DATA LOCAL INPATH '/home/hduser/BigData/data/students.csv' OVERWRITE INTO TABLE students;
+   select * from students limit 10;
+!
+
+# m 1 ... Anzahl an Mappern, hier derzeit immer 1
+sqoop export --connect jdbc:mysql://localhost:3306/testdb \
+ --table students --username root --password password \
+ --export-dir /user/hive/warehouse/fh.db/students --m 1 \
+ --driver com.mysql.jdbc.Driver --input-fields-terminated-by ','
