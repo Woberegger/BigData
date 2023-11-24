@@ -23,9 +23,13 @@ cp -p sqoop-env-template.sh sqoop-env.sh
 # entweder ans Ende der Datei hängen oder besser im File an der Stelle ersetzen
 cat >>sqoop-env.sh <<!
 export HADOOP_COMMON_HOME=/usr/local/hadoop
-export HADOOP_MAPRED_HOME=/usr/local/hadoop
+export HADOOP_MAPRED_HOME=/usr/local/hadoop/share/hadoop/mapreduce
 export HBASE_HOME=/usr/local/HBase
 export HIVE_HOME=/usr/local/hive
 !
 
+$SQOOP_HOME/bin/configure-sqoop
+
 sqoop version
+
+# bitte weitermachen mit script 05_sqoop_with_mysql.txt
