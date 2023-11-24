@@ -4,6 +4,7 @@
 su - hduser
 cd $SQOOP_HOME
 # fuer ubuntu könnte man auch ein Debian-Package verwenden, aber wir bleiben bei den generischen tar-Files:
+# alternativ download unter http://www.mysql.com/downloads/connector/j/5.1.html
 MYSQLCON_VERSION=8.0.29
 wget http://ftp.ntu.edu.tw/MySQL/Downloads/Connector-J/mysql-connector-java-${MYSQLCON_VERSION}.tar.gz
 # wir müssen nur das jar-File verwenden und ins lib-Directory kopieren
@@ -16,12 +17,14 @@ sudo systemctl start mysql.service
 sudo mysql <<!
    ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
 !
+
+export DATABASE_NAME=testdb
 # relogin mit dem gesetzten Passwort:
 mysql -u root -p <<!
 
-CREATE DATABASE IF NOT EXISTS testdb;
+CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;
 show databases;
-use testdb;
+use $DATABASE_NAME;
 
 CREATE TABLE IF NOT EXISTS students (
     id INT PRIMARY KEY,
@@ -58,12 +61,27 @@ beeline -u jdbc:hive2:// scott tiger <<!
 # wir können die Datei ins hdfs reinladen oder benutzen hier mal das "LOCAL INPATH" zum Laden von lokaler Datei
 # hdfs dfs -put BigData/data/students.csv /tmp/
 beeline -u jdbc:hive2:// scott tiger <<!
+   use fh;
    LOAD DATA LOCAL INPATH '/home/hduser/BigData/data/students.csv' OVERWRITE INTO TABLE students;
    select * from students limit 10;
 !
 
-# m 1 ... Anzahl an Mappern, hier derzeit immer 1
-sqoop export --connect jdbc:mysql://localhost:3306/testdb \
+# scheinbar muss man die mapreduce Jar Files rüberkopieren, andernfalls gibt es "ClassNotFound" exception
+cp -p /usr/local/hadoop/share/hadoop/mapreduce/*.jar $SQOOP_HOME/lib/
+
+export DATABASE_NAME=testdb
+# -m 1 ... Anzahl an Mappern, hier derzeit immer 1
+sqoop export --connect jdbc:mysql://localhost:3306/${DATABASE_NAME} \
  --table students --username root --password password \
- --export-dir /user/hive/warehouse/fh.db/students --m 1 \
- --driver com.mysql.jdbc.Driver --input-fields-terminated-by ','
+ --export-dir /user/hduser/hive_external/fh.db/students --num-mappers 1 \
+ --driver com.mysql.jdbc.Driver \
+ --input-fields-terminated-by ',' --input-lines-terminated-by '\n'
+# or use: com.mysql.cj.jdbc.Driver
+
+sqoop import --connect jdbc:mysql://localhost:3306/${DATABASE_NAME} \
+ --username root --password password \
+ --table students \
+ --driver com.mysql.cj.jdbc.Driver \
+ --hive-import --hive-table fh.students --num-mappers 1
+ 
+# does not work... --connection-manager org.apache.sqoop.manager.MySQLManager
