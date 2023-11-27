@@ -4,6 +4,7 @@ plugins {
 
 group = 'at.fhj'
 version = '1.0'
+targetCompatibility = 11
 
 repositories {
     mavenCentral()
