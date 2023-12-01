@@ -28,8 +28,13 @@ export HBASE_HOME=/usr/local/HBase
 export HIVE_HOME=/usr/local/hive
 !
 
+# notwendig, andernfalls passiert beim Datenladen eine Warnung
+mkdir $SQOOP_HOME/libjars/
+
 $SQOOP_HOME/bin/configure-sqoop
 
 sqoop version
+
+
 
 # bitte weitermachen mit script 05_sqoop_with_mysql.txt

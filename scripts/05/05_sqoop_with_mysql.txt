@@ -1,8 +1,8 @@
 # und damit man mit Sqoop auf Datenbanken zugreifen kann, braucht man z.B. einen entspr. JDBC Connector
 # fuer mySQL
+# VORSICHT: MySQL-Objekte sind per default case-sensitive, d.h. studentsMySQL != studentsmysql
 
 su - hduser
-cd $SQOOP_HOME
 # fuer ubuntu könnte man auch ein Debian-Package verwenden, aber wir bleiben bei den generischen tar-Files:
 # alternativ download unter http://www.mysql.com/downloads/connector/j/5.1.html
 MYSQLCON_VERSION=8.0.29
@@ -11,22 +11,29 @@ wget http://ftp.ntu.edu.tw/MySQL/Downloads/Connector-J/mysql-connector-java-${MY
 tar -xzf mysql-connector-java-${MYSQLCON_VERSION}.tar.gz
 cp -p mysql-connector-java-${MYSQLCON_VERSION}/mysql-connector-java-${MYSQLCON_VERSION}.jar lib/
 
-# und dann halt mySQL selber (entweder direkt oder als docker container)
+# und dann halt mySQL selber (entweder direkt oder als docker container) - als root/osboxes-user (z.B. in anderer shell)
 sudo apt install mysql-server
 sudo systemctl start mysql.service
+
 sudo mysql <<!
    ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
 !
 
+su - hduser
+# Wichtig der MySQL user braucht ein Verzeichnis im hdfs, anderenfalls gibt es exception "java.io.IOException: java.lang.ClassNotFoundException: students"
+export MYSQL_USER=root
+hdfs dfs -mkdir /user/${MYSQL_USER}
+hdfs dfs -chmod 777 /user/${MYSQL_USER}
+
 export DATABASE_NAME=testdb
 # relogin mit dem gesetzten Passwort:
-mysql -u root -p <<!
+mysql -u $MYSQL_USER -p <<!
 
 CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;
 show databases;
 use $DATABASE_NAME;
 
-CREATE TABLE IF NOT EXISTS students (
+CREATE TABLE IF NOT EXISTS studentsMySQL (
     id INT PRIMARY KEY,
     first_name VARCHAR(80) NOT NULL,
     last_name VARCHAR(80) NOT NULL,
@@ -44,19 +51,24 @@ beeline -u jdbc:hive2:// scott tiger <<!
    show databases;
    use fh;
    show tables;
+   -- diese Tabelle kopieren wir von Hive nach mySQL
    DROP table students;
    CREATE TABLE IF NOT EXISTS students( id INT , first_name STRING, last_name STRING, entry_date DATE, course STRING)
       COMMENT 'Students to sync with mySQL'
       ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';
    describe students;
+   -- und in diese Tabelle wieder retour von MySQL
+   DROP table studentsFromMySQL;
+   CREATE TABLE IF NOT EXISTS studentsFromMySQL ( id INT , first_name STRING, last_name STRING, entry_date DATE, course STRING)
+   COMMENT 'Students to sync with mySQL';
 !
 
 # dann generiere ein csv-File über https://generatedata.com/ mit den benötigten Daten.
+# Eine bereits generierte Version liegt im git Repo unter "data/students.csv"
 # die generierten Daten ev. noch nachbearbeiten:
 # a) Split auf Vorname+Nachname:
 #    sed -i 's/ /,/g' students.csv
-# b) passendes Datumsformat mit padding:
-#    TODO
+# b) ev. passendes Datumsformat mit padding (ist aber nicht nötig für unseren Testfall):
 
 # wir können die Datei ins hdfs reinladen oder benutzen hier mal das "LOCAL INPATH" zum Laden von lokaler Datei
 # hdfs dfs -put BigData/data/students.csv /tmp/
@@ -70,18 +82,38 @@ beeline -u jdbc:hive2:// scott tiger <<!
 cp -p /usr/local/hadoop/share/hadoop/mapreduce/*.jar $SQOOP_HOME/lib/
 
 export DATABASE_NAME=testdb
+# liste auf, ob unsere Datenbank und unsere Tabelle "studentsMySQL" gefunden werden
+sqoop-list-databases --connect jdbc:mysql://localhost:3306  --username $MYSQL_USER --password password
+sqoop-list-tables --connect jdbc:mysql://localhost:3306/${DATABASE_NAME} --username $MYSQL_USER --password password
+
 # -m 1 ... Anzahl an Mappern, hier derzeit immer 1
 sqoop export --connect jdbc:mysql://localhost:3306/${DATABASE_NAME} \
- --table students --username root --password password \
+ --table studentsMySQL --username $MYSQL_USER --password password \
  --export-dir /user/hduser/hive_external/fh.db/students --num-mappers 1 \
  --driver com.mysql.jdbc.Driver \
  --input-fields-terminated-by ',' --input-lines-terminated-by '\n'
 # or use: com.mysql.cj.jdbc.Driver
 
+mysql -u $MYSQL_USER -p <<!
+use $DATABASE_NAME;
+SELECT * FROM studentsMySQL LIMIT 10;
+!
+
+# die andere Richtung am besten testen, indem eine 2. Tabelle in Hive angelegt wird
+hdfs dfs -rm -R /user/hduser/studentsMySQL
+# möglicherweise gibt es Fehler:
+#java.lang.NoClassDefFoundError: Could not initialize class org.apache.derby.jdbc.EmbeddedDriver
+
 sqoop import --connect jdbc:mysql://localhost:3306/${DATABASE_NAME} \
- --username root --password password \
- --table students \
- --driver com.mysql.cj.jdbc.Driver \
- --hive-import --hive-table fh.students --num-mappers 1
- 
-# does not work... --connection-manager org.apache.sqoop.manager.MySQLManager
+ --username $MYSQL_USER --password password \
+ --table studentsMySQL \
+ --driver com.mysql.jdbc.Driver \
+ --hive-import --hive-table fh.studentsFromMySQL --num-mappers 1
+
+# verifiziere die Inhalte
+beeline -u jdbc:hive2:// scott tiger <<!
+   set hive.execution.engine=mr;
+   set hive.metastore.warehouse.dir;
+   use fh;
+   SELECT * FROM studentsFromMySQL LIMIT 10;
+!
