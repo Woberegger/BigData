@@ -6,11 +6,38 @@ export DOCKER_CONTAINERNAME=swdPostgres
 export NETWORK=my-docker-network
 docker network create --driver=bridge --subnet=10.0.4.0/24 --ip-range=10.0.4.0/24 --gateway=10.0.4.1 $NETWORK
 # additionally set "-e POSTGRES_USER=postgres"
-docker run --name $DOCKER_CONTAINERNAME --network ${NETWORK} -p 5432:5432 -e POSTGRES_PASSWORD=my-secret-pw -d postgres:latest
-# oder
-# docker run -it --rm --network ${NETWORK} -p 5432:5432 --hostname $DOCKER_CONTAINERNAME postgres psql -U postgres:latest
-#interaktiver login in den laufenden Container
-docker exec -it -u postgres ${DOCKER_CONTAINERNAME} /bin/bash
+docker run --name $DOCKER_CONTAINERNAME --network ${NETWORK} -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=my-secret-pw -d postgres:latest
+#interaktiver login über psql SQL-Commandline in den laufenden Container
+docker exec -it -u postgres ${DOCKER_CONTAINERNAME} psql <<!
+   CREATE ROLE scott LOGIN PASSWORD 'my-secret-pw';
+   CREATE DATABASE testdb 
+   WITH 
+      ENCODING = 'UTF8'
+      OWNER = scott
+      CONNECTION LIMIT = 100;
+   \c testdb
+!
+# logge neu ein mit dem neu angelegten User:
+docker exec -it -u postgres -e POSTGRES_PASSWORD=my-secret-pw -e POSTGRES_USER=scott swdPostgres psql <<!
+   \c testdb
+   SELECT datname FROM pg_database;
+   CREATE TABLE IF NOT EXISTS studentspostgres (
+      id int PRIMARY KEY,
+      first_name VARCHAR ( 80 ) NOT NULL,
+      last_name VARCHAR ( 80 ) NOT NULL,
+      entry_date TIMESTAMP,
+      course VARCHAR (80) NOT NULL
+   );
+   SELECT 
+      table_name, 
+      column_name, 
+      data_type 
+   FROM 
+      information_schema.columns
+   WHERE 
+      table_name = 'testdb.studentspostgres';
+   INSERT INTO studentspostgres VALUES (-1, 'John', 'Doe', '20221001', 'SWD');
+!
 
 cd /usr/local
 POSTGRES_JDBC_VERSION=42.7.0
@@ -25,11 +52,19 @@ cp -p postgresql-${POSTGRES_JDBC_VERSION}.jar ${SQOOP_HOME}/lib/
 
 source ~/.bashrc # damit classpath neu eingelesen wird
 
-sqoop list-databases --connect 'jdbc:postgresql://localhost:5432/' --username 'postgres' --password 'my-secret-pw'
-sqoop list-tables --connect 'jdbc:postgresql://localhost:5432/' --username 'postgres' --password 'my-secret-pw'
+sqoop list-databases --connect 'jdbc:postgresql://localhost:5432/testdb' --username 'postgres' --password 'my-secret-pw'
+# wenn hier die Ausgabe "studentspostgres" lautet, dann wurde die angelegte Tabelle gefunden.
+sqoop list-tables --connect 'jdbc:postgresql://localhost:5432/testdb' --username 'postgres' --password 'my-secret-pw'
+
 #zw. den Aufrufen muss man das Verzeichnis löschen
 hdfs dfs -mkdir /user/postgres
 hdfs dfs -chmod 777 /user/postgres
-hdfs dfs -rm -R /user/postgres/studentsMsSql
-# TODO: Tabelle in Postgres anlagen ähnlich MSSQL-Anleitung
-# Weiters siehe Anleitung für MsSql, welche Parameter zu setzen wären für den sqoop-import
+hdfs dfs -rm -R /user/postgres/studentspostgres
+
+# Weiter siehe Anleitung für MsSql, welche Parameter zu setzen wären für den sqoop-import
+
+sqoop export --connect jdbc:postgresql://localhost:5432/testdb \
+ --table studentspostgres --username postgres --password my-secret-pw \
+ --export-dir /user/hduser/hive_external/fh.db/students --num-mappers 1 \
+ --driver org.postgresql.Driver \
+ --input-fields-terminated-by ',' --input-lines-terminated-by '\n'
