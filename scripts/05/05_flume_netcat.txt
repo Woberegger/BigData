@@ -1,0 +1,38 @@
+# Verifiziere nochmal, ob Flume funktioniert (bitte auch achten, dass dfs und yarn laufen)
+su - hduser
+flume-ng version
+
+# erzeuge netcat listener
+cat >$FLUME_HOME/conf/example.conf <<!
+# example.conf: A single-node Flume configuration
+
+# Name the components on this agent
+a1.sources = r1
+a1.sinks = k1
+a1.channels = c1
+
+# Describe/configure the source
+a1.sources.r1.type = netcat
+a1.sources.r1.bind = localhost
+a1.sources.r1.port = 44444
+
+# Describe the sink
+a1.sinks.k1.type = logger
+
+# Use a channel which buffers events in memory
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+
+# Bind the source and sink to the channel
+a1.sources.r1.channels = c1
+a1.sinks.k1.channel = c1
+!
+
+# Testaufruf
+cd $FLUME_HOME
+bin/flume-ng agent -n a1 -c conf -f conf/example.conf
+
+# in 2. Session telnet oder besser netcat starten - dort dann einfach versch. Strings eingeben und mit <ENTER> abschließen,
+# es passiert eine "OK"-Ausgabe und im Fenster des Agents scheinen die Eingaben auf
+netcat localhost 44444

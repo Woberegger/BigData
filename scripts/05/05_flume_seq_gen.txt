@@ -1,0 +1,46 @@
+# Verifiziere nochmal, ob Flume funktioniert (bitte auch achten, dass dfs und yarn laufen)
+su - hduser
+flume-ng version
+
+# erzeuge Sequence Generator
+cat >$FLUME_HOME/conf/seq_gen.conf <<!
+
+# Naming the components on the current agent 
+
+SeqGenAgent.sources = SeqSource   
+SeqGenAgent.channels = MemChannel 
+SeqGenAgent.sinks = HDFS 
+ 
+# Describing/Configuring the source 
+SeqGenAgent.sources.SeqSource.type = seq
+  
+# Describing/Configuring the sink
+SeqGenAgent.sinks.HDFS.type = hdfs
+#IMPORTANT: use prefix as output from command: hdfs dfs getconf -confKey fs.defaultFS
+SeqGenAgent.sinks.HDFS.hdfs.path = hdfs://namenode:9000/user/hduser
+SeqGenAgent.sinks.HDFS.hdfs.filePrefix = log 
+SeqGenAgent.sinks.HDFS.hdfs.rollInterval = 0
+SeqGenAgent.sinks.HDFS.hdfs.rollCount = 10000
+SeqGenAgent.sinks.HDFS.hdfs.fileType = DataStream 
+ 
+# Describing/Configuring the channel 
+SeqGenAgent.channels.MemChannel.type = memory 
+SeqGenAgent.channels.MemChannel.capacity = 1000 
+SeqGenAgent.channels.MemChannel.transactionCapacity = 100 
+ 
+# Binding the source and sink to the channel 
+SeqGenAgent.sources.SeqSource.channels = MemChannel
+SeqGenAgent.sinks.HDFS.channel = MemChannel
+!
+
+# Testaufruf
+hdfs dfs -rm /user/hduser/sink/*
+cd $FLUME_HOME
+# Die Parameter können in kurzer oder langer Form stehen, also z.B. -c oder --conf
+./bin/flume-ng agent --conf conf/ -f conf/seq_gen.conf -n SeqGenAgent -Dflume.root.logger=INFO,console
+
+# Dateien anzeigen 
+hdfs dfs -ls -R /user/hduser/sink
+
+# Inhalte der Dateien (am besten im Webbrowser oder wie folgt):
+hdfs dfs -cat /user/hduser/sink/<FileName>
