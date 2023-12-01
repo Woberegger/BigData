@@ -1,0 +1,35 @@
+# das folgende ist zu tun, wenn man einen docker Container mit der gewählten Datenbank installieren möchte
+sudo -s
+snap install docker
+docker pull postgres
+export DOCKER_CONTAINERNAME=swdPostgres
+export NETWORK=my-docker-network
+docker network create --driver=bridge --subnet=10.0.4.0/24 --ip-range=10.0.4.0/24 --gateway=10.0.4.1 $NETWORK
+# additionally set "-e POSTGRES_USER=postgres"
+docker run --name $DOCKER_CONTAINERNAME --network ${NETWORK} -p 5432:5432 -e POSTGRES_PASSWORD=my-secret-pw -d postgres:latest
+# oder
+# docker run -it --rm --network ${NETWORK} -p 5432:5432 --hostname $DOCKER_CONTAINERNAME postgres psql -U postgres:latest
+#interaktiver login in den laufenden Container
+docker exec -it -u postgres ${DOCKER_CONTAINERNAME} /bin/bash
+
+cd /usr/local
+POSTGRES_JDBC_VERSION=42.7.0
+wget https://jdbc.postgresql.org/download/postgresql-${POSTGRES_JDBC_VERSION}.jar
+
+chown hduser:hadoop postgresql-${POSTGRES_JDBC_VERSION}.jar
+
+su - hduser
+cd /usr/local
+POSTGRES_JDBC_VERSION=42.7.0
+cp -p postgresql-${POSTGRES_JDBC_VERSION}.jar ${SQOOP_HOME}/lib/
+
+source ~/.bashrc # damit classpath neu eingelesen wird
+
+sqoop list-databases --connect 'jdbc:postgresql://localhost:5432/' --username 'postgres' --password 'my-secret-pw'
+sqoop list-tables --connect 'jdbc:postgresql://localhost:5432/' --username 'postgres' --password 'my-secret-pw'
+#zw. den Aufrufen muss man das Verzeichnis löschen
+hdfs dfs -mkdir /user/postgres
+hdfs dfs -chmod 777 /user/postgres
+hdfs dfs -rm -R /user/postgres/studentsMsSql
+# TODO: Tabelle in Postgres anlagen ähnlich MSSQL-Anleitung
+# Weiters siehe Anleitung für MsSql, welche Parameter zu setzen wären für den sqoop-import

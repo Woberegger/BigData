@@ -1,0 +1,59 @@
+# das folgende ist zu tun, wenn man einen docker Container mit der gewählten Datenbank installieren möchte
+# Anleitung für MsSql siehe https://learn.microsoft.com/de-de/sql/linux/quickstart-install-connect-docker?view=sql-server-ver16&pivots=cs1-bash
+# docker imager download von https://hub.docker.com/_/microsoft-mssql-server
+sudo -s
+snap install docker
+docker pull mcr.microsoft.com/mssql/server
+export DOCKER_CONTAINERNAME=sqlpreview
+export NETWORK=my-docker-network
+docker network create --driver=bridge --subnet=10.0.4.0/24 --ip-range=10.0.4.0/24 --gateway=10.0.4.1 $NETWORK
+# give it a shorter name
+docker tag mcr.microsoft.com/mssql/server:latest mssql:latest
+# einmalig ausführen zur Initialisierung
+# WICHTIG: Das Passwort muss den entspr. Kriterien entsprechen, andernfalls startet DB nicht
+docker run --name $DOCKER_CONTAINERNAME -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=your()StrongPassw0rd" -e "MSSQL_PID=Evaluation" -p 1433:1433  --name sqlpreview --hostname sqlpreview -d mssql:latest
+# danach zum Starten
+docker run --name $DOCKER_CONTAINERNAME -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=your()StrongPassw0rd" -p 1433:1433 --hostname $DOCKER_CONTAINERNAME -d mssql:latest
+#interaktiver login in den laufenden Container
+# hier muss man ev. die einzelnen Commandos separat eingeben und nicht über here-Dokument
+docker exec -it  ${DOCKER_CONTAINERNAME} /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "your()StrongPassw0rd" <<!
+   CREATE DATABASE TestDB;
+   SELECT Name from sys.databases;
+   GO
+   USE TestDB;
+   GO
+   CREATE TABLE studentsMsSql (
+       id INT,
+       first_name VARCHAR(80),
+       last_name VARCHAR(80),
+       entry_date DATE,
+       course VARCHAR(80)
+   );
+   GO
+   INSERT INTO studentsMsSql VALUES (-1, 'John', 'Doe', '20221001', 'SWD');
+   GO
+   SELECT * FROM studentsMsSql;
+   GO
+   exit
+!
+
+sudo -s
+cd /usr/local
+export MSSQL_JDBC_VERSION=12.4.2.0
+wget https://download.microsoft.com/download/5/6/9/56904641-5f5a-449c-a284-36c36bc45652/enu/sqljdbc_${MSSQL_JDBC_VERSION}_enu.tar.gz
+tar -xzvf sqljdbc_${MSSQL_JDBC_VERSION}_enu.tar.gz sqljdbc_12.4/enu/jars/mssql-jdbc-12.4.2.jre11.jar
+mv sqljdbc_12.4/enu/jars/mssql-jdbc-12.4.2.jre11.jar sqoop/lib/
+chown hduser:hadoop sqoop/lib/mssql-jdbc-12.4.2.jre11.jar
+
+su - hduser
+source ~/.bashrc # damit classpath neu eingelesen wird
+
+sqoop list-databases --connect 'jdbc:sqlserver://localhost:1433;databasename=TestDB' --username 'sa' --password 'your()StrongPassw0rd'
+sqoop list-tables --connect 'jdbc:sqlserver://localhost:1433;databasename=TestDB' --username 'sa' --password 'your()StrongPassw0rd'
+#zw. den Aufrufen muss man das Verzeichnis löschen
+hdfs dfs -mkdir /user/sa
+hdfs dfs -chmod 777 /user/sa
+hdfs dfs -rm -R /user/sa/studentsMsSql
+# das Folgende funktioniert noch nicht, die Parameter sind zu prüfen (siehe Beispiel unter https://sqoop.apache.org/docs/1.4.6/SqoopUserGuide.html#_example_invocations_2)
+sqoop import --connect 'jdbc:sqlserver://localhost:1433;databasename=TestDB' --username 'sa' --password 'your()StrongPassw0rd' --table studentsMsSql -m 1  --where "course='SWD'" --target-dir=/user/sa/studentsMsSql --hive-import --hive-overwrite --create-hive-table
+  
