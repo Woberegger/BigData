@@ -1,4 +1,5 @@
 # das folgende ist zu tun, wenn man einen docker Container mit der gewählten Datenbank installieren möchte
+# siehe https://hub.docker.com/_/mysql
 sudo -s
 snap install docker
 docker pull mysql
