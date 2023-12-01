@@ -3,6 +3,8 @@ su - hduser
 flume-ng version
 
 # erzeuge netcat listener
+#(die Bezeichnungen a1, r1, k1 und c1 sind frei definierte Namen ohne Bedeutung - nur die Beziehung zueinander muss passen)
+# Man könnte das also wohl schöner bezeichnen mit AgentName, Source, Sink und Channel.
 cat >$FLUME_HOME/conf/example.conf <<!
 # example.conf: A single-node Flume configuration
 

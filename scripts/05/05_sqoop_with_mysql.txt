@@ -3,6 +3,7 @@
 # VORSICHT: MySQL-Objekte sind per default case-sensitive, d.h. studentsMySQL != studentsmysql
 
 su - hduser
+cd $SQOOP_HOME
 # fuer ubuntu könnte man auch ein Debian-Package verwenden, aber wir bleiben bei den generischen tar-Files:
 # alternativ download unter http://www.mysql.com/downloads/connector/j/5.1.html
 MYSQLCON_VERSION=8.0.29
