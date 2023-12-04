@@ -67,7 +67,7 @@ wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-runner/${JETTY_VERSI
 java -jar $(ls jetty-runner*.jar) tez-ui-${TEZ_VERSION}.war --port 8080 &
 
 # derzeit funktioniert das bei mir noch nicht, man sollte als ersten Schritt mal den Wordcount Job testen
-hadoop har HadoopWordCount.jar /input/Bibel.txt /output/Bibel.tez
+hadoop jar HadoopWordCount.jar /input/Bibel.txt /output/Bibel.tez
 
 # und wenn das funktioniert, die Anleitung zum Tez-Job in 04_hive_commands.txt ausführen und danach in tez-Variante
 
