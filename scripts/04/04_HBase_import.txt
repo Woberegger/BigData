@@ -1,11 +1,13 @@
 hdfs dfs -mkdir -p /import/input
-hdfs dfs -put /tmp/people.csv /import/input/
+hdfs dfs -put ~/BigData/data/people.csv /import/input/
 
-
-hbase org.apache.hadoop.hbase.mapreduce.ImportTsv -Dimporttsv.columns="HBASE_ROW_KEY,id:name,property:job" -Dimporttsv.separator=',' -Dimporttsv.bulk.output=/import/output people /import/input
-# Derzeit tritt hierbei stets folgender Fehler auf - vl. funktioniert dies in aktueller Version nicht mehr
-# Exception in thread "main" java.io.IOException: Mkdirs failed to create /user/hduser/hbase-staging
+# im folgenden Befehl ist es korrekt, dass die Definition "importts.bulk.output" und nicht "importtsv.bulk.output" heisst!
+hbase org.apache.hadoop.hbase.mapreduce.ImportTsv \
+-Dimporttsv.columns=HBASE_ROW_KEY,id:name,property:job \
+-Dimporttsv.separator=, -Dimportts.bulk.output=/import/output people \
+hdfs://namenode:9000/import/input/people.csv
 
 hbase shell <<!
+   count 'people'
    get 'people', 'row1'
 !

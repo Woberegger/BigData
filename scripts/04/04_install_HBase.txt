@@ -35,7 +35,7 @@ cp -p hbase-site.xml hbase-site.xml.orig
 hdfs getconf -confKey fs.defaultFS
  
 #Verzeichnis für zookeeper-Daten und logs anlegen (der Ordner "hadoop" gehört ohnehin bereits dem hduser)
-mkdir /usr/local/hadoop/zookeeper
+mkdir $HADOOP_HOME/zookeeper
 
 # Ändern der Datei $HBASE_HOME/conf/hbase-site.xml (existierende Einträge können gelöscht werden)
 
@@ -88,7 +88,9 @@ $HBASE_HOME/bin/start-hbase.sh
 #d) Fehler wie folgt:
 # HADOOP_ORG.APACHE.HADOOP.HBASE.UTIL.GETJAVAPROPERTY_USER: invalid variable name
 # Lösung: ersetze Datei $HADOOP_HOME/libexec/hadoop-functions.sh durch folgende Version https://github.com/Woberegger/BigData/blob/main/scripts/04/hadoop-functions.sh
-
+#e) Fehler beim Starten oder bei Kommando "hbase classpath"
+# Error: Could not find or load main class org.apache.hadoop.hbase.util.GetJavaProperty
+# Lösung: ln -s $HBASE_HOME/lib/hbase-server-2.5.6.jar $HADOOP_HOME/share/hadoop/common/
 
 #3.) Prüfen ob HBase Ordner in HDFS angelegt wurden
 hdfs dfs -ls /hbase
@@ -97,7 +99,7 @@ hdfs dfs -ls /hbase
 hdfs dfs -mkdir /hbase
 
 # wenn man später mal die Übung von vorne beginnen will, reicht es, folgendes auszuführen:
-# hdfs dfs -rm -R /hbase
+# stop-hbase.sh; hdfs dfs -rm -R /hbase; rm -Rf $HADOOP_HOME/zookeeper/*
 
 # wenn es Meldung gibt, dass Namenode im save mode ist, dann wie folgt verlassen
 hdfs dfsadmin -safemode leave

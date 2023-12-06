@@ -13,6 +13,8 @@ get 'people2', 'row1'
 
 # create table to split across multiple regions by ID - can be even multiple regions on 1 server - see http://localhost:16010/table.jsp?name=emp
 create 'emp', 'id', 'office', SPLITS => ['1', '20']
+# list should find all our created tables
+list
 
 put 'emp', '1' , 'office:name', 'Scott'
 put 'emp', '21' , 'office:name', 'Mark'     
