@@ -34,10 +34,10 @@ cp tez-default-template.xml tez-site.xml
     <type>string</type>
   </property>
 
-# Prüfen, ob das korrekt ist oder um andere HADOOP-Pfade zu ergänzen wäre...
-cat >> ${HIVE_HOME}/conf/hive-env.sh <<!
-export HADOOP_CLASSPATH=${TEZ_HOME}/conf:${TEZ_HOME}/*:${TEZ_HOME}/lib/*
-!
+# Prüfen, ob das korrekt ist oder um andere HADOOP-Pfade wie $HADOOP_HOME/share/hadoop/common/lib bzw. HBASE_HOME/lib zu ergänzen wäre...
+#cat >> ${HIVE_HOME}/conf/hive-env.sh <<!
+#export HADOOP_CLASSPATH=${TEZ_HOME}/conf:${TEZ_HOME}/*:${TEZ_HOME}/lib/*
+#!
 
 # damit es nicht Exception gibt wegen doppelter Implementierung ist folgendes File zu löschen oder nach /tmp zu verschieben
 mv $TEZ_HOME/lib/slf4j-reload4j-*.jar /tmp/
