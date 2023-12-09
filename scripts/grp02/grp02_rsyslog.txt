@@ -110,6 +110,12 @@ for ((i=0;i<=200;i++)); do logger "log msg nr $i"; done
 firefox --new-tab http://localhost:9870/explorer.html#/user/hduser/syslog
 # zur Info: das zuletzt erstellte File bekommt extension ".tmp", erst wenn obiges flume-ng Kommando beendet wird, bekommt es den endgültigen Namen
 
+# Wen man mit HDFS arbeiten will, dann einfach mal folgende Tabelle anlegen, das Laden muss halt hier interaktiv gemacht werden,
+# während bei direkter Verwendung von Hive als Datensenke das Flume eventgetrieben weiterbefüllen würde.
+# man kann hier den Pfad ohne einzelne Dateien angeben, dann können auch mehrere Dateien geladen werden.
+CREATE TABLE logevents (logline STRING);
+LOAD DATA INPATH '/user/hduser/syslog/' OVERWRITE INTO TABLE logevents;
+
 # FLEISSAUFGABE: wenn das funktioniert, kann man das Configfile auf hive umstellen und eine Hive-Tabelle wie folgt anlegen:
 # der Einfachheit halber loggen wir ganze Zeilen in die Tabelle rein und joinen dann mit String-Operations
 beeline -u jdbc:hive2:// scott tiger
@@ -117,9 +123,10 @@ beeline -u jdbc:hive2:// scott tiger
    set hive.metastore.warehouse.dir;
    use default;
    --
+   DROP TABLE logevents;
    CREATE TABLE IF NOT EXISTS logevents (
     logline STRING)
     COMMENT 'Syslog events as complete line'
     STORED AS ORC
-    LOCATION '/user/hduser/hive/logevents';
+    LOCATION '/user/hduser/hive_external/logevents';
 !
