@@ -1,0 +1,58 @@
+# diese Anleitung zeigt, wie man rsyslogd aktiviert für Remote syslogging und dann über flume abgreift
+# Anleitung siehe z.B.: https://betterstack.com/community/guides/logging/how-to-configure-centralised-rsyslog-server/
+# (diese Anleitung beschreibt jedoch einen zentralen Server, wir wollen anstelle des zentralen Servers "flume" einsetzen)
+
+# prüfe die aktuellen Einstellungen und ob rsyslogd installiert ist
+# (Configfile sollte auf /etc/rsyslog.conf gestellt sein)
+sudo -s
+rsyslogd -v
+
+# prüfen, ob Service läuft, gegebenenfalls über "enable" und "start" aktivieren
+systemctl status rsyslog
+
+# aktiviere folgende Zeilen in /etc/rsyslog.conf, damit per udp auf höheren Port anstelle von Standardport 514 rausgeloggt wird
+# schreibe folgendes in Datei /etc/rsyslog.conf
+# log to different port than usual 514 to be able to use non-privileged user to read from it
+*.* @127.0.0.1:47111
+
+# prüfen, dass z.B. folgende Zeile in /etc/rsyslog.d/50-default.conf aktiviert ist, somit sollten login Versuche getrackt werden
+# wenn man andere Dinge, wie z.B. sonstige Records in /var/log/messages tracken will, dann aktiviere die entspr. Zeilen mit Filter
+auth,authpriv.*                 /var/log/auth.log
+
+# und starte danach syslog daemon neu
+systemctl restart rsyslog
+
+# in neuer Shell als hduser einloggen
+su - hduser
+cd /usr/local/flume
+# flume config File erzeugen, später ist das dann umzubauen, dass anstelle von Logger auf hdfs geschrieben wird
+cat >/usr/local/flume/conf/syslogudp.conf <<!
+# Name the components on this agent
+sysl.sources = syslog
+sysl.sinks = logger
+sysl.channels = memory
+
+sysl.sources.syslog.type = syslogudp
+# da wir als "hduser" starten, müssen wir einen Port > 1024 verwenden
+sysl.sources.syslog.port = 47111
+sysl.sources.syslog.host = localhost
+sysl.sources.syslog.channels = memory
+
+# Describe the sink
+sysl.sinks.logger.type = logger
+
+
+# Use a channel which buffers events in memory
+sysl.channels.memory.type = memory
+sysl.channels.memory.capacity = 1000
+sysl.channels.memory.transactionCapacity = 100
+
+# Bind the source and sink to the channel
+sysl.sources.syslog.channels = memory
+sysl.sinks.logger.channel = memory
+!
+./bin/flume-ng agent --conf conf/ -f conf/syslogudp.conf -n sysl -Dflume.root.logger=INFO,console
+
+# testen, ob der Aufruf im syslog File erscheint und sollte dann auch bei Flume auftauchen
+# erwartete Ausgabe ca. "INFO  [SinkRunner-PollingRunner-DefaultSinkProcessor] sink.LoggerSink: Event: { ... body: 72 6F 6F 74 3A 20 74 65 73 74 63 61 6C 6C 20 66 root: testcall f }"
+logger 'testcall from client' && tail -n1 /var/log/syslog
