@@ -91,6 +91,9 @@ $HBASE_HOME/bin/start-hbase.sh
 #e) Fehler beim Starten oder bei Kommando "hbase classpath"
 # Error: Could not find or load main class org.apache.hadoop.hbase.util.GetJavaProperty
 # Lösung: ln -s $HBASE_HOME/lib/hbase-server-2.5.6.jar $HADOOP_HOME/share/hadoop/common/
+#f) wenn z.B. Prozesse immer schreiben, dass sie jars nicht finden, probier mal den jeweiligen Daemon in der entspr. Reihenfolge lt. start-hbase.sh einzeln zu starten, beginnend mit zookeeper:
+# hbase-daemons.sh --config $HBASE_HOME/conf start zookeeper
+# danach die Ausgaben in $HBASE_HOME/logs betrachten, ob hier Fehler zu sehen sind
 
 #3.) Prüfen ob HBase Ordner in HDFS angelegt wurden
 hdfs dfs -ls /hbase
