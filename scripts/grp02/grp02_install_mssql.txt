@@ -17,18 +17,12 @@ docker run --name $DOCKER_CONTAINERNAME -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD
 #interaktiver login in den laufenden Container
 # hier muss man ev. die einzelnen Commandos separat eingeben und nicht über here-Dokument
 docker exec -it  ${DOCKER_CONTAINERNAME} /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "your()StrongPassw0rd" <<!
-   CREATE DATABASE TestDB;
+   CREATE DATABASE testdb;
    SELECT Name from sys.databases;
    GO
-   USE TestDB;
+   USE testdb;
    GO
-   CREATE TABLE studentsMsSql (
-       id INT,
-       first_name VARCHAR(80),
-       last_name VARCHAR(80),
-       entry_date DATE,
-       course VARCHAR(80)
-   );
+   CREATE TABLE studentsMsSql (id INT, first_name VARCHAR(80), last_name VARCHAR(80), entry_date DATE, course VARCHAR(80));
    GO
    INSERT INTO studentsMsSql VALUES (-1, 'John', 'Doe', '20221001', 'SWD');
    GO
@@ -48,12 +42,19 @@ chown hduser:hadoop sqoop/lib/mssql-jdbc-12.4.2.jre11.jar
 su - hduser
 source ~/.bashrc # damit classpath neu eingelesen wird
 
-sqoop list-databases --connect 'jdbc:sqlserver://localhost:1433;databasename=TestDB' --username 'sa' --password 'your()StrongPassw0rd'
-sqoop list-tables --connect 'jdbc:sqlserver://localhost:1433;databasename=TestDB' --username 'sa' --password 'your()StrongPassw0rd'
+sqoop list-databases --connect 'jdbc:sqlserver://localhost:1433;databasename=testdb' --username 'sa' --password 'your()StrongPassw0rd'
+sqoop list-tables --connect 'jdbc:sqlserver://localhost:1433;databasename=testdb' --username 'sa' --password 'your()StrongPassw0rd'
 #zw. den Aufrufen muss man das Verzeichnis löschen
 hdfs dfs -mkdir /user/sa
 hdfs dfs -chmod 777 /user/sa
 hdfs dfs -rm -R /user/sa/studentsMsSql
-# das Folgende funktioniert noch nicht, die Parameter sind zu prüfen (siehe Beispiel unter https://sqoop.apache.org/docs/1.4.6/SqoopUserGuide.html#_example_invocations_2)
-sqoop import --connect 'jdbc:sqlserver://localhost:1433;databasename=TestDB' --username 'sa' --password 'your()StrongPassw0rd' --table studentsMsSql -m 1  --where "course='SWD'" --target-dir=/user/sa/studentsMsSql --hive-import --hive-overwrite --create-hive-table
-  
+# (siehe Beispiel unter https://sqoop.apache.org/docs/1.4.6/SqoopUserGuide.html#_example_invocations_2)
+# das "--bindir" ist nötig, andernfalls schreibt sqoop Fehler, dass sie Class studensmssql nicht findet, tatsächlich wird im aktuellen Verzeichnis ein studentsmssql.java angelegt
+
+# Wenn Fehler über Java-Security kommt, ist Inhalt von File grp02_java_policy_to_add.txt in Datei /etc/java-11-openjdk/security/java.policy einzutragen:
+https://db.apache.org/derby/docs/10.13/security/rsecpolicysample.html
+
+sqoop import --connect 'jdbc:sqlserver://localhost:1433;databasename=testdb' --username 'sa' --password 'your()StrongPassw0rd' --table studentsmssql \
+  -m 1  --where "course='SWD'" --warehouse-dir /tmp --hive-home /usr/local/hive --hive-import --create-hive-table --hive-overwrite --hive-database default --bindir ./
+
+# vielleicht ist hive.metastore.dbaccess.ssl.properties in hive-site.xml anzupassen.
