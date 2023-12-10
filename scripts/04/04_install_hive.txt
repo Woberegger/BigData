@@ -79,6 +79,19 @@ cp hive-default.xml.template hive-site.xml
     <name>hive.metastore.warehouse.external.dir</name>
     <value>/user/hduser/hive_external</value>
 
+# und im folgenden Wert muss eine absoluter Pfad für metastore_db angegeben werden, andernfalls wird immer eine neue DB angelegt, je nachdem, wo man beeline gerade startet
+# (und man sieht die zuvor angelegten Tabellen  nicht mehr...)
+  <property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <value>jdbc:derby:;databaseName=/usr/local/hive/conf/metastore_db;create=true</value>
+    <description>
+      JDBC connect string for a JDBC metastore.
+      To use SSL to encrypt/authenticate the connection, provide database-specific SSL flag in the connection URL.
+      For example, jdbc:postgresql://myhost/db?ssl=true for postgres database.
+    </description>
+  </property>
+
+
 # und ganz wichtig: der folgende Wert muss ersetzt auf "false" gesetzt werden, bei "true" gibt es Exceptions bei join über 2 oder mehr Tabellen
   <property>
     <name>hive.auto.convert.join</name>

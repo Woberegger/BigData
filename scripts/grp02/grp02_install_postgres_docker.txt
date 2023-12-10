@@ -8,18 +8,19 @@ docker network create --driver=bridge --subnet=10.0.4.0/24 --ip-range=10.0.4.0/2
 # additionally set "-e POSTGRES_USER=postgres"
 docker run --name $DOCKER_CONTAINERNAME --network ${NETWORK} -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=my-secret-pw -d postgres:latest
 #interaktiver login über psql SQL-Commandline in den laufenden Container
+# das here-document funktioniert wohl nicht, die jeweiligen Befehle bitte einzeln eingeben
 docker exec -it -u postgres ${DOCKER_CONTAINERNAME} psql <<!
    CREATE ROLE scott LOGIN PASSWORD 'my-secret-pw';
-   CREATE DATABASE testdb 
+   CREATE DATABASE swd 
    WITH 
       ENCODING = 'UTF8'
       OWNER = scott
       CONNECTION LIMIT = 100;
-   \c testdb
+   \c swd
 !
 # logge neu ein mit dem neu angelegten User:
 docker exec -it -u postgres -e POSTGRES_PASSWORD=my-secret-pw -e POSTGRES_USER=scott swdPostgres psql <<!
-   \c testdb
+   \c swd
    SELECT datname FROM pg_database;
    CREATE TABLE IF NOT EXISTS studentspostgres (
       id int PRIMARY KEY,
@@ -35,8 +36,11 @@ docker exec -it -u postgres -e POSTGRES_PASSWORD=my-secret-pw -e POSTGRES_USER=s
    FROM 
       information_schema.columns
    WHERE 
-      table_name = 'testdb.studentspostgres';
-   INSERT INTO studentspostgres VALUES (-1, 'John', 'Doe', '20221001', 'SWD');
+      table_name = 'swd.studentspostgres';
+   INSERT INTO studentspostgres VALUES (-1, 'John', 'Postgres', '20221001', 'SWD');
+   INSERT INTO studentspostgres VALUES (-2, 'Mary', 'Smith', '20221001', 'SWD');
+   INSERT INTO studentspostgres VALUES (-3, 'Other', 'Student', '20221001', 'ITM');
+   select * from studentspostgres;
 !
 
 cd /usr/local
@@ -52,19 +56,21 @@ cp -p postgresql-${POSTGRES_JDBC_VERSION}.jar ${SQOOP_HOME}/lib/
 
 source ~/.bashrc # damit classpath neu eingelesen wird
 
-sqoop list-databases --connect 'jdbc:postgresql://localhost:5432/testdb' --username 'postgres' --password 'my-secret-pw'
+sqoop list-databases --connect 'jdbc:postgresql://localhost:5432/swd' --username 'postgres' --password 'my-secret-pw'
 # wenn hier die Ausgabe "studentspostgres" lautet, dann wurde die angelegte Tabelle gefunden.
-sqoop list-tables --connect 'jdbc:postgresql://localhost:5432/testdb' --username 'postgres' --password 'my-secret-pw'
+sqoop list-tables --connect 'jdbc:postgresql://localhost:5432/swd' --username 'postgres' --password 'my-secret-pw'
 
 #zw. den Aufrufen muss man das Verzeichnis löschen
-hdfs dfs -mkdir /user/postgres
-hdfs dfs -chmod 777 /user/postgres
-hdfs dfs -rm -R /user/postgres/studentspostgres
+hdfs dfs -rm -R /tmp/students*
 
-# Weiter siehe Anleitung für MsSql, welche Parameter zu setzen wären für den sqoop-import
+# (siehe Beispiel unter https://sqoop.apache.org/docs/1.4.6/SqoopUserGuide.html#_example_invocations_2)
+# das "--bindir ./" ist nötig, andernfalls schreibt sqoop Fehler, dass sie Class studensmssql nicht findet, tatsächlich wird im aktuellen Verzeichnis ein studentsmssql.java angelegt
 
-sqoop export --connect jdbc:postgresql://localhost:5432/testdb \
- --table studentspostgres --username postgres --password my-secret-pw \
- --export-dir /user/hduser/hive_external/fh.db/students --num-mappers 1 \
- --driver org.postgresql.Driver \
- --input-fields-terminated-by ',' --input-lines-terminated-by '\n'
+# Wenn Fehler über Java-Security kommt, ist Inhalt von File grp02_java_policy_to_add.txt in Datei /etc/java-11-openjdk/security/java.policy einzutragen:
+https://db.apache.org/derby/docs/10.13/security/rsecpolicysample.html
+
+# Bei folgendem Fehler muss man eine aktive "beeline" Session in anderem Fenster beenden, da dies bei unseren Einstellungen nicht parallel funktioniert
+# ERROR XSDB6: Another instance of Derby may have already booted the database /usr/local/apache-hive-4.0.0-beta-1-bin/conf/metastore_db.
+
+# Falls Tabelle von einem vorigen Versuch bereits existiert, dann Parameter "--create-hive-table" entfernen
+sqoop import --connect 'jdbc:postgresql://localhost:5432/swd' --username 'postgres' --password 'my-secret-pw' --table studentspostgres -m 1  --where "course='SWD'" --warehouse-dir /tmp --hive-home /usr/local/hive --hive-import --hive-table students --create-hive-table --hive-overwrite --hive-database default --bindir ./
