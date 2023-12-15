@@ -5,24 +5,28 @@ plugins {
 group = 'at.fhj'
 version = '1.0'
 
-java {
-   sourceCompatibility = JavaVersion.VERSION_11
-   targetCompatibility = JavaVersion.VERSION_11
-}
-
 repositories {
     mavenCentral()
-    flatDir {
-        dirs 'lib'
-    }
+}
+
+configurations {
+    scpAntTask
 }
 
 dependencies {
-    implementation 'org.apache.hadoop.io:commons-cli:1.2'
+    // for Ant scp task to directly transfer the generated jar files into VM
+    scpAntTask 'org.apache.ant:ant-jsch:1.10.0', 'com.jcraft:jsch:0.1.55'
+    // we do not need to copy the libraries directly, but use those from Maven central repo
     implementation 'org.apache.hadoop:hadoop-common:3.2.4'
-    implementation 'org.apache.hadoop.mapreduce:hadoop-mapreduce-client-core:3.2.4'
+    implementation 'org.apache.hadoop:hadoop-mapreduce-client-core:3.2.4'
+
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+// setting compatibility helps to build jar in proper version for the target platform, even when locally installed Java is a newer one
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 // Include dependent libraries in archive.
@@ -55,3 +59,29 @@ artifacts {
 test {
     useJUnitPlatform()
 }
+
+ant.taskdef(
+        name: 'scp',
+        classname: 'org.apache.tools.ant.taskdefs.optional.ssh.Scp',
+        classpath: configurations.scpAntTask.asPath)
+
+// call to "gradle deploy" allows to copy the generated jars into the VM
+tasks.register('deploy') {
+    dependsOn 'build'
+    doLast {
+        ant.scp(
+                todir:"hduser:mypasswd@localhost:/tmp/",
+                // better would be to generate key pair on host and transfer public key into VM
+                //keyfile:"${System.getProperty('user.home')}/.ssh/id_rsa",
+                port:10024,
+                // the "trust" has to be set, otherwise "known_hosts" needs to be adapted
+                trust:"true",
+                verbose: true
+        ){
+            ant.fileset( dir: 'build/libs' ) {
+                include( name: '*.jar' )
+            }
+        }
+    }
+}
+
