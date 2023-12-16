@@ -103,9 +103,13 @@ SELECT * FROM studentsMySQL LIMIT 10;
 
 # die andere Richtung am besten testen, indem eine 2. Tabelle in Hive angelegt wird
 hdfs dfs -rm -R /user/hduser/studentsMySQL
-# möglicherweise gibt es Fehler:
+# möglicherweise gibt es Fehler, der jedoch üblicherweise eine Folgeerscheinung ist, weil die Java VM den Zugriff auf die Datei
+# /usr/local/hive/lib/derby-10.14.2.0.jar nicht erlaubt:
 #java.lang.NoClassDefFoundError: Could not initialize class org.apache.derby.jdbc.EmbeddedDriver
-ln -s $HIVE_HOME/lib/derby-10.14.2.0.jar .
+# Daher Inhalt von File ../grp02/grp02_java_policy_to_add.txt am Beginn von Datei /etc/java-11-openjdk/security/java.policy einzutragen:
+https://db.apache.org/derby/docs/10.13/security/rsecpolicysample.html
+bzw. folgende Zeile in den generischen grant { ... } Abschnitt:
+    permission javax.management.MBeanTrustPermission "register";
 
 sqoop import --connect jdbc:mysql://localhost:3306/${DATABASE_NAME}  --username $MYSQL_USER --password password \
    --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --hive-import --hive-database fh \
