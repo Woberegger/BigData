@@ -10,6 +10,9 @@ su - hduser
 
 # wichtig: damit Sqoop- und Flume-import funktionieren und nicht deren eigene hive-Instanz anlegen, muss man folgendes in hive-site.xml ändern auf absoluten Pfad, wo die metastore_db liegt.
 # andernfalls müsste man darauf achten, dass die sqoop-import Kommandos im richtigen Pfad ausgeführt werden, wo sich das "metastore_db" Verzeichnis befindet
+# also wie folgt
+find $HIVE_HOME -name metastore_db
+
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc:derby:;databaseName=/usr/local/hive/conf/metastore_db;create=true</value>
