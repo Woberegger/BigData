@@ -34,4 +34,9 @@ export FLUME_CLASSPATH="/usr/local/flume/lib/*"
 
 flume-ng version
 
+# bei folgendem Fehler in einem der folgenden Tests passen die Versionen der Guava-Libs nicht zusammen
+# java.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument
+mv $FLUME_HOME/lib/guava-*.jar /tmp
+ln -s $HADOOP_HOME/share/hadoop/hdfs/lib/guava-27.0-jre.jar $FLUME_HOME/lib/
+
 # weiter mit Scripts für diverse Flume Tests für SeqGenerator, Netcat-API und ev. Twitter
