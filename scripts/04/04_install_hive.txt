@@ -75,12 +75,13 @@ cp hive-default.xml.template hive-site.xml
     <name>hive.metastore.warehouse.dir</name>
     <value>/user/hive/warehouse</value>
 
-# better also set the external dir
-    <name>hive.metastore.warehouse.external.dir</name>
-    <value>/user/hduser/hive_external</value>
+# eventuell setz auch das external Verzeichnis
+#    <name>hive.metastore.warehouse.external.dir</name>
+#    <value>/user/hduser/hive_external</value>
 
 # und im folgenden Wert muss eine absoluter Pfad für metastore_db angegeben werden, andernfalls wird immer eine neue DB angelegt, je nachdem, wo man beeline gerade startet
 # (und man sieht die zuvor angelegten Tabellen  nicht mehr...)
+# Der Wert sollte dann am besten nach dem Aufruf von "./schematool -initSchema -dbType derby" auf "create=false" gesetzt werden
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc:derby:;databaseName=/usr/local/hive/conf/metastore_db;create=true</value>
@@ -127,7 +128,7 @@ mv $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar /tmp
    <value>false</value>
 </property>
 
-# init schema 
+# init schema (das sollte das Verzeichnis metastore_db unter $HIVE_HOME/conf anlegen)
 cd /usr/local/hive/bin
 
 ./schematool -initSchema -dbType derby
