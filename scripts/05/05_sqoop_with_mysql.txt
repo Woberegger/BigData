@@ -81,6 +81,8 @@ beeline -u jdbc:hive2:// scott tiger <<!
 
 # scheinbar muss man die mapreduce Jar Files rüberkopieren, andernfalls gibt es "ClassNotFound" exception
 cp -p /usr/local/hadoop/share/hadoop/mapreduce/*.jar $SQOOP_HOME/lib/
+# weiters generiert Sqoop eine Klasse "students.jar" für den Import, die im ClassPath gefunden werden muss
+# Daher ist der Parameter --bindir auf z.B. /usr/local/hadoop/share/hadoop/common/lib zu setzen
 
 export DATABASE_NAME=testdb
 # liste auf, ob unsere Datenbank und unsere Tabelle "studentsMySQL" gefunden werden
@@ -88,12 +90,11 @@ sqoop-list-databases --connect jdbc:mysql://localhost:3306  --username $MYSQL_US
 sqoop-list-tables --connect jdbc:mysql://localhost:3306/${DATABASE_NAME} --username $MYSQL_USER --password password
 
 # -m 1 ... Anzahl an Mappern, hier derzeit immer 1
-sqoop export --connect jdbc:mysql://localhost:3306/${DATABASE_NAME} \
- --table studentsMySQL --username $MYSQL_USER --password password \
- --export-dir /user/hduser/hive_external/fh.db/students --num-mappers 1 \
- --driver com.mysql.jdbc.Driver \
- --input-fields-terminated-by ',' --input-lines-terminated-by '\n'
-# or use: com.mysql.cj.jdbc.Driver
+sqoop export --connect jdbc:mysql://localhost:3306/${DATABASE_NAME}  \
+   --table studentsMySQL --username $MYSQL_USER --password password  \
+   --export-dir /user/hive/warehouse/fh.db/students --num-mappers 1  \
+   --driver com.mysql.cj.jdbc.Driver  --input-fields-terminated-by ',' \
+   --input-lines-terminated-by '\n' --bindir /usr/local/hadoop/share/hadoop/common/lib
 
 mysql -u $MYSQL_USER -p <<!
 use $DATABASE_NAME;
@@ -104,12 +105,12 @@ SELECT * FROM studentsMySQL LIMIT 10;
 hdfs dfs -rm -R /user/hduser/studentsMySQL
 # möglicherweise gibt es Fehler:
 #java.lang.NoClassDefFoundError: Could not initialize class org.apache.derby.jdbc.EmbeddedDriver
+ln -s $HIVE_HOME/lib/derby-10.14.2.0.jar .
 
-sqoop import --connect jdbc:mysql://localhost:3306/${DATABASE_NAME} \
- --username $MYSQL_USER --password password \
- --table studentsMySQL \
- --driver com.mysql.jdbc.Driver \
- --hive-import --hive-database fh --hive-table studentsFromMySQL --hive-overwrite --num-mappers 1 --bindir ./
+sqoop import --connect jdbc:mysql://localhost:3306/${DATABASE_NAME}  --username $MYSQL_USER --password password \
+   --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --hive-import --hive-database fh \
+   --hive-table studentsFromMySQL --hive-overwrite --num-mappers 1  \
+   --bindir /usr/local/hadoop/share/hadoop/common/lib
 
 # verifiziere die Inhalte
 beeline -u jdbc:hive2:// scott tiger <<!

@@ -32,7 +32,7 @@ sqoop-list-databases --connect jdbc:mysql://localhost:13306/swd  --username 'roo
 sqoop list-tables --connect 'jdbc:mysql://localhost:13306/swd' --username 'root' --password 'my-secret-pw'
 
 # (siehe Beispiel unter https://sqoop.apache.org/docs/1.4.6/SqoopUserGuide.html#_example_invocations_2)
-# das "--bindir ./" ist nötig, andernfalls schreibt sqoop Fehler, dass sie Class studensmssql nicht findet, tatsächlich wird im aktuellen Verzeichnis ein studentsmssql.java angelegt
+# das "--bindir ./" ist nötig, andernfalls schreibt sqoop Fehler, dass sie Class studensmssql nicht findet, tatsächlich wird im aktuellen Verzeichnis ein studentsmysql.java angelegt
 
 # Wenn Fehler über Java-Security kommt, ist Inhalt von File grp02_java_policy_to_add.txt in Datei /etc/java-11-openjdk/security/java.policy einzutragen:
 https://db.apache.org/derby/docs/10.13/security/rsecpolicysample.html
