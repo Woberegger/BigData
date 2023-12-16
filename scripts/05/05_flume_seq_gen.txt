@@ -16,7 +16,7 @@ SeqGenAgent.sources.SeqSource.type = seq
   
 # Describing/Configuring the sink
 SeqGenAgent.sinks.HDFS.type = hdfs
-#IMPORTANT: use prefix as output from command: hdfs dfs getconf -confKey fs.defaultFS
+#IMPORTANT: use prefix as output from command: hdfs getconf -confKey fs.defaultFS
 SeqGenAgent.sinks.HDFS.hdfs.path = hdfs://namenode:9000/user/hduser
 SeqGenAgent.sinks.HDFS.hdfs.filePrefix = log 
 SeqGenAgent.sinks.HDFS.hdfs.rollInterval = 0
