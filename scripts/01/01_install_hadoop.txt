@@ -1,8 +1,8 @@
 ## Anleitung am besten aus dem Buch "Big data in der Praxis" oder z.B. von https://www.digitalocean.com/community/tutorials/how-to-install-hadoop-in-stand-alone-mode-on-ubuntu-20-04 oder https://tecadmin.net/how-to-install-apache-hadoop-on-ubuntu-22-04/ --
 
 # Damit jeder individuelle Screenshots erstellen muss, bitte unique hostnamen erstellen - wichtig ist, dass Hostname mit Buchstaben beginnt
-sudo -s
-hostnamectl set-hostname swd<MatrikelNr>
+# Folgender Befehl nur in VM ausführen, in Wsl funktioniert dieser nicht
+sudo hostnamectl set-hostname swd<MatrikelNr>
 
 ##Packages Installieren
 sudo apt-get update
@@ -11,13 +11,14 @@ sudo apt-get -y install pdsh
 sudo apt-get -y install openjdk-11-jdk
 sudo apt-get -y install openssh-server
 # tools, which make sense
+sudo apt-get -y install inetutils-telnet
 sudo apt-get -y install nmap
 sudo apt-get -y install curl
 sudo apt-get -y install wget
 sudo apt-get -y install vim
 sudo apt-get -y install net-tools
 sudo apt-get -y install git
-# damit shared folders und copy'n'paste funktionieren, ist meist die Installation der Guest-Additions nötig, danach ev. ein Reboot der VM
+# (Virtual-Box-only!!!) damit shared folders und copy'n'paste funktionieren, ist meist die Installation der Guest-Additions nötig, danach ev. ein Reboot der VM
 sudo apt-get install -y virtualbox-guest-utils virtualbox-guest-x11
 
 ##Symbolischen Link für Java erstellen
@@ -33,19 +34,21 @@ echo "export JAVA_HOME=/usr/lib/jvm/jdk" >/etc/profile.d/java.sh
 groupadd hadoop
 useradd -g hadoop -s /bin/bash -m hduser 
 passwd hduser
-usermod -G vboxsf hduser # Gruppe vboxsf ist nur für VirtualBox zu setzen, damit kann der User auf shared directories zugreifen, bei anderen Virtualisierungslösungen bitte anpassen
+usermod -G vboxsf hduser # (Virtual-Box-only!!!) Gruppe vboxsf ist nur für VirtualBox zu setzen, damit kann der User auf shared directories zugreifen, bei anderen Virtualisierungslösungen bitte anpassen
 
 # sinnvollerweise sollte man gleich das github Repo klonen, dann hat man alle Scripts, Sourcen etc. lokal auf der VM vorhanden
 su - hduser
 git clone https://github.com/Woberegger/BigData
 
 ##SSH Schlüssel erzeugen und hinzufügen
-su - hduser
 ssh-keygen -t rsa -P ""
 cat ~/.ssh/id_rsa.pub  > ~/.ssh/authorized_keys
 
 ##SSH Schlüssel des Systems hinzufügen; mit yes bestätigen
-ssh localhost
+ssh -p 22 localhost
+# wenn das nicht funktioniert wegen Firewallregeln, dann entweder Windows-Firewall Regel anlegen lt. https://pureinfotech.com/open-port-firewall-windows-10/
+# oder optional in WSL in /etc/ssh/sshd_config den Eintrag für "Port" z.B. wie folgt aktivieren auf einen Port > 1024 "Port=10222"
+# danach in wsl als root "service ssh restart; service ssh status" ausführen und "ssh -p 10222 localhost" als "hduser" testen
 
 ##2 mal Exit oder Ctrl<d> um wieder als ursprünglicher User zu arbeiten
 exit
@@ -54,13 +57,14 @@ exit
 ##Download Hadoop 3.2.4 und entpacken (in Browser herunterladen oder per wget/curl)
 sudo -s
 cd /usr/local
-wget https://dlcdn.apache.org/hadoop/common/hadoop-3.2.4/hadoop-3.2.4.tar.gz --no-check-certificate
-wget https://downloads.apache.org/hadoop/common/hadoop-3.2.4/hadoop-3.2.4.tar.gz.sha512 --no-check-certificate
-shasum -a 512 hadoop-3.2.4.tar.gz -c hadoop-3.2.4.tar.gz.sha512
+export HADOOP_VERSION=3.3.6
+wget https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz --no-check-certificate
+wget https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz.sha512 --no-check-certificate
+shasum -a 512 hadoop-${HADOOP_VERSION}.tar.gz -c hadoop-${HADOOP_VERSION}.tar.gz.sha512
 
-tar -xzf hadoop-3.2.4.tar.gz
-# oder gzip -d hadoop-3.2.4.tar.gz && tar -xf hadoop-3.2.4.tar
-ln -sf hadoop-3.2.4 hadoop
+tar -xzf hadoop-${HADOOP_VERSION}.tar.gz
+# oder gzip -d hadoop-${HADOOP_VERSION}.tar.gz && tar -xf hadoop-${HADOOP_VERSION}.tar
+ln -sf hadoop-${HADOOP_VERSION} hadoop
 
 chown -R hduser:hadoop hadoop*
 
@@ -95,10 +99,14 @@ source ~/.bashrc
 
 ##Hadoop Konfigurationsdateien anpassen (als hduser)
 # leider wird das auch in dieser Datei redundanterweise verlangt
-echo "export JAVA_HOME=/usr/lib/jvm/jdk" >>/usr/local/hadoop/etc/hadoop/hadoop-env.sh
+echo "export JAVA_HOME=/usr/lib/jvm/jdk" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
+# Wenn ein anderer Port als 22 gewählt wurde (z.B. 10222), dann ist folgende Zeile zu korrigieren auf diesen Port
+echo "export HADOOP_SSH_OPTS="-p 22" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 
 ##Editieren Sie core-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
-# um idente files bei Clusterverwendung zu haben, besser anstelle von "localhost" einen Namen lt. /etc/hosts eintragen
+# um idente files bei Clusterverwendung zu haben, besser anstelle von "localhost" einen Namen lt. /etc/hosts eintragen, z.B. "namenode"
+# Damit dort beim ssh-Connect der einmalige Prompt nicht zu Fehler "Host key verification failed" kommt, muss man ausführen:
+# ssh -p 22 namenode
 
 	<property>
 		<name>fs.defaultFS</name>
@@ -126,6 +134,10 @@ echo "export JAVA_HOME=/usr/lib/jvm/jdk" >>/usr/local/hadoop/etc/hadoop/hadoop-e
 	<property>
 		<name>dfs.datanode.data.dir</name>
 		<value>file:/usr/local/hadoop/hadoopdata/hdfs/datanode</value>
+	</property>
+   <property>
+		<name>dfs.block.size</name>
+		<value>4194304</value>
 	</property>
 
 

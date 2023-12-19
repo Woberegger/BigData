@@ -1,12 +1,13 @@
 # Installation von HBase, basierend auf vorheriger Installation von Hadoop
 sudo -s
 cd /usr/local
-wget https://dlcdn.apache.org/hbase/2.5.6/hbase-2.5.6-bin.tar.gz
-wget https://dlcdn.apache.org/hbase/2.5.6/hbase-2.5.6-bin.tar.gz.sha512
-shasum -a 512 hbase-2.5.6-bin.tar.gz; cat hbase-2.5.6-bin.tar.gz.sha512
-tar -xzvf hbase-2.5.6-bin.tar.gz
-chown -R hduser:hadoop /usr/local/hbase-2.5.6 
-ln -s /usr/local/hbase-2.5.6 HBase
+export HBASE_VERSION=2.5.6
+wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz
+wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz.sha512
+shasum -a 512 hbase-${HBASE_VERSION}-bin.tar.gz; cat hbase-${HBASE_VERSION}-bin.tar.gz.sha512
+tar -xzf hbase-${HBASE_VERSION}-bin.tar.gz
+chown -R hduser:hadoop /usr/local/hbase-${HBASE_VERSION}
+ln -s /usr/local/hbase-${HBASE_VERSION} HBase
 
 # all other actions shall be done as hduser
 su - hduser
@@ -14,8 +15,6 @@ su - hduser
 cat >>~/.bashrc <<!
 export HBASE_HOME=/usr/local/HBase
 export PATH=\$PATH:\$HBASE_HOME/bin
-# maybe we need this for HBase Java programs
-#export HADOOP_CLASSPATH=\$HBASE_HOME/lib:\$HBASE_HOME/lib/client-facing-thirdparty
 !
 
 source ~/.bashrc
@@ -23,9 +22,12 @@ source ~/.bashrc
 # Ändern der Datei $HBASE_HOME/conf/hbase-env.sh
 cd $HBASE_HOME/conf
 #in Datei $HBASE_HOME/conf/hbase-env.sh das JAVA_HOME korrekt setzen, z.B.:
-#JAVA_HOME=/usr/lib/jvm/jdk
+#export JAVA_HOME=/usr/lib/jvm/jdk
 # besser auch das Regionserver File konfigurieren, falls später weitere Nodes dazukommen
 #export HBASE_REGIONSERVERS=${HBASE_HOME}/conf/regionservers
+
+# hier das eintragen, das man als Hostnamen mit "hdfs getconf -confKey fs.defaultFS | cut -d':' -f2 | cut -c3-" rausbekommt
+echo "namenode" >HBASE_REGIONSERVERS=${HBASE_HOME}/conf/regionservers
 
 #Sicherungskopie von hbase-site.xml anlegen und dann bearbeiten
 # Frage: was macht das "-p" Flag?
@@ -51,18 +53,15 @@ mkdir $HADOOP_HOME/zookeeper
       <name>hbase.rootdir</name>
       <value>hdfs://namenode:9000/hbase</value> <!-- Ausgabe von hdfs getconf -confKey fs.defaultFS + "/hbase" -->
    </property>
-	
    <property>
       <name>hbase.zookeeper.property.dataDir</name>
       <!--wie oben mit mkdir angelegt -->
       <value>/usr/local/hadoop/zookeeper</value>
-   </property>
-   
+   </property>   
    <property>
      <name>hbase.cluster.distributed</name>
      <value>true</value>
    </property>
-
    <property>
      <name>hbase.wal.provider</name>
   	  <value>filesystem</value>
@@ -84,7 +83,7 @@ $HBASE_HOME/bin/start-hbase.sh
 #b) duplicate implementation von log4j:
 # Lösung: Datei $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar umbenennen auf log4j-slf4j-impl-2.17.2.jar.duplicate
 #c) Fehler mit ssh:
-# Lösung in hbase-env.sh: export HBASE_SSH_OPTS="-p 22 -l hduser"
+# Lösung in hbase-env.sh: export HBASE_SSH_OPTS="-p 22 -l hduser" # bzw. Port 10222, wenn anderer Port für ssh verwendet wurde
 #d) Fehler wie folgt:
 # HADOOP_ORG.APACHE.HADOOP.HBASE.UTIL.GETJAVAPROPERTY_USER: invalid variable name
 # Lösung: ersetze Datei $HADOOP_HOME/libexec/hadoop-functions.sh durch folgende Version https://github.com/Woberegger/BigData/blob/main/scripts/04/hadoop-functions.sh
