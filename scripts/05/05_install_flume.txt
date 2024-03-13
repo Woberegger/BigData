@@ -28,7 +28,8 @@ cp -p flume-conf.properties.template flume-conf.properties
 # entweder ans Ende der Datei hängen oder besser im File an der Stelle ersetzen
 cat >>flume-env.sh <<!
 export JAVA_HOME=/usr/lib/jvm/jdk
-export JAVA_OPTS="-Xms100m -Xmx2000m -Dcom.sun.management.jmxremote"
+# Flume Channels könnten Fehler zeigen, dass sie überlaufen, daher Memory-Optionen für Java lieber etwas höher setzen
+export JAVA_OPTS="-Xms512m -Xmx1024m -Dcom.sun.management.jmxremote"
 export FLUME_CLASSPATH="/usr/local/flume/lib/*"
 !
 
