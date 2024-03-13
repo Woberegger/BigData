@@ -35,6 +35,7 @@ docker exec -it  ${DOCKER_CONTAINERNAME} /opt/mssql-tools/bin/sqlcmd -S localhos
 
 sudo -s
 cd /usr/local
+# möglicherweise gibt es Probleme mit gewissen Versionen, Kollegen haben Datei mssql-jdbc-7.2.2.jre8.jar mit Hive 3.1.2 verwendet
 export MSSQL_JDBC_VERSION=12.4.2.0
 wget https://download.microsoft.com/download/5/6/9/56904641-5f5a-449c-a284-36c36bc45652/enu/sqljdbc_${MSSQL_JDBC_VERSION}_enu.tar.gz
 tar -xzvf sqljdbc_${MSSQL_JDBC_VERSION}_enu.tar.gz sqljdbc_12.4/enu/jars/mssql-jdbc-12.4.2.jre11.jar
