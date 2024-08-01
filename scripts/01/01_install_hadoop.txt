@@ -106,11 +106,11 @@ echo "export HADOOP_SSH_OPTS="-p 22" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 ##Editieren Sie core-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
 # um idente files bei Clusterverwendung zu haben, besser anstelle von "localhost" einen Namen lt. /etc/hosts eintragen, z.B. "namenode"
 # Damit dort beim ssh-Connect der einmalige Prompt nicht zu Fehler "Host key verification failed" kommt, muss man ausführen:
-# ssh -p 22 namenode
+#ssh -p 22 namenode (bzw. ssh -p 10222 namenode [bei Verwendung eines anderen Ports])
 
 	<property>
 		<name>fs.defaultFS</name>
-		<value>hdfs://localhost:9000</value>
+		<value>hdfs://namenode:9000</value>
 	</property>
 	<property>
 		<name>hadoop.tmp.dir</name>
@@ -216,7 +216,7 @@ jps | sort -k2
 6024 ResourceManager
 7642 SecondaryNameNode
 
-##Web-GUI starten (als der in der graphischen Oberfläche eingeloggte User, wegen $DISPLAY variable)
+##Web-GUI starten (als der in der graphischen Oberfläche eingeloggte User, wegen $DISPLAY variable), bei WSL den Browser im Windows verwenden
 # Namenode 
 firefox -new-tab http://localhost:9870/
 # ResourceManager 

@@ -133,14 +133,19 @@ b) in hdfs-site.xml:
 	</property>
 
 sudo apt install rpcbind
-sudo systemctl start rpcbind
+sudo systemctl start rpcbind # sudo /etc/init.d/rpcbind start # (in WSL)
 sudo apt install nfs-common
-su – hduser
+sudo /etc/init.d/nfs-common start #(nötig in WSL)
+su - hduser
    stop-dfs.sh
    start-dfs.sh
-   hdfs --daemon start nfs3
-   jps | grep Nfs3 # oder im Vordergrund über "hdfs nfs3"
+   hdfs --daemon start nfs3 # oder im Vordergrund über "hdfs nfs3" (vor allem, wenn folgendes jps Kommando keinen laufenden Prozess findet, sieht man hier die Fehlerausgabe)
+   jps | grep Nfs3 
+
 sudo mkdir /mnt/hdfs
 sudo mount -t nfs -o vers=3,proto=tcp,nolock,noacl,sync localhost:/ /mnt/hdfs
+
+# dann sollte man Inhalte des HDFS im normalen Filesystem sehen
+ls -lsa /mnt/hdfs/user/hduser/testdir
 
 
