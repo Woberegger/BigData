@@ -23,12 +23,17 @@ sudo apt-get install -y virtualbox-guest-utils virtualbox-guest-x11
 
 ##Symbolischen Link für Java erstellen
 sudo -s
-cd /usr/lib/jvm/
-# abhängig von der Rechnerarchitektur könnte die Ausgabe von "dpkg --print-architecture" amd64 oder arm64 oder ??? liefern
-# wenn dpkg Befehl nicht funktioniert, liefert auch "uname -m" Info zur Architektur, die jedoch dann interpretiert werden muss, da z.B. x86_64 als amd64 zu interpretieren ist
-ln -s java-11-openjdk-$(dpkg --print-architecture) jdk
+### besser ist folgendes, das alle nötigen Pfade umsetzt:
+update-alternatives --config java
+update-alternatives --config javac
+# optional dazu...
+   #cd /usr/lib/jvm/
+   ### abhängig von der Rechnerarchitektur könnte die Ausgabe von "dpkg --print-architecture" amd64 oder arm64 oder ??? liefern
+   ### wenn dpkg Befehl nicht funktioniert, liefert auch "uname -m" Info zur Architektur, die jedoch dann interpretiert werden muss, da z.B. x86_64 als amd64 zu interpretieren ist
+   #ln -s java-11-openjdk-$(dpkg --print-architecture) jdk
 # additionally it is good practice to verify, that /etc/alternatives/java points to correct java version
-echo "export JAVA_HOME=/usr/lib/jvm/jdk" >/etc/profile.d/java.sh
+ls -lsa /etc/alternatives/java
+echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)" >/etc/profile.d/java.sh
 
 ##Benutzer und Gruppe einrichten; als Passwort für hduser hduser verwenden
 groupadd hadoop
