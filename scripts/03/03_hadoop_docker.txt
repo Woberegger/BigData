@@ -20,6 +20,10 @@ docker ps
 # prüfe auch, welche IPs die Container bekommen baben
 docker network inspect docker-hadoop_default
 
+# eventuell kann es nötig sein, über iptables die Ports freizugeben, falls das nicht durch das Portmapping automatisch passiert
+ iptables -I INPUT 1 -p tcp --dport 8088 -j ACCEPT
+ iptables -I INPUT 1 -p tcp --dport 9870 -j ACCEPT
+ 
 # kopiere das Programm zum Wörterzählen in den Container (noch besser das selbst gebaute im 1. Teil der Übung)
 docker cp $HADOOPDOCKERDIR/../wordcount/Hadoopwordcount.jar namenode:/tmp/Hadoopwordcount.jar
 # verbinde mit dem namenode container
