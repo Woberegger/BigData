@@ -1,4 +1,5 @@
 # Lade Sourcen vom github repo runter, sollte das noch nicht passiert sein
+# die Container images werden von https://hub.docker.com/r/bde2020/hadoop-base runtergeladen, die Konfiguration von https://github.com/big-data-europe/docker-hadoop/tree/master habe ich adaptiert auf 2 (statt 1) Datanodes.
 cd ~
 git clone https://github.com/Woberegger/BigData/
 #baue Docker-Container nach dem Runterladen der Sourcen (prüfen, ob der Pfad passt, sonst anpassen)
@@ -15,6 +16,9 @@ jps | sort -k2 | awk '{ print $2}'
 
 # prüfe, ob die docker Container alle laufen, sollte historyserver, resourcemanager, nodemanager, namenode und 2x datanode finden
 docker ps
+
+# prüfe auch, welche IPs die Container bekommen baben
+docker network inspect docker-hadoop_default
 
 # kopiere das Programm zum Wörterzählen in den Container (noch besser das selbst gebaute im 1. Teil der Übung)
 docker cp $HADOOPDOCKERDIR/../wordcount/Hadoopwordcount.jar namenode:/tmp/Hadoopwordcount.jar
@@ -39,6 +43,11 @@ docker exec -it namenode bash
 ###docker exec -i --tty=false resourcemanager bash <<!
 ###   \$HADOOP_HOME/bin/yarn --config \$HADOOP_CONF_DIR resourcemanager &
 ###!
+
+# Wenn die letzte Zeile "Job was successful" ausgibt, dann hat man wohl alles richtig gemacht
+# Den Inhalt der Datei kann man sich entweder über http://localhost:9870/explorer.html#/output/elquijote ausgeben lassen oder schneller:
+hdfs dfs -get /output/elquijote/part-r-00000 /tmp/wordcountresult.txt
+tail -n 50 /tmp/wordcountresult.txt
 
 # Zum Stoppen der Container kann man den "harten" Weg gehen ...
 ### for i in $(docker container list | tail +2 | cut -d' ' -f1); do docker container stop $i; done

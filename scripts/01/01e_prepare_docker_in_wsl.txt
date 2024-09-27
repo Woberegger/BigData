@@ -1,0 +1,18 @@
+# mit diesem Script werden zuerst die nötigen Programme installiert, um innerhalb von WSL2 Docker-Container zu verwenden
+# docker in WSL aktivieren
+apt-get update
+apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+apt-get update
+apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose make
+# Starten des Docker Services
+service docker start
+# Folgendes Kommando sollte dann funktionieren, jedoch noch nichts finden, da wir noch keine Container installiert haben
+docker ps -a
+# Testweise installieren wir nginx webserver, dann sehen wir auch gleich, ob Ports vom container auf dem Host verwendet werden können
+docker pull nginx # lädt rund 48GB runter und erzeugt image mit 188MB, also nicht allzu groß - wir können es aber später löschen
+# vorher eventuell über "netstat -an" unter Windows prüfen, welche Ports durch sonstige Tools und Container belegt sind, 8080 ist oft belegt, daher habe ich 8081 verwendet
+docker run --name nginx -d -p 8081:80 nginx
+
+# und dann bitte im Browser im Windows folgende Zeile eingeben, es sollte "Welcome to nginx!" anzeigen
+# http://localhost:8081/
