@@ -42,7 +42,7 @@ services:
     container_name: resourcemanager
     restart: always
     environment:
-      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 datanode2:9865"
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 datanode2:9864"
     env_file:
       - ./hadoop.env
 
@@ -51,7 +51,7 @@ services:
     container_name: nodemanager
     restart: always
     environment:
-      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 datanode2:9865 resourcemanager:8088"
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 datanode2:9864 resourcemanager:8088"
     env_file:
       - ./hadoop.env
   
@@ -60,7 +60,7 @@ services:
     container_name: historyserver
     restart: always
     environment:
-      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 datanode2:9865 resourcemanager:8088"
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 datanode2:9864 resourcemanager:8088"
     volumes:
       - hadoop_historyserver:/hadoop/yarn/timeline
     env_file:

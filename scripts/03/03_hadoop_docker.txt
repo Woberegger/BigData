@@ -1,0 +1,54 @@
+# Lade Sourcen vom github repo runter, sollte das noch nicht passiert sein
+cd ~
+git clone https://github.com/Woberegger/BigData/
+#baue Docker-Container nach dem Runterladen der Sourcen (prüfen, ob der Pfad passt, sonst anpassen)
+export HADOOPDOCKERDIR=~/BigData/src/docker-hadoop/
+cd $HADOOPDOCKERDIR
+docker-compose up -d
+
+# die Ausgabe von "jps" sollte wie folgt aussehen (2 Datanodes und 1 Namenode):
+jps | sort -k2 | awk '{ print $2}' 
+### DataNode
+### DataNode
+### Jps
+### NameNode
+
+# prüfe, ob die docker Container alle laufen, sollte historyserver, resourcemanager, nodemanager, namenode und 2x datanode finden
+docker ps
+
+# kopiere das Programm zum Wörterzählen in den Container (noch besser das selbst gebaute im 1. Teil der Übung)
+docker cp $HADOOPDOCKERDIR/../wordcount/Hadoopwordcount.jar namenode:/tmp/Hadoopwordcount.jar
+# verbinde mit dem namenode container
+docker exec -it namenode bash
+# führe folgende Kommandos im Container aus, um hier Testdaten runterzuladen und auszuführen.
+ cd /tmp
+ curl -o el_quijote.txt https://gist.github.com/jsdario/6d6c69398cb0c73111e49f1218960f79#file-el_quijote-txt
+ curl -o mapreduce.jar  https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-mapreduce-examples/2.7.1/hadoop-mapreduce-examples-2.7.1-sources.jar
+ # lege Verzeichnisse im HDFS an
+ hdfs dfs -mkdir -p /input
+ hdfs dfs -mkdir -p /output
+ hdfs dfs -put ./el_quijote.txt /input/
+ # wenn Verzeichnis schon von vorigen Tests existiert, lösche es
+ hdfs dfs -rm -R /output/elquijote
+ hadoop jar Hadoopwordcount.jar /input/el_quijote.txt /output/elquijote
+ # Wenn hierbei folgende Exception auftaucht, dann wurde das HadoopWordCount.jar mit zu neuer Java-Version gebaut, in dem Container ist Java8 installiert
+# Exception in thread "main" java.lang.UnsupportedClassVersionError: at/fhj/WordCount has been compiled by a more recent version of the Java Runtime (class file version 55.0), this version of the Java Runtime only recognizes class file versions up to 52.0
+
+# Wenn es zu folgendem Fehler kommt, dann in einer 2. Session mit dem Resourcemanager verbinden
+### INFO ipc.Client: Retrying connect to server: resourcemanager/172.19.0.3:8032. Already tried 9 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+###docker exec -i --tty=false resourcemanager bash <<!
+###   \$HADOOP_HOME/bin/yarn --config \$HADOOP_CONF_DIR resourcemanager &
+###!
+
+# Zum Stoppen der Container kann man den "harten" Weg gehen ...
+### for i in $(docker container list | tail +2 | cut -d' ' -f1); do docker container stop $i; done
+# oder besser ... 
+docker-compose down
+
+# falls man mal was verhaut hat und neu beginnen möchte, einfach folgendes ausführen:
+# docker container rm namenode
+# docker container rm datanode
+# docker container rm datanode2
+# docker container rm nodemanager
+# docker container rm resourcemanager
+# docker container rm historyserver
