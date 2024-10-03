@@ -1,5 +1,12 @@
 ## Anleitung, um einen 2. oder 3. Knoten aufzusetzen, die als reine Datanodes, d.h. Rechenknechte, dienen.
 # In virtualbox am besten Snapshot erstellen und klonen (linked Clone, da kaum Speicher drauf geht) und dann am besten ein internes Netzwerk mit fixen IPs anlegen
+# bei WSL kann man folgendes machen:
+### cd %USERPROFILE%\Downloads
+### a)wenn man das bereits angepasste image clonen will und sich die ersten Installationsschritte sparen will
+### wsl.exe --export Ubuntu-23.10 Ubuntu-23.10.backup.tar.gz
+### wsl.exe --import Ubuntu-23.10-node2 %USERPROFILE%\AppData\Local\Packages\Ubuntu-23.10-node2 Ubuntu-23.10.backup.tar.gz
+### b)wenn man das originale Downloadimage verwenden will
+### wsl.exe --import Ubuntu-23.10-node2 %USERPROFILE%\AppData\Local\Packages\Ubuntu-23.10-node2 .\ubuntu-mantic-wsl-amd64-wsl.rootfs.tar.gz
 # in meinem Beispiel in Range 10.0.3.0/24.
 # die Anleitung beschreibt das Aufsetzen eines 2. Knotens mit Hostnamen "UbuntuBigDataNode1"
 

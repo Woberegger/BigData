@@ -18,4 +18,4 @@ wsl.exe --import Ubuntu-23.10 %USERPROFILE%\AppData\Local\Packages\Ubuntu-23.10 
 wsl --setdefault Ubuntu-23.10
 wsl -d Ubuntu-23.10
 
-# Wenn der Linux-Prompt erscheint, dann weitermachen mit Script 01_install_hadoop.txt
+# Wenn der Linux-Prompt erscheint, dann weitermachen mit Script 01c_install_hadoop.txt
