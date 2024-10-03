@@ -3,6 +3,7 @@
 # bei WSL kann man folgendes machen:
 ### cd %USERPROFILE%\Downloads
 ### a)wenn man das bereits angepasste image clonen will und sich die ersten Installationsschritte sparen will
+### wsl.exe --shutdown Ubuntu-23.10
 ### wsl.exe --export Ubuntu-23.10 Ubuntu-23.10.backup.tar.gz
 ### wsl.exe --import Ubuntu-23.10-node2 %USERPROFILE%\AppData\Local\Packages\Ubuntu-23.10-node2 Ubuntu-23.10.backup.tar.gz
 ### b)wenn man das originale Downloadimage verwenden will
