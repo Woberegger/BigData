@@ -1,17 +1,19 @@
 # Hive downloaden
 # Man kann auch von Source installieren - siehe Anleitung unter https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-BuildingHivefromSource
 # if you should need "--no-check-certificate" with wget, better do the following beforehand
-sudo update-ca-certificates -f
+sudo -s
+update-ca-certificates -f
 # Attention: Take care, that your hadoop version matches the hive version - see https://hive.apache.org/general/downloads/
 #            Unfortunately this is wrong, better use latest version 4.x, 3.1.3 does not seem to work with our version
 
-a) binary (preferred, if it works)
+### a) binary (preferred, if it works)
 
 cd /usr/local
-sudo wget --no-check-certificate https://dlcdn.apache.org/hive/hive-4.0.0-beta-1/apache-hive-4.0.0-beta-1-bin.tar.gz
+export HIVE_VERSION=4.0.1
+wget --no-check-certificate https://dlcdn.apache.org/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz
 
-sudo tar -xzf apache-hive-4.0.0-beta-1-bin.tar.gz
-sudo ln -s /usr/local/apache-hive-4.0.0-beta-1-bin /usr/local/hive
+tar -xzf apache-hive-${HIVE_VERSION}-bin.tar.gz
+ln -s /usr/local/apache-hive-${HIVE_VERSION}-bin /usr/local/hive
 
 #########b) source (building from source will take several minutes!)
 #########git clone https://github.com/apache/hive.git
@@ -22,7 +24,7 @@ sudo ln -s /usr/local/apache-hive-4.0.0-beta-1-bin /usr/local/hive
 
 #########################################################
 
-sudo chown -R hduser:hadoop /usr/local/*hive*
+chown -R hduser:hadoop /usr/local/*hive*
 
 # connect as hduser
 
@@ -60,7 +62,7 @@ hdfs dfs -chmod g+w /user/hduser/hive_external
 cd /usr/local/hive/conf
 cp hive-default.xml.template hive-site.xml
 
-#Folgendes Property am Begin nach Tag <configuration> einfügen
+#Folgendes Property am Begin nach Tag <configuration> in hive-site.xml einfügen
 
  <property>
    <name>system:java.io.tmpdir</name>
@@ -95,6 +97,9 @@ cp hive-default.xml.template hive-site.xml
     <value>false</value>
     <description>Whether Hive enables the optimization about converting common join into mapjoin based on the input file size</description>
   </property>
+
+
+### nachdem alle Einträge passiert sind, kann man hive mal testweise starten
 
 hive
 #

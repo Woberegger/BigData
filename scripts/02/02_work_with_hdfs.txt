@@ -1,7 +1,8 @@
 # nach dem Installieren wollen wir evaluieren, wo und wie HDFS die Dateien ablegt
-
+su - hduser
 # eine gute Testdatei, die wir auch später für Mapreduce Beispiele verwenden, ist die folgende:
-cd /tmp && wget https://github.com/DistrictDataLabs/transportation-project-1/raw/master/airdelayhist/data/airline_delay_causes.csv
+# entweder wie folgt direkt aus dem Internet runterladen, bzw. besser aus dem GitRepo 
+# cd /tmp && wget https://github.com/DistrictDataLabs/transportation-project-1/raw/master/airdelayhist/data/airline_delay_causes.csv
 
 # siehe Liste der Kommandos unter https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/FileSystemShell.html
 z.B.:hdfs dfs -ls # die letzten Kommandos mit '-' Prefix ähneln Linux OS-Kommandos
@@ -14,10 +15,10 @@ du -d0 /usr/local/hadoop/hadoopdata
 
 hdfs dfs -mkdir -p /user/hduser/testdir
 hdfs dfs -ls -R /user/hduser/testdir # -R listet rekursiv
-hdfs dfs -put -l /tmp/airline_delay_causes.csv /user/hduser/testdir/ # -l ... overruled die replications und speichert nur 1 Instanz
+hdfs dfs -put -l ~/BigData/data/airline_delay_causes.csv /user/hduser/testdir/ # -l ... overruled die replications und speichert nur 1 Instanz
 
 # versuchen, Trashbin zu aktivieren (prüfen, über welche Option) und dann verifizieren, ob die Datei wirklich dort landet
-hdfs dfs -put /tmp/airline_delay_causes.csv /user/hduser/testdir/copy_to_delete.csv
+hdfs dfs -put ~/BigData/data/airline_delay_causes.csv /user/hduser/testdir/copy_to_delete.csv
 hdfs dfs -rm -r /user/hduser/testdir/copy_to_delete.csv
 hdfs dfs -rm -r -skipTrash /user/hduser/testdir/airline_delay_causes.csv
 hdfs dfs -ls -R /user/hduser/.Trash/
@@ -29,7 +30,7 @@ hdfs dfs -setrep -R 3 /user/hduser
 hdfs dfs -setrep -R 2 /user/hduser
 
 # Versuchen, die Blocksize bei einzelnen Files zu ändern - am besten eine recht große Datei verwenden, wo dann mehr als 2 Blöcke entstehen
-hdfs dfs -D dfs.blocksize=16777216 -put /tmp/airline_delay_causes.csv /user/hduser/data/BlockSize16MB.csv
+hdfs dfs -D dfs.blocksize=16777216 -put ~/BigData/data/airline_delay_causes.csv /user/hduser/data/BlockSize16MB.csv
 
 # Prüfen, über welchen Parameter man einstellen kann, ab wann auf einen toten DataNode reagiert wird. Ändern auf 60 Sekunden - siehe https://hadoop.apache.org/docs/r3.2.4/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml
 # Runterfahren des 2. Knotens und schauen, was nach 60 Sekunden mit den Replikas des Knotens passiert.
@@ -51,7 +52,7 @@ hdfs fsck  /user/hduser  -files -blocks -replicaDetails # hier sieht man, auf we
 # Sinn von Snapshots erheben und ausprobieren - was dauert lange und belegt Platz, das Anlegen oder erst das Ändern einer Datei?
 
 # Zusatzaufgabe: Einstellen von Erasure Coding auf einem bestimmten Verzeichnis, nachdem dort einige sehr große Dateien abgelegt wurden. Was ändert sich am benötigten Space?
-# Dies erfordert jedoch 3 Nodes Minimum, dass dies funktioniert!!!
+# !!! ACHTUNG: Dies erfordert jedoch 3 Nodes Minimum, dass dies funktioniert!!!
 cat >$HADOOP_HOME/bin/rack-topology.sh <<! 
 #!/bin/bash
 # Adjust/Add the property "net.topology.script.file.name"
@@ -81,7 +82,7 @@ hdfs ec -setPolicy -path /ErasureCoding -policy <PolicyName>
 du -d1 /usr/local/hadoop/hadoopdata
 
 # Zusatzaufgabe: Was könnte folgende Fehlermeldung bedeuten - wann tritt sie auf, was kann man unternehmen?
-hdfs dfs -put /tmp/airline_delay_causes.csv /user/hduser/data/
+hdfs dfs -put ~/BigData/data/airline_delay_causes.csv /user/hduser/data/
 
 ### put: Cannot create file/user/hduser/data/airline_delay_causes.csv._COPYING_. Name node is in safe mode. ###
 

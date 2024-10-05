@@ -21,8 +21,8 @@ sudo apt-get -y install git
 # (Virtual-Box-only!!!) damit shared folders und copy'n'paste funktionieren, ist meist die Installation der Guest-Additions nötig, danach ev. ein Reboot der VM
 sudo apt-get install -y virtualbox-guest-utils virtualbox-guest-x11
 
-##Symbolischen Link für Java erstellen
 sudo -s
+##Symbolischen Link für Java erstellen
 ### besser ist folgendes, das alle nötigen Pfade umsetzt:
 update-alternatives --config java
 update-alternatives --config javac
@@ -34,6 +34,10 @@ update-alternatives --config javac
 # additionally it is good practice to verify, that /etc/alternatives/java points to correct java version
 ls -lsa /etc/alternatives/java
 echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)" >/etc/profile.d/java.sh
+
+# prüfen, ob sshd läuft, andernfalls starten, je nach Plattform mit systemctl oder service command
+# entweder man belässt den Port 22 oder man setzt besser einen nicht-privilegierten Port > 1024 in /etc/ssh/sshd_config File (ich habe Port 10222 verwendet)
+service ssh start
 
 ##Benutzer und Gruppe einrichten; als Passwort für hduser hduser verwenden
 groupadd hadoop
@@ -50,7 +54,7 @@ ssh-keygen -t rsa -P ""
 cat ~/.ssh/id_rsa.pub  > ~/.ssh/authorized_keys
 
 ##SSH Schlüssel des Systems hinzufügen; mit yes bestätigen
-ssh -p 22 localhost
+ssh -p 10222 localhost
 # wenn das nicht funktioniert wegen Firewallregeln, dann entweder Windows-Firewall Regel anlegen lt. https://pureinfotech.com/open-port-firewall-windows-10/
 # oder optional in WSL in /etc/ssh/sshd_config den Eintrag für "Port" z.B. wie folgt aktivieren auf einen Port > 1024 "Port=10222"
 # danach in wsl als root "service ssh restart; service ssh status" ausführen und "ssh -p 10222 localhost" als "hduser" testen
@@ -59,7 +63,7 @@ ssh -p 22 localhost
 exit
 exit
 
-##Download Hadoop 3.2.4 und entpacken (in Browser herunterladen oder per wget/curl)
+##Download Hadoop in passender Version und entpacken (in Browser herunterladen oder per wget/curl)
 sudo -s
 cd /usr/local
 export HADOOP_VERSION=3.3.6
@@ -106,7 +110,7 @@ source ~/.bashrc
 # leider wird das auch in dieser Datei redundanterweise verlangt
 echo "export JAVA_HOME=/usr/lib/jvm/jdk" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 # Wenn ein anderer Port als 22 gewählt wurde (z.B. 10222), dann ist folgende Zeile zu korrigieren auf diesen Port
-echo "export HADOOP_SSH_OPTS="-p 22" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
+echo 'export HADOOP_SSH_OPTS="-p 22"' >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 
 ##Editieren Sie core-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
 # um idente files bei Clusterverwendung zu haben, besser anstelle von "localhost" einen Namen lt. /etc/hosts eintragen, z.B. "namenode"
@@ -222,20 +226,19 @@ jps | sort -k2
 7642 SecondaryNameNode
 
 ##Web-GUI starten (als der in der graphischen Oberfläche eingeloggte User, wegen $DISPLAY variable), bei WSL den Browser im Windows verwenden
-# Namenode 
+# Namenode (nach start-dfs.sh) und Resourcemanager (nach start-yarn.sh)
+# a) in Windows command prompt:
+"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://localhost:9870
+"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://localhost:8088
+# b) unter Linux
 firefox -new-tab http://localhost:9870/
-# ResourceManager 
 firefox -new-tab http://localhost:8088/
-
 
 ##Hadoop stoppen (als hduser)
 stop-dfs.sh
 stop-yarn.sh 
 
-
-##oder
-
-##Hadoop stoppen (als hduser)
+##oder Hadoop daemons einzeln stoppen (als hduser)
 hdfs --daemon stop namenode
 hdfs --daemon stop datanode
 hdfs --daemon stop secondarynamenode
