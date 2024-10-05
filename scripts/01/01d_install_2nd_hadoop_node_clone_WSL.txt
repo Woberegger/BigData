@@ -1,0 +1,83 @@
+## Anleitung, um einen 2. oder 3. Knoten aufzusetzen, die als reine Datanodes, d.h. Rechenknechte, dienen.
+# bei WSL kann man folgendes machen:
+cd %USERPROFILE%\Downloads
+# a)wenn man das bereits angepasste image clonen will und sich die ersten Installationsschritte sparen will
+wsl.exe --shutdown Ubuntu-23.10
+wsl.exe --export Ubuntu-23.10 Ubuntu-23.10.backup.tar.gz
+wsl.exe --import Ubuntu-23.10-node2 %USERPROFILE%\AppData\Local\Packages\Ubuntu-23.10-node2 Ubuntu-23.10.backup.tar.gz
+# b)wenn man das originale Downloadimage verwenden will
+wsl.exe --import Ubuntu-23.10-node2 %USERPROFILE%\AppData\Local\Packages\Ubuntu-23.10-node2 .\ubuntu-mantic-wsl-amd64-wsl.rootfs.tar.gz
+
+### WICHTIG: Bei WSL haben alle Instanzen dieselbe IP, können jedoch untereinander kommunizieren,
+#            per ssh am besten, indem sich der Port unterscheidet, also z.B. 11222 statt 10222
+
+# auf DataNode: normalerweise sollten die keys existieren, weil eben die Maschinen geklont wurden, andernfalls wechselseitig austauschen
+ssh-keygen -t rsa -P ""
+ssh-copy-id -i ~/.ssh/id_rsa.pub -p 11222 hduser@localhost
+# einmalig einloggen, um Abfrage wegzubekommen
+#a) von basenode auf clone
+ssh -p 11222 hduser@namenode
+#b) von clone auf basenode
+ssh -p 10222 hduser@namenode
+
+# auf allen Nodes in yarn-site.xml:
+#### for cluster zusätzliche config in yarn-site.xml ("localhost" ist der Hostname, den mit dem Wert des Ressource Manager Hosts ersetzen) - bei WSL ist es am besten, localhost zu verwenden, da /etc/hosts immer wieder neu erstellt wird:
+	<property>
+		<name>yarn.resourcemanager.resource-tracker.address</name>
+		<value>localhost:8031</value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.scheduler.address</name>
+		<value>localhost:8030</value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.address</name>
+		<value>localhost:8032</value>
+	</property>
+## in hdfs-site.xml den Wert für dfs.replication auf 2 erhöhen
+
+# auf Namenode: und dem master alle workers bekanntmachen
+echo "localhost" >$HADOOP_HOME/etc/hadoop/slaves
+echo "localhost" >$HADOOP_HOME/etc/hadoop/masters
+cp $HADOOP_HOME/etc/hadoop/slaves $HADOOP_HOME/etc/hadoop/workers
+
+# auf allen Nodes:
+# und damit Dateien doppelt abgelegt werden, sollte man in hdfs-site.xml die Variable dfs.replication auf Wert 2 setzen
+<configuration>
+        <property>
+                <name>dfs.replication</name>
+                <value>2</value>
+        </property>
+        <property>
+                <name>dfs.permissions</name>
+                <value>false</value>
+        </property>
+        <property>
+                <name>dfs.namenode.name.dir</name>
+                <value>file:/usr/local/hadoop/hadoopdata/hdfs/namenode</value>
+        </property>
+        <property>
+                <name>dfs.datanode.data.dir</name>
+                <value>file:/usr/local/hadoop/hadoopdata/hdfs/datanode</value>
+        </property>
+</configuration>
+
+### auf NameNode: Test call	
+
+## NUR auf NameNode: Hadoop starten (als hduser) - auf den anderen Nodes sollte das autom. per pdsh mitgestartet werden.
+start-dfs.sh
+start-yarn.sh
+
+# erwartete Ausgabe des "jps" Kommandos auf den datanodes
+jps
+#13076 DataNode --> wird über start-dfs.sh auf allen anderen Knoten mitgestartet
+#13401 Jps
+#13293 NodeManager --> wird über start-yarn.sh auf allen anderen Knoten mitgestartet
+
+
+# das folgende erstellt HDFS-Verzeichnis und eine Datei   
+hdfs dfs -mkdir -p /user/hduser/data
+hdfs dfs -put <myTestfile> /user/hduser/data
+
+# im Browser im Folgenden Pfad zu finden - bitte prüfen, ob der "Replication" Wert dem Wert 2 entspricht
+firefox -new-tab http://localhost:9870/explorer.html#/user/hduser/data
