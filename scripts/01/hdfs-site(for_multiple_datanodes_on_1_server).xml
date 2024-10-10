@@ -1,0 +1,77 @@
+<configuration>
+    <!-- Default Block Size (optional, hier als Beispiel auf 2 MB) -->
+    <property>
+        <name>dfs.blocksize</name>
+        <value>2097152</value>
+    </property>
+ 
+    <!-- Replikationsfaktor für Daten (Standard ist 3, hier auf 2 gesetzt) -->
+    <property>
+        <name>dfs.replication</name>
+        <value>2</value>
+    </property>
+ 
+    <!-- Namen des NameNode-Hosts (Beispiel) -->
+    <property>
+        <name>dfs.namenode.rpc-address</name>
+        <value>namenode-host:9000</value>
+    </property>
+ 
+    <!-- Datenverzeichnisse für die verschiedenen DataNodes -->
+    <property>
+        <name>dfs.datanode.data.dir</name>
+        <value>
+            file:///tmp/datanode1/data,
+            file:///tmp/datanode2/data,
+            file:///tmp/datanode3/data
+        </value>
+    </property>
+ 
+    <!-- DataNode 1 Konfiguration -->
+    <property>
+        <name>dfs.datanode.address</name>
+        <value>0.0.0.0:50010</value>
+    </property>
+ 
+    <property>
+        <name>dfs.datanode.http.address</name>
+        <value>0.0.0.0:50075</value>
+    </property>
+ 
+    <property>
+        <name>dfs.datanode.ipc.address</name>
+        <value>0.0.0.0:50020</value>
+    </property>
+ 
+    <!-- DataNode 2 Konfiguration (neue Ports) -->
+    <property>
+        <name>dfs.datanode.address.datanode2</name>
+        <value>0.0.0.0:50011</value>
+    </property>
+ 
+    <property>
+        <name>dfs.datanode.http.address.datanode2</name>
+        <value>0.0.0.0:50076</value>
+    </property>
+ 
+    <property>
+        <name>dfs.datanode.ipc.address.datanode2</name>
+        <value>0.0.0.0:50021</value>
+    </property>
+ 
+    <!-- DataNode 3 Konfiguration (neue Ports) -->
+    <property>
+        <name>dfs.datanode.address.datanode3</name>
+        <value>0.0.0.0:50012</value>
+    </property>
+ 
+    <property>
+        <name>dfs.datanode.http.address.datanode3</name>
+        <value>0.0.0.0:50077</value>
+    </property>
+ 
+    <property>
+        <name>dfs.datanode.ipc.address.datanode3</name>
+        <value>0.0.0.0:50022</value>
+    </property>
+</configuration>

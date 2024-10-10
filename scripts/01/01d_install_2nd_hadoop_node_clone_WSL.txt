@@ -36,6 +36,11 @@ ssh -p 10222 hduser@namenode
 	</property>
 ## in hdfs-site.xml den Wert für dfs.replication auf 2 erhöhen
 
+# weiters in hdfs-site.xml die Ports anders definieren in Variablen dfs.datanode.address, dfs.datanode.http.address, dfs.datanode.ipc.address und eigenes Verzeichnis pro Datanode in dfs.datanode.data.dir
+# (siehe https://stackoverflow.com/questions/25401159/hadoop-multiple-datanodes-on-single-machine)
+# oder probiere folgenden Prompt in ChatGPT: "Stelle ein exemplarisches File hdfs-site.xml für multiple Datanodes auf einem physischen Server."
+# siehe generiertes File hdfs-site(for_multiple_datanodes_on_1_server).xml - Achtung: File wurde nicht getestet, ist inhaltlich zu verifizieren!!!
+
 # auf Namenode: und dem master alle workers bekanntmachen
 echo "localhost" >$HADOOP_HOME/etc/hadoop/slaves
 echo "localhost" >$HADOOP_HOME/etc/hadoop/masters
