@@ -56,7 +56,7 @@ git clone https://github.com/Woberegger/BigData
 ssh-keygen -t rsa -P ""
 cat ~/.ssh/id_rsa.pub  > ~/.ssh/authorized_keys
 
-##SSH Schlüssel des Systems hinzufügen; mit yes bestätigen
+##SSH Schlüssel des Systems hinzufügen; mit yes bestätigen - sollte nach Passwort gefragt werden, dann funktionieren keys nicht
 # (bzw. erlaubt die Option "-o" dies zu umgehen, was nur auf lokalem System zu empfehlen ist)
 ssh -p 10222 -o StrictHostKeyChecking=accept-new localhost "ls -lsa"
 # wenn das nicht funktioniert wegen Firewallregeln, dann entweder Windows-Firewall Regel anlegen lt. https://pureinfotech.com/open-port-firewall-windows-10/
