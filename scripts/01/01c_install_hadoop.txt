@@ -39,6 +39,9 @@ echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)
 # entweder man belässt den Port 22 oder man setzt besser einen nicht-privilegierten Port > 1024 in /etc/ssh/sshd_config File (ich habe Port 10222 verwendet)
 service ssh start
 
+# Wenn der gezeigte Port 22 ist, obwohl man einen anderen gesetzt hat (tritt z.B. bei Ubuntu 24-04 oder höher auf),
+# bitte Anleitung 01c_different_ssh_port.txt beachten!
+
 ##Benutzer und Gruppe einrichten; als Passwort für hduser hduser verwenden
 groupadd hadoop
 useradd -g hadoop -s /bin/bash -m hduser 
@@ -81,7 +84,7 @@ chown -R hduser:hadoop hadoop*
 ## Umgebungsvariablen in bashrc setzen
 
 su - hduser
-cat >>~hduser/.bashrc <<!
+cat >>~/.bashrc <<EOF
 # Java (a copy of what is already in /etc/profile.d/java.sh)
 export JAVA_HOME=/usr/lib/jvm/jdk
 
@@ -99,7 +102,7 @@ export YARN_HOME=\$HADOOP_HOME
 export PATH=\$PATH:\$JAVA_HOME/bin:\$HADOOP_INSTALL/bin:\$HADOOP_INSTALL/sbin
 
 export PDSH_RCMD_TYPE=ssh
-!
+EOF
 
 ##Speichern Sie die Änderungen in der Datei .bashrc. Da die bashrc nur beim erstellen der Konsole 
 gelesen wird, muss diese manuell neu eingelesen weerden. Verwenden Sie dazu den folgenden Befehl:
