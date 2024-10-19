@@ -2,7 +2,7 @@
 
 # Damit jeder individuelle Screenshots erstellen muss, bitte unique hostnamen erstellen - wichtig ist, dass Hostname mit Buchstaben beginnt
 # Folgender Befehl nur in VM ausführen, in Wsl funktioniert dieser nicht
-sudo hostnamectl set-hostname swd<MatrikelNr>
+#sudo hostnamectl set-hostname swd<MatrikelNr>
 
 ##Packages Installieren
 sudo apt-get update
@@ -19,7 +19,7 @@ sudo apt-get -y install vim
 sudo apt-get -y install net-tools
 sudo apt-get -y install git
 # (Virtual-Box-only!!!) damit shared folders und copy'n'paste funktionieren, ist meist die Installation der Guest-Additions nötig, danach ev. ein Reboot der VM
-sudo apt-get install -y virtualbox-guest-utils virtualbox-guest-x11
+#sudo apt-get install -y virtualbox-guest-utils virtualbox-guest-x11
 
 sudo -s
 ##Symbolischen Link für Java erstellen
@@ -30,14 +30,15 @@ update-alternatives --config javac
    #cd /usr/lib/jvm/
    ### abhängig von der Rechnerarchitektur könnte die Ausgabe von "dpkg --print-architecture" amd64 oder arm64 oder ??? liefern
    ### wenn dpkg Befehl nicht funktioniert, liefert auch "uname -m" Info zur Architektur, die jedoch dann interpretiert werden muss, da z.B. x86_64 als amd64 zu interpretieren ist
-   #ln -s java-11-openjdk-$(dpkg --print-architecture) jdk
+ln -s java-11-openjdk-$(dpkg --print-architecture) jdk
 # additionally it is good practice to verify, that /etc/alternatives/java points to correct java version
 ls -lsa /etc/alternatives/java
 echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)" >/etc/profile.d/java.sh
 
 # prüfen, ob sshd läuft, andernfalls starten, je nach Plattform mit systemctl oder service command
-# entweder man belässt den Port 22 oder man setzt besser einen nicht-privilegierten Port > 1024 in /etc/ssh/sshd_config File (ich habe Port 10222 verwendet)
-service ssh start
+# entweder man belässt den Port 22 oder man setzt besser einen nicht-privilegierten Port > 1024
+# in /etc/ssh/sshd_config File (ich habe Port 10222 verwendet)
+service ssh start # oder bei systemd besser "systemctl start ssh"
 
 # Wenn der gezeigte Port 22 ist, obwohl man einen anderen gesetzt hat (tritt z.B. bei Ubuntu 24-04 oder höher auf),
 # bitte Anleitung 01c_different_ssh_port.txt beachten!
@@ -46,7 +47,7 @@ service ssh start
 groupadd hadoop
 useradd -g hadoop -s /bin/bash -m hduser 
 passwd hduser
-usermod -G vboxsf hduser # (Virtual-Box-only!!!) Gruppe vboxsf ist nur für VirtualBox zu setzen, damit kann der User auf shared directories zugreifen, bei anderen Virtualisierungslösungen bitte anpassen
+#usermod -G vboxsf hduser # (Virtual-Box-only!!!) Gruppe vboxsf ist nur für VirtualBox zu setzen, damit kann der User auf shared directories zugreifen, bei anderen Virtualisierungslösungen bitte anpassen
 
 # sinnvollerweise sollte man gleich das github Repo klonen, dann hat man alle Scripts, Sourcen etc. lokal auf der VM vorhanden
 su - hduser
@@ -91,7 +92,7 @@ chown -R hduser:hadoop hadoop*
 su - hduser
 cat >>~/.bashrc <<EOF
 # Java (a copy of what is already in /etc/profile.d/java.sh)
-export JAVA_HOME=/usr/lib/jvm/jdk
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)
 
 # Hadoop export
 export HADOOP_INSTALL=/usr/local/hadoop
@@ -116,7 +117,7 @@ source ~/.bashrc
 
 ##Hadoop Konfigurationsdateien anpassen (als hduser)
 # leider wird das auch in dieser Datei redundanterweise verlangt
-echo "export JAVA_HOME=/usr/lib/jvm/jdk" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
+echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 # Wenn ein anderer Port als 22 gewählt wurde (z.B. 10222), dann ist folgende Zeile zu korrigieren auf diesen Port
 echo 'export HADOOP_SSH_OPTS="-p 22"' >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 
