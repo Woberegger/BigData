@@ -9,6 +9,10 @@
 dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
 dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 wsl --set-default-version 2
+### !WICHTIG!: Es kann nötig sein, Windows neu zu starten, v.a. nach Fehlermeldung, dass wsl.exe die Parameter nicht findet !!!
+# danach eine Distribution Installieren
+wsl --install -d Ubuntu-24.04
+### die weiteren Schritte können übersprungen werden, es gibt ja bereits eine aktive Distro ###
 
 # 3. Installieren und Aktivieren dieser Distro in cmd.exe
 # (Annahme: dass der Download der Datei .\ubuntu-noble-wsl-amd64-ubuntu.rootfs.tar.gz nach %USERPROFILE%\Downloads gemacht wurde)
