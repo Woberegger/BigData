@@ -57,13 +57,15 @@ ssh-keygen -t rsa -P ""
 cat ~/.ssh/id_rsa.pub  > ~/.ssh/authorized_keys
 
 ##SSH Schlüssel des Systems hinzufügen; mit yes bestätigen
-ssh -p 10222 localhost
+# (bzw. erlaubt die Option "-o" dies zu umgehen, was nur auf lokalem System zu empfehlen ist)
+ssh -p 10222 -o StrictHostKeyChecking=accept-new localhost "ls -lsa"
 # wenn das nicht funktioniert wegen Firewallregeln, dann entweder Windows-Firewall Regel anlegen lt. https://pureinfotech.com/open-port-firewall-windows-10/
 # oder optional in WSL in /etc/ssh/sshd_config den Eintrag für "Port" z.B. wie folgt aktivieren auf einen Port > 1024 "Port=10222"
 # danach in wsl als root "service ssh restart; service ssh status" ausführen und "ssh -p 10222 localhost" als "hduser" testen
-
-##2 mal Exit oder Ctrl<d> um wieder als ursprünglicher User zu arbeiten
-exit
+# falls der Name anders aufgelöst wird, ist es nötig, auch mit dem Hostname und "namenode" einmalig die Verbindung zu öffnen
+ssh -p 10222 -o StrictHostKeyChecking=accept-new $(hostname) "ls -lsa"
+ssh -p 10222 -o StrictHostKeyChecking=accept-new namenode "ls -lsa"
+## exit oder Ctrl<d> um wieder als ursprünglicher User zu arbeiten (da "hduser" nicht in sudoers enthalten ist)
 exit
 
 ##Download Hadoop in passender Version und entpacken (in Browser herunterladen oder per wget/curl)
@@ -72,6 +74,9 @@ cd /usr/local
 export HADOOP_VERSION=3.3.6
 wget https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz --no-check-certificate
 wget https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz.sha512 --no-check-certificate
+# das ShaSum File referenziert einen anderen Dateinamen, daher ist es zu ersetzen
+# optional einfach "shasum -a 512 hadoop-${HADOOP_VERSION}.tar.gz" ausführen und mit Inhalt von *.sha512 Datei vergleichen
+sed -i 's/-RC1//' hadoop-${HADOOP_VERSION}.tar.gz.sha512
 shasum -a 512 hadoop-${HADOOP_VERSION}.tar.gz -c hadoop-${HADOOP_VERSION}.tar.gz.sha512
 
 tar -xzf hadoop-${HADOOP_VERSION}.tar.gz
