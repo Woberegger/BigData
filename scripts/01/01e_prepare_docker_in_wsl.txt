@@ -9,6 +9,7 @@ apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin d
 service docker start
 # Folgendes Kommando sollte dann funktionieren, jedoch noch nichts finden, da wir noch keine Container installiert haben
 docker ps -a
+# das Image und das Download-Command sowie Config-Anleitung findet man under https://hub.docker.com/search?q=nginx
 # Testweise installieren wir nginx webserver, dann sehen wir auch gleich, ob Ports vom container auf dem Host verwendet werden können
 docker pull nginx # lädt rund 48GB runter und erzeugt image mit 188MB, also nicht allzu groß - wir können es aber später löschen
 # vorher eventuell über "netstat -an" unter Windows prüfen, welche Ports durch sonstige Tools und Container belegt sind, 8080 ist oft belegt, daher habe ich 8081 verwendet
