@@ -233,6 +233,7 @@ jps | sort -k2
 7958 NodeManager
 6024 ResourceManager
 7642 SecondaryNameNode
+# Bei Problem 'No such rcmd module "ssh"' kann es nötig sein, das Paket "pdsh-rcmd-ssh" zu installieren!
 
 ##Web-GUI starten (als der in der graphischen Oberfläche eingeloggte User, wegen $DISPLAY variable), bei WSL den Browser im Windows verwenden
 # Namenode (nach start-dfs.sh) und Resourcemanager (nach start-yarn.sh)
