@@ -47,8 +47,11 @@ service ssh start # oder bei systemd besser "systemctl start ssh"
 groupadd hadoop
 useradd -g hadoop -s /bin/bash -m hduser 
 passwd hduser
-#usermod -G vboxsf hduser # (Virtual-Box-only!!!) Gruppe vboxsf ist nur für VirtualBox zu setzen, damit kann der User auf shared directories zugreifen, bei anderen Virtualisierungslösungen bitte anpassen
 
+# da wir später einen Alias "namenode" verwenden über alle Clusterknoten, sollte man den bei wsl idealerweise
+# in c:\windows\system32\drivers\etc\hosts eintragen, da dies andernfalls beim Neustart von wsl wieder gelöscht wird
+# der Alias kann in derselben Zeile wie "127.0.0.1 localhost" mit <BLANK> oder <TAB> angehängt oder in eigener Zeile stehen.
+echo "127.0.0.1 namenode" >>/etc/hosts
 # sinnvollerweise sollte man gleich das github Repo klonen, dann hat man alle Scripts, Sourcen etc. lokal auf der VM vorhanden
 su - hduser
 git clone https://github.com/Woberegger/BigData
