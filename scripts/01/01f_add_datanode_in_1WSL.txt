@@ -81,12 +81,17 @@ cat >${HADOOP_CONF_DIR}/hdfs-site.xml <<EOF
 EOF
 
 sed -i "s#/usr/local/hadoop/hadoopdata/hdfs/tmp#/usr/local/hadoop/hadoopdata/datanode${DN}/tmp#" ${HADOOP_CONF_DIR}/core-site.xml
-# das folgende muss dann ausgeführt werden, nachdem der primäre datanode und die sonstigen Prozesse über dfs-start.sh gestartet wurden
 
-# TODO: check, why pid file is still written to /tmp
+# das folgende muss dann ausgeführt werden, nachdem der primäre datanode und die sonstigen Prozesse über dfs-start.sh gestartet wurden
+# indem man anderen Wert für Variable DN setzt, kann man das dann für n weitere nodes machen
 
 su - hduser
 declare -i DN
 DN=2 # für weitere Datanodes diesen Wert verändern
 export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/datanode${DN}
-hdfs --daemon   start datanode
+# dort wird pid-File mit dem aktuell laufenden Prozess abgelegt - das muss unterschiedlich sein zw. den nodes,
+# andernfalls würde das System sagen, dass der Prozess schon läuft
+export HADOOP_PID_DIR=/usr/local/hadoop/hadoopdata/datanode${DN}/tmp
+hdfs --daemon start datanode
+# zum Stoppen müssen dann dieselben Variablen gesetzt werden, damit die korrekte Instanz des datanodes beendet wird
+hdfs --daemon stop datanode
