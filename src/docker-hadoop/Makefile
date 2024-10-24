@@ -6,6 +6,7 @@ build:
 	docker build -t bde2020/hadoop-namenode:$(current_branch) ./namenode
 	docker build -t bde2020/hadoop-datanode:$(current_branch) ./datanode
 	docker build -t bde2020/hadoop-datanode:$(current_branch) ./datanode2
+   docker build -t bde2020/hadoop-datanode:$(current_branch) ./datanode3
 	docker build -t bde2020/hadoop-resourcemanager:$(current_branch) ./resourcemanager
 	docker build -t bde2020/hadoop-nodemanager:$(current_branch) ./nodemanager
 	docker build -t bde2020/hadoop-historyserver:$(current_branch) ./historyserver
