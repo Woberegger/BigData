@@ -1,13 +1,39 @@
-# This is used for starting an additional datanode on an existing WSL, where already another datanode is running
+#################################################################
+# Title:        01f_prepare_datanode_in_1WSL.sh
+# Description:  This is used for starting an additional datanode on an existing WSL, where already another datanode is running
+#               das Script muss einmalig pro zusätzlichem Datanode als user "hduser" aufgerufen werden              
+# Parameters:  
+#          $1:  node number
+#################################################################
 
-# das folgende muss einmalig gemacht werden:
-sudo -s 
-echo "127.0.0.1 datanode2 datanode3 datanode4" >>/etc/hosts # usw.
+let NumParams=1   # number of mandatory parameters
+let RetCode=0
 
-# das folgende muss einmalig pro zusätzlichem Datanode gemacht werden:
-su - hduser
+Usage () {
+   echo "USAGE: `basename $0` <NodeNumber>"
+   echo "       Example: $0 2 # for 'datanode2'"
+   echo "       mögliche Werte sind 1-9"
+   echo "       das Script muss einmalig pro zusätzlichem Datanode als user 'hduser' aufgerufen werden"
+}
+#
+if [ $# -lt $NumParams -o "$1" = "-?" -o "$1" = "--help" ]; then
+   Usage;
+   exit 1;
+fi
+RetCode=0
+# the real code starts here
+
+echo "das folgende muss einmalig als root user gemacht werden:"
+echo '"127.0.0.1 datanode2 datanode3 datanode4" >>/etc/hosts'
+
+# :
 declare -i DN
-DN=2 # für weitere Datanodes diesen Wert verändern
+DN=$1 # für weitere Datanodes diesen Wert verändern
+if [ $DN -lt 1 -o $DN -gt 9 ]; then
+   Usage;
+   exit 1;
+fi
+
 cd $HADOOP_HOME/etc
 cp -pR hadoop datanode${DN}
 export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/datanode${DN}
@@ -56,7 +82,7 @@ cat >${HADOOP_CONF_DIR}/hdfs-site.xml <<EOF
           <name>nfs.port.monitoring.disabled</name>
           <value>false</value>
         </property>
-    <!-- DataNode 2 Konfiguration (neue Ports) -->
+    <!-- DataNode X Konfiguration (eigene Ports) -->
     <property>
         <name>dfs.datanode.hostname</name>
         <value>datanode${DN}</value>
@@ -82,20 +108,5 @@ EOF
 
 sed -i "s#/usr/local/hadoop/hadoopdata/hdfs/tmp#/usr/local/hadoop/hadoopdata/datanode${DN}/tmp#" ${HADOOP_CONF_DIR}/core-site.xml
 
-# das folgende muss dann ausgeführt werden, nachdem der primäre datanode und die sonstigen Prozesse über
-# start-dfs.sh (WICHTIG: in einer anderen Session, am besten neue Session als user "hduser") gestartet wurden.
-
-# indem man anderen Wert für Variable DN setzt, kann man das dann für n weitere nodes machen
-
-su - hduser
-declare -i DN
-DN=2 # für weitere Datanodes diesen Wert verändern
-export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/datanode${DN}
-# dort wird pid-File mit dem aktuell laufenden Prozess abgelegt - das muss unterschiedlich sein zw. den nodes,
-# andernfalls würde das System sagen, dass der Prozess schon läuft
-export HADOOP_PID_DIR=/usr/local/hadoop/hadoopdata/datanode${DN}/tmp
-# und es sollte auch der Übersichtlichkeit halber eigene Logfiles geben
-export HADOOP_LOG_DIR=${HADOOP_HOME}/logs/datanode${DN}
-hdfs --daemon start datanode
-# zum Stoppen müssen dann dieselben Variablen gesetzt werden, damit die korrekte Instanz des datanodes beendet wird
-hdfs --daemon stop datanode
+echo "in order to start/stop that prepared datanode call '01g_start_stop_datanode_in_1WSL.sh' as 'hduser'"
+exit $RetCode

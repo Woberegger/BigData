@@ -52,13 +52,15 @@ hdfs fsck  /user/hduser  -files -blocks -replicaDetails # hier sieht man, auf we
 # Sinn von Snapshots erheben und ausprobieren - was dauert lange und belegt Platz, das Anlegen oder erst das Ändern einer Datei?
 
 # Zusatzaufgabe: Einstellen von Erasure Coding auf einem bestimmten Verzeichnis, nachdem dort einige sehr große Dateien abgelegt wurden. Was ändert sich am benötigten Space?
-# !!! ACHTUNG: Dies erfordert jedoch 3 Nodes Minimum, dass dies funktioniert!!!
+# !!! ACHTUNG: Dies erfordert jedoch 3 Nodes Minimum (in 3 verschiedenen Racks), dass dies funktioniert!!!
+# siehe https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/RackAwareness.html
+# das Script in $NF funktioniert nur, wenn jeder Datanode eine eigene IP-Adresse bekommt, daher besser random-Wert
 cat >$HADOOP_HOME/bin/rack-topology.sh <<! 
 #!/bin/bash
 # Adjust/Add the property "net.topology.script.file.name"
-# to core-site.xml with the "absolute" path the this
+# to core-site.xml with the "absolute" path to this
 # file. ENSURE the file is "executable".
-echo $@ | xargs -n 1 | awk -F '.' '{print "/rack-"\$NF}'
+echo \$@ | xargs -n 1 | echo "/rack-"\$NF}'
 !
 chmod 755 $HADOOP_HOME/bin/rack-topology.sh
 
