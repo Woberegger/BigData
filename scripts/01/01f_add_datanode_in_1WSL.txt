@@ -92,6 +92,8 @@ export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/datanode${DN}
 # dort wird pid-File mit dem aktuell laufenden Prozess abgelegt - das muss unterschiedlich sein zw. den nodes,
 # andernfalls würde das System sagen, dass der Prozess schon läuft
 export HADOOP_PID_DIR=/usr/local/hadoop/hadoopdata/datanode${DN}/tmp
+# und es sollte auch der Übersichtlichkeit halber eigene Logfiles geben
+export HADOOP_LOG_DIR=${HADOOP_HOME}/logs/datanode${DN}
 hdfs --daemon start datanode
 # zum Stoppen müssen dann dieselben Variablen gesetzt werden, damit die korrekte Instanz des datanodes beendet wird
 hdfs --daemon stop datanode
