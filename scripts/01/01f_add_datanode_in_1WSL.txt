@@ -7,7 +7,7 @@ echo "127.0.0.1 datanode2 datanode3 datanode4" >>/etc/hosts # usw.
 # das folgende muss einmalig pro zusätzlichem Datanode gemacht werden:
 su - hduser
 declare -i DN
-DN=3 # für weitere Datanodes diesen Wert verändern
+DN=2 # für weitere Datanodes diesen Wert verändern
 cd $HADOOP_HOME/etc
 cp -pR hadoop datanode${DN}
 export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/datanode${DN}
@@ -82,7 +82,9 @@ EOF
 
 sed -i "s#/usr/local/hadoop/hadoopdata/hdfs/tmp#/usr/local/hadoop/hadoopdata/datanode${DN}/tmp#" ${HADOOP_CONF_DIR}/core-site.xml
 
-# das folgende muss dann ausgeführt werden, nachdem der primäre datanode und die sonstigen Prozesse über dfs-start.sh gestartet wurden
+# das folgende muss dann ausgeführt werden, nachdem der primäre datanode und die sonstigen Prozesse über
+# start-dfs.sh (WICHTIG: in einer anderen Session, am besten neue Session als user "hduser") gestartet wurden.
+
 # indem man anderen Wert für Variable DN setzt, kann man das dann für n weitere nodes machen
 
 su - hduser
