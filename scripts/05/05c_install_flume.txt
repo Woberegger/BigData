@@ -1,10 +1,10 @@
 sudo -s
 cd /usr/local
 export FLUME_VERSION=1.11.0
-wget https://archive.apache.org/dist/flume/${FLUME_VERSION}/apache-flume-${FLUME_VERSION}-bin.tar.gz
+wget --no-check-certificate https://archive.apache.org/dist/flume/${FLUME_VERSION}/apache-flume-${FLUME_VERSION}-bin.tar.gz
 tar -xzf apache-flume-${FLUME_VERSION}-bin.tar.gz
 ln -s apache-flume-${FLUME_VERSION}-bin flume
-chown -R hduser:hadoop apache-flume-${FLUME_VERSION}-bin
+chown -R hduser:hadoop apache-flume-${FLUME_VERSION}-bin flume
 
 su - hduser
 
@@ -22,10 +22,10 @@ source ~/.bashrc
 
 cd $FLUME_HOME/conf
 
-cp -p  flume-env.sh.template flume-env.sh
+cp -p flume-env.sh.template flume-env.sh
 cp -p flume-conf.properties.template flume-conf.properties
 
-# entweder ans Ende der Datei hängen oder besser im File an der Stelle ersetzen
+# entweder ans Ende der Datei hängen oder besser im File an der Stelle ersetzen (Prüfen, ob JAVA_HOME stimmt)
 cat >>flume-env.sh <<!
 export JAVA_HOME=/usr/lib/jvm/jdk
 # Flume Channels könnten Fehler zeigen, dass sie überlaufen, daher Memory-Optionen für Java lieber etwas höher setzen

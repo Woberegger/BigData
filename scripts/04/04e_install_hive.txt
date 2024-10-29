@@ -54,7 +54,7 @@ hdfs dfs -mkdir -p /tmp
 hdfs dfs -mkdir -p /user/hive/warehouse
 hdfs dfs -chmod g+w /tmp
 hdfs dfs -chmod g+w /user/hive/warehouse
-hdfs dfs -mkdir /user/hduser/hive_external
+hdfs dfs -mkdir -p /user/hduser/hive_external
 hdfs dfs -chmod g+w /user/hduser/hive_external
 
 # adapt hive-site.xml (take care to not copy a config file from a different version, as they might not be compatible)

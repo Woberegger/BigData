@@ -36,4 +36,4 @@ TwitterAgent.channels.MemChannel.transactionCapacity = 1000
 TwitterAgent.sources.Twitter.channels = MemChannel
 TwitterAgent.sinks.HDFS.channel = MemChannel
 !
-# Weitere Anleitung siehe Vorlesungsfolien 5
+# Weitere Anleitung siehe Folien zu Vorlesung #5

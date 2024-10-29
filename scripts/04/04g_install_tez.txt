@@ -1,13 +1,13 @@
 sudo -s
 cd /usr/local
-export TEZ_VERSION=0.10.2
+export TEZ_VERSION=0.10.4
 wget https://dlcdn.apache.org/tez/${TEZ_VERSION}/apache-tez-${TEZ_VERSION}-bin.tar.gz
 tar -xzf apache-tez-${TEZ_VERSION}-bin.tar.gz
 ln -s apache-tez-${TEZ_VERSION}-bin tez
 chown -R hduser:hadoop apache-tez-${TEZ_VERSION}-bin
 
 su - hduser
-export TEZ_VERSION=0.10.2
+export TEZ_VERSION=0.10.4
 export TEZ_HOME=/usr/local/tez
 cd $TEZ_HOME
 
@@ -30,7 +30,7 @@ cp tez-default-template.xml tez-site.xml
 # Setze Folgendes in tez-site.xml (mit korrekter TEZ-Version), wie wir es vorher ins dfs geladen haben
   <property>
           <name>tez.lib.uris</name>
-          <value>/apps/tez-0.10.2/tez.tar.gz</value>
+          <value>/apps/tez-0.10.4/tez.tar.gz</value>
     <type>string</type>
   </property>
 
@@ -69,7 +69,7 @@ java -jar $(ls jetty-runner*.jar) tez-ui-${TEZ_VERSION}.war --port 8080 &
 # derzeit funktioniert das bei mir noch nicht, man sollte als ersten Schritt mal den Wordcount Job testen
 hadoop jar HadoopWordCount.jar /input/Bibel.txt /output/Bibel.tez
 
-# und wenn das funktioniert, die Anleitung zum Tez-Job in 04_hive_commands.txt ausführen und danach in tez-Variante
+# und wenn das funktioniert, die Anleitung zum Tez-Job in 04f_hive_commands.txt ausführen und danach nochmals in tez-Variante
 
 set hive.execution.engine=tez;
 
