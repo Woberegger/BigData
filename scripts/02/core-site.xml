@@ -26,4 +26,9 @@
 		<name>hadoop.tmp.dir</name>
 		<value>/usr/local/hadoop/hadoopdata/hdfs/tmp</value>
 	</property>
+   <property>
+      <!-- set to 0 (or delete property) to deactivate trash bin -->
+      <name>fs.trash.interval</name>
+      <value>60</value>
+   </property>
 </configuration>
