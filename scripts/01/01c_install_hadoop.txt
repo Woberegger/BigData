@@ -164,38 +164,38 @@ echo 'export HADOOP_SSH_OPTS="-p 22"' >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 
 ##Editieren Sie mapred-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
 	<property>
-		<name>yarn.Node Manager.aux-services</name>
+		<name>yarn.nodemanager.aux-services</name>
 		<value>mapreduce_shuffle</value>
 	</property>
 	<property>
-		<name>yarn.Node Manager.aux-services.mapreduce.shuffle.class</name>
+		<name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
       <value>org.apache.hadoop.mapred.ShuffleHandler</value>
 	</property>
 	<property>
-		<name>yarn.Node Manager.vmem-pmem-ratio</name>
+		<name>yarn.nodemanager.vmem-pmem-ratio</name>
 		<value>3</value>
 	</property>
 	<property>
-		<name>yarn.Node Manager.delete.debug-delay-sec</name>
+		<name>yarn.nodemanager.delete.debug-delay-sec</name>
 		<value>600</value>
 	</property>
 
 ##Editieren Sie yarn-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
 
 	<property>
-		<name>yarn.Node Manager.aux-services</name>
+		<name>yarn.nodemanager.aux-services</name>
 		<value>mapreduce_shuffle</value>
 	</property>
 	<property>
-		<name>yarn.Node Manager.aux-services.mapreduce.shuffle.class</name>
+		<name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
       <value>org.apache.hadoop.mapred.ShuffleHandler</value>
 	</property>
 	<property>
-		<name>yarn.Node Manager.vmem-pmem-ratio</name>
+		<name>yarn.nodemanager.vmem-pmem-ratio</name>
 		<value>3</value>
 	</property>
 	<property>
-		<name>yarn.Node Manager.delete.debug-delay-sec</name>
+		<name>yarn.nodemanager.delete.debug-delay-sec</name>
 		<value>600</value>
 	</property>
 	<property>
