@@ -19,7 +19,7 @@ sudo apt-get -y install vim
 sudo apt-get -y install net-tools
 sudo apt-get -y install git
 # (Virtual-Box-only!!!) damit shared folders und copy'n'paste funktionieren, ist meist die Installation der Guest-Additions nötig, danach ev. ein Reboot der VM
-#sudo apt-get install -y virtualbox-guest-utils virtualbox-guest-x11
+#sudo apt-get install -y build-essential virtualbox-guest-utils virtualbox-guest-x11
 
 sudo -s
 ##Symbolischen Link für Java erstellen
@@ -39,6 +39,7 @@ echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)
 # entweder man belässt den Port 22 oder man setzt besser einen nicht-privilegierten Port > 1024
 # in /etc/ssh/sshd_config File (ich habe Port 10222 verwendet)
 service ssh start # oder bei systemd besser "systemctl start ssh"
+# damit systemctl bei WSL funktioniert, muss "systemctl=true" in /etc/wsl.conf vorhanden sein - siehe auch 01b_prepare_wsl.txt
 
 # Wenn der gezeigte Port 22 ist, obwohl man einen anderen gesetzt hat (tritt z.B. bei Ubuntu 24-04 oder höher auf),
 # bitte Anleitung 01c_different_ssh_port.txt beachten!
@@ -50,6 +51,7 @@ passwd hduser
 
 # da wir später einen Alias "namenode" verwenden über alle Clusterknoten, sollte man den bei wsl idealerweise
 # in c:\windows\system32\drivers\etc\hosts eintragen, da dies andernfalls beim Neustart von wsl wieder gelöscht wird
+# (optional den Parameter "generateHosts=false" in /etc/wsl.conf setzen - siehe Datei 01b_prepare_wsl.txt)
 # der Alias kann in derselben Zeile wie "127.0.0.1 localhost" mit <BLANK> oder <TAB> angehängt oder in eigener Zeile stehen.
 echo "127.0.0.1 namenode" >>/etc/hosts
 # sinnvollerweise sollte man gleich das github Repo klonen, dann hat man alle Scripts, Sourcen etc. lokal auf der VM vorhanden
