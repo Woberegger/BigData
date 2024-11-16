@@ -1,4 +1,9 @@
-# nach dem Installieren wollen wir evaluieren, wo und wie HDFS die Dateien ablegt
+# Die Aufgaben in diesem File sind mit 1 aktiven Datanode möglich, wobei man mehr mitkriegt, wie HDFS funktioniert,
+# wenn mehr als 1 (idealerweise 3) Datanodes angelegt wurden. Daher, falls genug Zeit vorhanden ist,
+# vorher mit einer der Anleitungen (02b_hadoop_docker.txt oder besser 01f_prepare_datanode_in_1WSL.sh + 01g_start_stop_datanode_in_1WSL.sh)
+# weitere Datanodes aktivieren
+
+# nach dem Installieren und Konfigurieren wollen wir evaluieren, wo und wie HDFS die Dateien ablegt
 su - hduser
 # eine gute Testdatei, die wir auch später für Mapreduce Beispiele verwenden, ist die folgende:
 # entweder wie folgt direkt aus dem Internet runterladen, bzw. besser aus dem GitRepo 
@@ -37,12 +42,15 @@ hdfs dfs -D dfs.blocksize=1048576 -put ~/BigData/data/airline_delay_causes.csv /
 # Wenn man nur 1 Knoten betreibt, funktioniert das auch, man muss nur den DataNode Prozess killen über z.B.
 kill $(jps | grep DataNode | cut -d' ' -f1)
 
-# Timeout equals to 2 * heartbeat.recheck.interval + 10 * heartbeat.interval. Default for heartbeat.interval is 3 seconds, default for recheck-intervall is 300000
-<property>
- <name>dfs.namenode.heartbeat.recheck-interval</name>
- <value>15000</value>
- <description>Determines datanode heartbeat interval in milliseconds</description>
-</property>
+# Timeout equals to 2 * heartbeat.recheck.interval + 10 * heartbeat.interval. Default for heartbeat.interval is 3 seconds, default for recheck-intervall is 300
+#        <property>
+#                <name>dfs.namenode.heartbeat.recheck-interval</name>
+#                <value>60</value>
+#        </property>
+#        <property>
+#                <name>dfs.namenode.stale.datanode.interval</name>
+#                <value>10</value>
+#        </property>
 # einen zuvor gekillten Datanode startet man danach am besten wieder direkt auf dem Datanode über:
 hdfs --daemon start datanode
 
@@ -51,104 +59,12 @@ hdfs fsck  /user/hduser  -files -blocks -replicaDetails # hier sieht man, auf we
 #z.B. hdfs dfsadmin -allowSnapshot|-getDatanodeInfo <NodeName:Port>|-printTopology|-refreshNodes
 # Sinn von Snapshots erheben und ausprobieren - was dauert lange und belegt Platz, das Anlegen oder erst das Ändern einer Datei?
 
-# Zusatzaufgabe: Einstellen von Erasure Coding auf einem bestimmten Verzeichnis, nachdem dort einige sehr große Dateien abgelegt wurden. Was ändert sich am benötigten Space?
-# !!! ACHTUNG: Dies erfordert jedoch 3 Nodes Minimum (in 3 verschiedenen Racks), dass dies funktioniert!!!
-# siehe https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/RackAwareness.html
-# das Script in $NF funktioniert nur, wenn jeder Datanode eine eigene IP-Adresse bekommt, daher besser random-Wert
-cat >$HADOOP_HOME/bin/rack-topology.sh <<! 
-#!/bin/bash
-# Adjust/Add the property "net.topology.script.file.name"
-# to core-site.xml with the "absolute" path to this
-# file. ENSURE the file is "executable".
-echo \$@ | xargs -n 1 | echo "/rack-"\$NF}'
-!
-chmod 755 $HADOOP_HOME/bin/rack-topology.sh
-
-# Einfügen folgender Zeilen in core-site.xml
-   <property>
-      <name>net.topology.script.file.name</name>
-      <value>/usr/local/hadoop/bin/rack-topology.sh</value>
-   </property>
-   
-# Kopieren von core-site.xml und rack-topology.sh auf alle Knoten und Restart von hdfs
-# Danach sollte es möglich sein, ein neues Verzeichnis anzulegen und dort die Policy zu ändern und zu überprüfen
-hdfs dfsadmin -printTopology
-
-hdfs ec -listPolicies # welche Policies gibt es, wähle diejenige aus, die mit den wenigsten Datanodes auskommt
-hdfs ec -enablePolicy -policy <PolicyName>
-
-hdfs dfs -mkdir /ErasureCoding
-hdfs ec -setPolicy -path /ErasureCoding -policy <PolicyName>
-
-# nachdem man eine grosse Datei reingestellt hat (1x in ein "normales" Verzeichnis und danach in ein ErasureCoding Verzeichnis, sollte man prüfen, wie die Größen anwachsen
-du -d1 /usr/local/hadoop/hadoopdata
-
 # Zusatzaufgabe: Was könnte folgende Fehlermeldung bedeuten - wann tritt sie auf, was kann man unternehmen?
 hdfs dfs -put ~/BigData/data/airline_delay_causes.csv /user/hduser/data/
 
 ### put: Cannot create file/user/hduser/data/airline_delay_causes.csv._COPYING_. Name node is in safe mode. ###
 
-# Zusatzaufgabe:
-# suche Möglichkeit, hdfs-Filesysteme z.B. in NFS zu mounten (Anleitung unter https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsNfsGateway.html)
-# oder per fuse über https://cwiki.apache.org/confluence/display/HADOOP2/MountableHDFS
 
-# folgende Anleitung sollte funktionieren, ev. mit "systemctl status rpcbind" oder "rpcinfo -p $(hostname)" Status abfragen
-# zuerst sind folgende Einträge in die Konfiguration einzutragen (möglichst offen für alle connects, um es einfach zu machen), danach dfs neu zu starten
-a) in core-site.xml
-	<property>
-	  <name>hadoop.proxyuser.hduser.groups</name>
-	  <value>*</value>
-	</property>
-	<property>
-	  <name>hadoop.proxyuser.hduser.hosts</name>
-	  <value>*</value>
-	</property>
-	<property>
-	  <name>hadoop.proxyuser.root.groups</name>
-	  <value>*</value>
-	</property>
-	<property>
-	  <name>hadoop.proxyuser.root.hosts</name>
-	  <value>*</value>
-	</property>
+# optionale Zusatzaufgabe siehe Datei 02c_erasure_encoding.txt
 
-b) in hdfs-site.xml:
-
-	<property>
-	  <name>dfs.namenode.accesstime.precision</name>
-	  <value>3600000</value>
-	</property>
-	<property>
-	  <name>dfs.nfs3.dump.dir</name>
-	  <value>/tmp/.hdfs-nfs</value>
-	</property>
-	<property>
-	  <name>dfs.nfs.exports.allowed.hosts</name>
-	  <value>* rw</value>
-	</property>
-	<property>
-	  <name>nfs.metrics.percentiles.intervals</name>
-	  <value>100</value>
-	</property>
-	<property>
-	  <name>nfs.port.monitoring.disabled</name>
-	  <value>false</value>
-	</property>
-
-sudo apt install rpcbind
-sudo systemctl start rpcbind # sudo /etc/init.d/rpcbind start # (in WSL)
-sudo apt install nfs-common
-sudo /etc/init.d/nfs-common start #(nötig in WSL)
-su - hduser
-   stop-dfs.sh
-   start-dfs.sh
-   hdfs --daemon start nfs3 # oder im Vordergrund über "hdfs nfs3" (vor allem, wenn folgendes jps Kommando keinen laufenden Prozess findet, sieht man hier die Fehlerausgabe)
-   jps | grep Nfs3 
-
-sudo mkdir /mnt/hdfs
-sudo mount -t nfs -o vers=3,proto=tcp,nolock,noacl,sync localhost:/ /mnt/hdfs
-
-# dann sollte man Inhalte des HDFS im normalen Filesystem sehen
-ls -lsa /mnt/hdfs/user/hduser/testdir
-
-
+# optionale Zusatzaufgabe (für Zusatzpunkte) siehe Datei 02d_nfs_mount.txt

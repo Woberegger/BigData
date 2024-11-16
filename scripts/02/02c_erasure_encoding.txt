@@ -1,0 +1,31 @@
+# Zusatzaufgabe: Einstellen von Erasure Coding auf einem bestimmten Verzeichnis, nachdem dort einige sehr große Dateien abgelegt wurden. Was ändert sich am benötigten Space?
+# !!! ACHTUNG: Dies erfordert jedoch 3 Nodes Minimum (in 3 verschiedenen Racks), dass dies funktioniert!!!
+# siehe https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/RackAwareness.html
+# das Script in $NF funktioniert nur, wenn jeder Datanode eine eigene IP-Adresse bekommt, daher besser random-Wert
+cat >$HADOOP_HOME/bin/rack-topology.sh <<! 
+#!/bin/bash
+# Adjust/Add the property "net.topology.script.file.name"
+# to core-site.xml with the "absolute" path to this
+# file. ENSURE the file is "executable".
+echo \$@ | xargs -n 1 | echo "/rack-"\$NF}'
+!
+chmod 755 $HADOOP_HOME/bin/rack-topology.sh
+
+# Einfügen folgender Zeilen in core-site.xml
+   <property>
+      <name>net.topology.script.file.name</name>
+      <value>/usr/local/hadoop/bin/rack-topology.sh</value>
+   </property>
+   
+# Kopieren von core-site.xml und rack-topology.sh auf alle Knoten und Restart von hdfs
+# Danach sollte es möglich sein, ein neues Verzeichnis anzulegen und dort die Policy zu ändern und zu überprüfen
+hdfs dfsadmin -printTopology
+
+hdfs ec -listPolicies # welche Policies gibt es, wähle diejenige aus, die mit den wenigsten Datanodes auskommt
+hdfs ec -enablePolicy -policy <PolicyName>
+
+hdfs dfs -mkdir /ErasureCoding
+hdfs ec -setPolicy -path /ErasureCoding -policy <PolicyName>
+
+# nachdem man eine grosse Datei reingestellt hat (1x in ein "normales" Verzeichnis und danach in ein ErasureCoding Verzeichnis, sollte man prüfen, wie die Größen anwachsen
+du -d1 /usr/local/hadoop/hadoopdata
