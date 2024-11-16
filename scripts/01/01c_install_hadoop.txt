@@ -38,7 +38,9 @@ echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)
 # prüfen, ob sshd läuft, andernfalls starten, je nach Plattform mit systemctl oder service command
 # entweder man belässt den Port 22 oder man setzt besser einen nicht-privilegierten Port > 1024
 # in /etc/ssh/sshd_config File (ich habe Port 10222 verwendet)
-service ssh start # oder bei systemd besser "systemctl start ssh"
+export SSH_PORT=10222
+sed -i 's/#Port 22/Port 10222/' /etc/ssh/sshd_config
+systemctl start ssh || service ssh start # Frage: Was macht das || in diesem Call?
 # damit systemctl bei WSL funktioniert, muss "systemctl=true" in /etc/wsl.conf vorhanden sein - siehe auch 01b_prepare_wsl.txt
 
 # Wenn der gezeigte Port 22 ist, obwohl man einen anderen gesetzt hat (tritt z.B. bei Ubuntu 24-04 oder höher auf),
@@ -62,15 +64,16 @@ git clone https://github.com/Woberegger/BigData
 ssh-keygen -t rsa -P ""
 cat ~/.ssh/id_rsa.pub  > ~/.ssh/authorized_keys
 
+export SSH_PORT=10222
 ##SSH Schlüssel des Systems hinzufügen; mit yes bestätigen - sollte nach Passwort gefragt werden, dann funktionieren keys nicht
 # (bzw. erlaubt die Option "-o" dies zu umgehen, was nur auf lokalem System zu empfehlen ist)
-ssh -p 10222 -o StrictHostKeyChecking=accept-new localhost "ls -lsa"
+ssh -p $SSH_PORT -o StrictHostKeyChecking=accept-new localhost "ls -lsa"
 # wenn das nicht funktioniert wegen Firewallregeln, dann entweder Windows-Firewall Regel anlegen lt. https://pureinfotech.com/open-port-firewall-windows-10/
 # oder optional in WSL in /etc/ssh/sshd_config den Eintrag für "Port" z.B. wie folgt aktivieren auf einen Port > 1024 "Port=10222"
-# danach in wsl als root "service ssh restart; service ssh status" ausführen und "ssh -p 10222 localhost" als "hduser" testen
+# danach in wsl als root "service ssh restart; service ssh status" ausführen und "ssh -p $SSH_PORT localhost" als "hduser" testen
 # falls der Name anders aufgelöst wird, ist es nötig, auch mit dem Hostname und "namenode" einmalig die Verbindung zu öffnen
-ssh -p 10222 -o StrictHostKeyChecking=accept-new $(hostname) "ls -lsa"
-ssh -p 10222 -o StrictHostKeyChecking=accept-new namenode "ls -lsa"
+ssh -p $SSH_PORT -o StrictHostKeyChecking=accept-new $(hostname) "ls -lsa"
+ssh -p $SSH_PORT -o StrictHostKeyChecking=accept-new namenode "ls -lsa"
 ## exit oder Ctrl<d> um wieder als ursprünglicher User zu arbeiten (da "hduser" nicht in sudoers enthalten ist)
 exit
 
@@ -119,17 +122,18 @@ EOF
 gelesen wird, muss diese manuell neu eingelesen weerden. Verwenden Sie dazu den folgenden Befehl:
 
 source ~/.bashrc
+# Wenn ein anderer Port als 10222 für ssh zuvor gewählt wurde, dann ist folgende Zeile zu korrigieren auf diesen Port
+export SSH_PORT=10222
 
 ##Hadoop Konfigurationsdateien anpassen (als hduser)
 # leider wird das auch in dieser Datei redundanterweise verlangt
 echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
-# Wenn ein anderer Port als 22 gewählt wurde (z.B. 10222), dann ist folgende Zeile zu korrigieren auf diesen Port
-echo 'export HADOOP_SSH_OPTS="-p 22"' >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
+echo "export HADOOP_SSH_OPTS=\"-p $SSH_PORT\"" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 
 ##Editieren Sie core-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
 # um idente files bei Clusterverwendung zu haben, besser anstelle von "localhost" einen Namen lt. /etc/hosts eintragen, z.B. "namenode"
 # Damit dort beim ssh-Connect der einmalige Prompt nicht zu Fehler "Host key verification failed" kommt, muss man ausführen:
-#ssh -p 22 namenode (bzw. ssh -p 10222 namenode [bei Verwendung eines anderen Ports])
+#ssh -p $SSH_PORT namenode
 
 	<property>
 		<name>fs.defaultFS</name>
