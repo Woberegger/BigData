@@ -13,7 +13,7 @@ let RetCode=0
 Usage () {
    echo "USAGE: `basename $0` <NodeNumber> start|stop"
    echo "       Example: $0 2 start # for 'datanode2'"
-   echo "       mögliche Werte sind 1-9"
+   echo "       mögliche Werte sind 2-9"
    echo "       das Script ist zum Starten und Stoppen eines zusätzlichen Datanodes gedacht,"
    echo "       nachdem in einer 'frischen' Session des users 'hduser' das start-df.sh ausgeführt wurde"
 }
@@ -30,7 +30,7 @@ echo "das Script sollte idealerweise nach start-dfs.sh ausgeführt werden"
 # :
 declare -i DN
 DN=$1 # für weitere Datanodes diesen Wert verändern
-if [ $DN -lt 1 -o $DN -gt 9 ]; then
+if [ $DN -lt 2 -o $DN -gt 9 ]; then
    Usage;
    exit 1;
 fi

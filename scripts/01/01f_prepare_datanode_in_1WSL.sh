@@ -12,7 +12,7 @@ let RetCode=0
 Usage () {
    echo "USAGE: `basename $0` <NodeNumber>"
    echo "       Example: $0 2 # for 'datanode2'"
-   echo "       mögliche Werte sind 1-9"
+   echo "       mögliche Werte sind 2-9"
    echo "       das Script muss einmalig pro zusätzlichem Datanode als user 'hduser' aufgerufen werden"
 }
 #
@@ -29,7 +29,7 @@ echo '"127.0.0.1 datanode2 datanode3 datanode4" >>/etc/hosts'
 # :
 declare -i DN
 DN=$1 # für weitere Datanodes diesen Wert verändern
-if [ $DN -lt 1 -o $DN -gt 9 ]; then
+if [ $DN -lt 2 -o $DN -gt 9 ]; then
    Usage;
    exit 1;
 fi
