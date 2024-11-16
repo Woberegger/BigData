@@ -2,6 +2,9 @@
 # In virtualbox/VmWare am besten Snapshot erstellen und klonen (linked Clone, da kaum Speicher drauf geht) und dann am besten ein internes Netzwerk mit fixen IPs anlegen
 # die Anleitung beschreibt das Aufsetzen eines 2. Knotens mit Hostnamen "UbuntuBigDataNode1"
 
+# WICHTIG: in dem Fall sollen auf diesem Knoten nur die Prozesse "DataNode" und "NodeManager" laufen, die alle vom PRIMÄREN Knoten über start_dfs.sh
+#          bzw. start_yarn.sh mitgestartet werden! Auf keinen Fall auf den geklonten Nodes die Prozesse starten (Autostartscript gegebenenfalls löschen)
+
 # auf DataNode: wir müssen einen anderen hostnamen vergeben, ein Aufruf von "hostname" allein reicht nicht.
 hostname UbuntuBigDataNode1
 echo "UbuntuBigDataNode1" >/etc/hostname
@@ -83,3 +86,10 @@ hdfs dfs -put <myTestfile> /user/hduser/data
 
 # im Browser im Folgenden Pfad zu finden - bitte prüfen, ob der "Replication" Wert dem Wert 2 entspricht
 firefox -new-tab http://localhost:9870/explorer.html#/user/hduser/data
+
+# Falls im Browser nur 1 aktiver Datanode zu sehen ist, dann in $HADOOP_HOME/logs nach Fehlermeldung suchen.
+# Meist ist einer der folgenden Gründe vorhanden:
+# 1. ssh-Key wurde nicht ausgetauscht --> Probieren von ssh-connect von namenode zu datanode und vice versa, beides sollte ohne Passwort funktionieren
+# 2. Namensauflösung passt nicht, "namenode" ist nicht konfiguriert
+# 3. Namenode lauscht nur auf localhost:9000, "telnet namenode 9000" funktioniert lokal aber nicht vom Datanode --> Alias "namenode" soll NICHT auf 127.0.0.1 zeigen!
+# 4. UID mismatch: Löschen von Daten auf Namenode: "rm -R /usr/local/hadoop/hadoopdata/*"
