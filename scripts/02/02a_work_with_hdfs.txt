@@ -35,7 +35,7 @@ hdfs dfs -setrep -R 3 /user/hduser
 hdfs dfs -setrep -R 2 /user/hduser
 
 # Versuchen, die Blocksize bei einzelnen Files zu ändern - am besten eine recht große Datei verwenden, wo dann mehr als 2 Blöcke entstehen
-hdfs dfs -D dfs.blocksize=1048576 -put ~/BigData/data/airline_delay_causes.csv /user/hduser/data/BlockSize1MB.csv
+hdfs dfs -D dfs.blocksize=1048576 -put ~/BigData/data/airline_delay_causes.csv /user/hduser/testdir/BlockSize1MB.csv
 
 # Prüfen, über welchen Parameter man einstellen kann, ab wann auf einen toten DataNode reagiert wird. Ändern auf 60 Sekunden - siehe https://hadoop.apache.org/docs/r3.2.4/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml
 # Runterfahren des 2. Knotens und schauen, was nach 60 Sekunden mit den Replikas des Knotens passiert.
