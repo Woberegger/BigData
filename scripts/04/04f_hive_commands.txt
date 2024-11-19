@@ -5,9 +5,9 @@ start-yarn.sh
 # Verzeichnisse für externe Hive-Daten in HDFS bereitstellen
 hdfs dfs -mkdir -p /user/hduser/hive_external/adr
 hdfs dfs -mkdir -p /user/hduser/hive_external/sales
-hdfs dfs -put adr_data.csv /user/hduser/hive_external/adr/
-hdfs dfs -put sales_data.csv /user/hduser/hive_external/sales/
-hdfs dfs -put Bibel.txt /tmp/
+hdfs dfs -put ~/BigData/data/adr_data.csv /user/hduser/hive_external/adr/
+hdfs dfs -put ~/BigData/data/sales_data.csv /user/hduser/hive_external/sales/
+hdfs dfs -put ~/BigData/data/Bibel.txt /tmp
 
 # --- HIVE Import & Join ---
 # man sieht auch schön, dass im Hintergrund MapReduce Jobs laufen, da wir "set hive.execution.engine=mr" setzen.

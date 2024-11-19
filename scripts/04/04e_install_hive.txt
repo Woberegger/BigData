@@ -133,14 +133,21 @@ mv $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar /tmp
 cd /usr/local/hive/bin
 
 ./schematool -initSchema -dbType derby
+# wenn mal gar nichts mehr funktioniert und man neu beginnen will, am besten HDFS Verzeichnisse /user/hive/warehouse und /user/hduser/hive_external
+# sowie $HIVE_HOME/conf/metastore_db rekursiv löschen
 
+# Hive kann entweder lokal betrieben werden oder gegen Hive-Server. Ich hatte Probleme mit dieser Version im lokalen Betrieb, musste daher Hive-Server starten
+# (andernfalls Exception: Connecting to jdbc:hive2:// java.lang.NoClassDefFoundError: org/apache/hive/service/cli/thrift/EmbeddedThriftBinaryCLIService
+#        at org.apache.hive.jdbc.HiveConnection.<init>(HiveConnection.java:176)
+hive --service hiveserver2 &; export HIVE_CONNECT_STRING=localhost:10000
 
--- use and test hive
-# alternative in beeline:
-!connect jdbc:hive2:// scott
+# Abhängig davon, ob man Hiveserver oder HiveEmbedded verwendet, ist unterschiedlicher connect-String zu verwenden (bei Embedded Mode ist die Variable leer)
 
-#beeline -u jdbc:hive2://127.0.0.1:10000 scott tiger
-beeline -u jdbc:hive2:// scott tiger <<!
+beeline --verbose
+!connect jdbc:hive2://localhost:10000 scott tiger
+
+# Wenn obiges Prompt o.k. aussieht und nicht "closed" meldet, dann schaut Installation gut aus und man kann mal testweise Objekte anlegen 
+beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger <<!
    set hive.execution.engine=mr;
    set hive.metastore.warehouse.dir;
    show databases;

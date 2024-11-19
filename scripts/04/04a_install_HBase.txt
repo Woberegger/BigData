@@ -26,11 +26,10 @@ cd $HBASE_HOME/conf
 # besser auch das Regionserver File konfigurieren, falls später weitere Nodes dazukommen
 #export HBASE_REGIONSERVERS=${HBASE_HOME}/conf/regionservers
 
-# hier das eintragen, das man als Hostnamen mit "hdfs getconf -confKey fs.defaultFS | cut -d':' -f2 | cut -c3-" rausbekommt
-echo "namenode" >HBASE_REGIONSERVERS=${HBASE_HOME}/conf/regionservers
+# hier das eintragen, das man als Hostnamen mit "hdfs getconf -confKey fs.defaultFS | cut -d':' -f2 | cut -c3-" rausbekommt (sollte "namenode" sein)
+echo $(hdfs getconf -confKey fs.defaultFS | cut -d':' -f2 | cut -c3-) >${HBASE_HOME}/conf/regionservers
 
 #Sicherungskopie von hbase-site.xml anlegen und dann bearbeiten
-# Frage: was macht das "-p" Flag?
 cp -p hbase-site.xml hbase-site.xml.orig
 
 #Eventuell für Angabe in hbase-site.xml die URL and Port von HDFS checken (für hbase.rootdir property):
@@ -107,6 +106,7 @@ hdfs dfs -mkdir /hbase
 hdfs dfsadmin -safemode leave
  
 #4.) check status in web browserstatus
+"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://localhost:16010/master-status
 firefox -new-tab http://localhost:16010/master-status
 
 #5.) HBase Shell öffnen und einfache Tabellen mit Daten anlegen
@@ -115,11 +115,11 @@ hbase shell
 # Befehl "status" sollte eine Ausgabe wie die folgende liefern
 # 1 active master, 0 backup masters, 1 servers, 0 dead, 3.0000 average load
 
-# Inhalt von 04_HBase_Shell_commands.txt und 04_HBase_Shell_split_table.txt ausführen
+# Inhalt von 04_HBase_Shell_commands.txt und 04b_HBase_Shell_split_table.txt und 04c_HBase_Shell_split_table.txt ausführen
 # Cheat Sheet für HBase shell commands z.B. unter https://sparkbyexamples.com/hbase/hbase-shell-commands-cheat-sheet/
 
 #6.) nach dem Anlegen der Tabellen sollten die auch in folgender Web-GUI sichtbar sein
-
+"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://localhost:16010/master-status#userTables
 firefox -new-tab http://localhost:16010/master-status#userTables
 
 #################################
@@ -127,9 +127,9 @@ Optionen:
 
 #a) weitere Beispiele, z.B. Anzeigen, Zählen oder zum Laden von Daten ausprobieren: Siehe Buch Seiten 202-203,207-209
 #   (Achtung: Die Numerierung im pdf ist um Wert 14 höher als die Seitenanzahl im Buch also, geht zu Seite 216 zur Anzeige von Seite 202)
-https://elearning.fh-joanneum.at/pluginfile.php/96582/mod_resource/content/1/BigDataInderPraxis_Auflage1.pdf
+# "Big Data in der Praxis mit Hadoop" BigDataInderPraxis_Auflage1.pdf
 
-# Zum Laden in die Tabelle "peoples" bitte Datei https://github.com/Woberegger/BigData/blob/main/data/people.csv und script 04_HBase_import.txt verwenden
+# Zum Laden in die Tabelle "peoples" bitte Datei ~/BigData/data/people.csv und script 04d_HBase_import.txt verwenden
 
 # Wenn man gerade beim Datenladen einen Fehler wie den Folgenden bekommt, dann bitte mit "netstat -an | grep 16020" prüfen, ob der Regionserver nicht auf localhost nur lauscht
 # Einträge in /etc/hosts und in File "regionservers" kontrollieren.

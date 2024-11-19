@@ -6,7 +6,9 @@ hbase org.apache.hadoop.hbase.mapreduce.ImportTsv \
 -Dimporttsv.columns=HBASE_ROW_KEY,id:name,property:job \
 -Dimporttsv.separator=, -Dimportts.bulk.output=/import/output people \
 hdfs://namenode:9000/import/input/people.csv
+# man sieht, dass im Hintergrund ein MapReduce Job ausgeführt wird
 
+# erwartete Ausgabe 20000 rows und row1 mit Daten von "Eric Vogel".
 hbase shell <<!
    count 'people'
    get 'people', 'row1'
