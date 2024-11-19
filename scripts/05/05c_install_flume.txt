@@ -12,9 +12,9 @@ cat >> ~/.bashrc <<!
 export FLUME_HOME=/usr/local/flume
 export PATH=\$PATH:\$FLUME_HOME/bin
 if [ -z "\$CLASSPATH" ]; then
-   export CLASSPATH=\$FLUME_HOME/lib
+   export CLASSPATH=\$FLUME_HOME/lib/*
 else
-   export CLASSPATH=\$CLASSPATH:\$FLUME_HOME/lib
+   export CLASSPATH=\$CLASSPATH:\$FLUME_HOME/lib/*
 fi
 !
 
