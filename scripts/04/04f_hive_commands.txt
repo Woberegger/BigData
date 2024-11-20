@@ -46,8 +46,9 @@ CREATE TABLE IF NOT EXISTS sales_internal(
 INSERT OVERWRITE TABLE adresses_internal SELECT * FROM adresses;
 INSERT OVERWRITE TABLE sales_internal SELECT * FROM sales;
 
--- die einfache Abfrage auf nur 1 Tabelle
+-- die einfache Abfrage auf nur 1 Tabelle (jeweils auf externe bzw. interne Tabelle)
 select s.cust_id, sum(s.sales) as summe from sales s group by cust_id limit 20;
+select s.cust_id, sum(s.sales) as summe from sales_internal s group by cust_id limit 20;
 
 -- wenn der folgende Befehl auf Fehler läuft (und es passiert auch, wenn man die internen Tabellen statt den externen verwendet),
 -- dann muss man prüfen, ob in hive-site.xml das Property hive.auto.convert.join auf false gesetzt wurde - dann sollte es funktionieren

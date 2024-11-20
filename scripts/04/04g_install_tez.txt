@@ -11,10 +11,10 @@ export TEZ_VERSION=0.10.4
 export TEZ_HOME=/usr/local/tez
 cd $TEZ_HOME
 
-# damit tez als Engine verwendet werden kann, muss es ins hdfs selbst reingeladen werden
+# damit tez als Engine verwendet werden kann, muss es ins hdfs selbst reingeladen werden (start-dfs.sh muss vorher ausgeführt sein)
 hdfs dfs -mkdir -p /apps/tez-${TEZ_VERSION}
 hdfs dfs -put share/tez.tar.gz /apps/tez-${TEZ_VERSION}/
-# add to hdfs-site.xml:
+# in Datei $HADOOP_HOME/etc/hadoop/hdfs-site.xml:
   <property>
    <name>dfs.namenode.decommission.interval</name>
    <value>30</value>
@@ -24,15 +24,35 @@ hdfs dfs -put share/tez.tar.gz /apps/tez-${TEZ_VERSION}/
    <value>30</value>
   </property>
 
+# und folgendes in $HADOOP_HOME/etc/hadoop/yarn-site-xml (wegen Tez-UI)
+  <property>
+     <name>yarn.timeline-service.http-cross-origin.enabled</name>
+     <value>true</value>
+  </property>
+  
 cd ${TEZ_HOME}/conf
 cp tez-default-template.xml tez-site.xml
 
 # Setze Folgendes in tez-site.xml (mit korrekter TEZ-Version), wie wir es vorher ins dfs geladen haben
   <property>
-          <name>tez.lib.uris</name>
-          <value>/apps/tez-0.10.4/tez.tar.gz</value>
-    <type>string</type>
+     <name>tez.lib.uris</name>
+     <value>/apps/tez-0.10.4/tez.tar.gz</value>
+     <type>string</type>
   </property>
+  <property>
+     <name>tez.runtime.convert.user-payload.to.history-text</name>
+     <value>true</value>
+  </property> 
+
+# und setze den Wert für bereits im File vorhandenes Property tez.tez-ui.history-url.base wie folgt
+  <property>
+     <description>URL for where the Tez UI is hosted</description>
+     <name>tez.tez-ui.history-url.base</name>
+     <value>http://localhost:9001</value>
+  </property>
+
+# danach DFS und YARN neu starten:
+stop-yarn.sh; stop-dfs.sh; start-dfs.sh; start-yarn.sh
 
 # Prüfen, ob das korrekt ist oder um andere HADOOP-Pfade wie $HADOOP_HOME/share/hadoop/common/lib bzw. HBASE_HOME/lib zu ergänzen wäre...
 #cat >> ${HIVE_HOME}/conf/hive-env.sh <<!
@@ -43,7 +63,7 @@ cp tez-default-template.xml tez-site.xml
 mv $TEZ_HOME/lib/slf4j-reload4j-*.jar /tmp/
 
 cat >> ~/.bashrc <<!
-export TEZ_VERSION=0.10.2
+export TEZ_VERSION=0.10.4
 export TEZ_HOME=/usr/local/tez
 export TEZ_CONF_DIR=\$TEZ_HOME/conf
 export TEZ_JARS=\$TEZ_HOME
@@ -58,23 +78,34 @@ fi
 
 source ~/.bashrc
 
-# for Jetty GUI runner für TEZ GUI
+# for Jetty GUI runner für TEZ GUI (Jetty ist ein eigener kleiner Webserver)
 cd $TEZ_HOME
 wget https://repository.apache.org/content/repositories/releases/org/apache/tez/tez-ui/${TEZ_VERSION}/tez-ui-${TEZ_VERSION}.war
 export JETTY_VERSION=11.0.18
 wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-runner/${JETTY_VERSION}/jetty-runner-${JETTY_VERSION}.jar
-
-java -jar $(ls jetty-runner*.jar) tez-ui-${TEZ_VERSION}.war --port 8080 &
+# Starte Webserver im Hintergrund - Port kann frei gewählt werden, auf Firewall-Rules achten
+java -jar $(ls jetty-runner*.jar) --port 8089 tez-ui-${TEZ_VERSION}.war &
 
 # derzeit funktioniert das bei mir noch nicht, man sollte als ersten Schritt mal den Wordcount Job testen
-hadoop jar HadoopWordCount.jar /input/Bibel.txt /output/Bibel.tez
+# entweder eigene Version mit Tez von z.B. https://github.com/apache/tez/blob/master/tez-examples/src/main/java/org/apache/tez/examples/WordCount.java runterladen
+# oder googeln, wie man Yarn dazu bekommt, dass er folgendes mit tez ausführt
+hadoop jar Hadoopwordcount.jar /input/Bibel.txt /output/Bibel.tez/
 
 # und wenn das funktioniert, die Anleitung zum Tez-Job in 04f_hive_commands.txt ausführen und danach nochmals in tez-Variante
 
-set hive.execution.engine=tez;
-
-CREATE TABLE IF NOT EXISTS word_counts_tez AS
-SELECT word, count(1) AS count FROM
- (SELECT explode(split(line, ' ')) AS word FROM docs) temp
-GROUP BY temp.word
-ORDER BY temp.word;
+beeline -u jdbc:hive2://localhost:10000 scott tiger
+   -- important: use tez as execution engine for complex queries
+   set hive.execution.engine=tez;
+   set hive.metastore.warehouse.dir;
+   show databases;
+   show tables;
+   use default;
+   -- the following seems to work, as no mr/tez is involved
+   select * from sales limit 20;
+   -- but the following 2 fail, when tez is not correctly configured
+   CREATE TABLE IF NOT EXISTS word_counts_tez AS
+   SELECT word, count(1) AS count FROM
+    (SELECT explode(split(line, ' ')) AS word FROM docs) temp
+   GROUP BY temp.word
+   ORDER BY temp.word;
+   select s.cust_id, sum(s.sales) as summe from sales s group by cust_id limit 20;
