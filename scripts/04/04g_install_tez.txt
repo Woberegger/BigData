@@ -60,12 +60,26 @@ hdfs dfs -put share/tez.tar.gz /apps/tez-${TEZ_VERSION}/
 </property>
 <property>
     <name>hive.tez.container.size</name>
-    <value>1024</value>
+    <value>2048</value>
 </property>
 <property>
     <name>hive.tez.java.opts</name>
-    <value>-Xmx768m</value>
+    <value>-Xmx2048m</value>
 </property>
+<!--settings for Tez local mode -->
+<property>
+  <name>fs.default.name</name>
+  <value>file:///</value>
+</property>
+<property>
+  <name>tez.local.mode</name>
+  <value>true</value>
+</property>
+<property>
+  <name>tez.runtime.optimize.local.fetch</name>
+  <value>true</value>
+</property>
+
 # weiters den existierenden Wert für property "hive.execution.engine" auf "tez" setzen
 
 cd ${TEZ_HOME}/conf
@@ -141,9 +155,11 @@ beeline --verbose -u jdbc:hive2://localhost:10000 scott tiger
    -- the following seems to work, as no mr/tez is involved
    select * from sales limit 20;
    -- but the following 2 fail, when tez is not correctly configured
+   -- although heapsize was set in hive-site.xml I get error "java.lang.OutOfMemoryError: Java heap space"
    CREATE TABLE IF NOT EXISTS word_counts_tez AS
    SELECT word, count(1) AS count FROM
     (SELECT explode(split(line, ' ')) AS word FROM docs) temp
    GROUP BY temp.word
    ORDER BY temp.word;
+   -- this however works, it does not need so much memory
    select s.cust_id, sum(s.sales) as summe from sales s group by cust_id limit 20;
