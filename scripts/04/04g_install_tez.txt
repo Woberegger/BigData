@@ -52,7 +52,22 @@ hdfs dfs -put share/tez.tar.gz /apps/tez-${TEZ_VERSION}/
   <name> yarn.resourcemanager.system-metrics-publisher.enabled</name>
   <value>true</value>
 </property>
-  
+ 
+# und folgende Properties in hive-site.xml
+<property>
+    <name>tez.lib.uris</name>
+    <value>hdfs:///apps/tez-0.10.4</value>
+</property>
+<property>
+    <name>hive.tez.container.size</name>
+    <value>1024</value>
+</property>
+<property>
+    <name>hive.tez.java.opts</name>
+    <value>-Xmx768m</value>
+</property>
+# weiters den existierenden Wert für property "hive.execution.engine" auf "tez" setzen
+
 cd ${TEZ_HOME}/conf
 cp tez-default-template.xml tez-site.xml
 
@@ -116,7 +131,7 @@ hadoop jar Hadoopwordcount.jar /input/Bibel.txt /output/Bibel.tez/
 
 # und wenn das funktioniert, die Anleitung zum Tez-Job in 04f_hive_commands.txt ausführen und danach nochmals in tez-Variante
 
-beeline -u jdbc:hive2://localhost:10000 scott tiger
+beeline --verbose -u jdbc:hive2://localhost:10000 scott tiger
    -- important: use tez as execution engine for complex queries
    set hive.execution.engine=tez;
    set hive.metastore.warehouse.dir;
