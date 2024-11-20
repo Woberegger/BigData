@@ -11,7 +11,7 @@ hdfs dfs -put ~/BigData/data/Bibel.txt /tmp
 
 # --- HIVE Import & Join ---
 # man sieht auch schön, dass im Hintergrund MapReduce Jobs laufen, da wir "set hive.execution.engine=mr" setzen.
-beeline -u jdbc:hive2:// scott tiger
+beeline -u jdbc:hive2://localhost:10000 scott tiger
    set hive.execution.engine=mr;
    set hive.metastore.warehouse.dir;
    show databases;
