@@ -52,10 +52,11 @@ start-yarn.sh
 
 hdfs dfs -mkdir -p /tmp
 hdfs dfs -mkdir -p /user/hive/warehouse
-hdfs dfs -chmod g+w /tmp
-hdfs dfs -chmod g+w /user/hive/warehouse
 hdfs dfs -mkdir -p /user/hduser/hive_external
-hdfs dfs -chmod g+w /user/hduser/hive_external
+# normalerweise reicht ein "g+w", aber wenn hive Connect als "anonymous" passiert, müssen Rechte a+w sein
+hdfs dfs -chmod a+w /tmp
+hdfs dfs -chmod a+w /user/hive/warehouse
+hdfs dfs -chmod a+w /user/hduser/hive_external
 
 # adapt hive-site.xml (take care to not copy a config file from a different version, as they might not be compatible)
 
