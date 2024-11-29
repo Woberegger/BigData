@@ -7,7 +7,18 @@ cat >$HADOOP_HOME/bin/rack-topology.sh <<!
 # Adjust/Add the property "net.topology.script.file.name"
 # to core-site.xml with the "absolute" path to this
 # file. ENSURE the file is "executable".
-echo \$@ | xargs -n 1 | echo "/rack-"\$NF}'
+# Dynamically assign racks based on input (IP or hostname)
+# echo \$@ | xargs -n 1 | echo "/rack-"\$NF}'
+if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+   # Input is an IP address; use the last octet
+   last_octet=$(echo "$1" | awk -F. '{print $NF}')
+   rack=$((last_octet % 3 + 1))
+   echo "/rack-$rack"
+else
+   # Input is a hostname; hash it to assign a rack
+   rack=$(echo "$1" | cksum | awk '{print $1 % 3 + 1}')
+   echo "/rack-$rack"
+fi
 !
 chmod 755 $HADOOP_HOME/bin/rack-topology.sh
 
