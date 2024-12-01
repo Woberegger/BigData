@@ -17,3 +17,13 @@ export SPARK_HOME=/usr/local/spark
 export PATH=\$PATH:\$HOME/.local/bin:\$SPARK_HOME/bin
 !
 source ~/.bashrc
+
+# und dann zum Test eine netcat-Applikation
+# siehe https://spark.apache.org/docs/3.5.3/streaming-programming-guide.html#a-quick-example
+export SPARK_LOCAL_IP=127.0.0.1
+cd ~/BigData
+git pull
+# in Session 1
+netcat -lk 9999
+
+$SPARK_HOME/bin/spark-submit ~/BigData/src/spark/network_wordcount.py localhost 9999
