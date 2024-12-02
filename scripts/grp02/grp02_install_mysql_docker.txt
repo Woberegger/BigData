@@ -12,10 +12,11 @@ docker run --name ${DOCKER_CONTAINERNAME} --network $NETWORK -p 13306:3306 -e MY
 docker run -it --rm mysql mysql -hswd -uexample-user -p
 docker exec -it -u mysql ${DOCKER_CONTAINERNAME} /bin/bash
 # und im Container dann folgendes eingeben:
-mysql -u root <<!
+mysql -u root -p <<!
 CREATE DATABASE swd;
 use swd;
 show tables;
+-- wenn Tabelle schon vorher angelegt wurde, kann man direkt insertieren, andernfalls Tabelle lt. anderem SCript anlegen
 INSERT INTO studentsMySQL  VALUES (-1, 'John', 'Doe', '20221001', 'SWD');
 INSERT INTO studentsMySQL  VALUES (-2, 'Mary','Clark', '20221001', 'SWD');
 INSERT INTO studentsMySQL  VALUES (-3, 'Ann', 'Others', '20221001', 'ITM');
@@ -25,11 +26,11 @@ SELECT * FROM studentsMySQL;
 
 su - hduser
 # Wichtig: port forward für mysql docker container auf 13306, da andernfalls Konflikt mit native installiertem MySQL
+export MYSQL_PORT=13306
 
 # sonstige Einstellungen, damit sqoop import funktioniert, siehe Anleitung für mssql:
-
-sqoop-list-databases --connect jdbc:mysql://localhost:13306/swd  --username 'root' --password 'my-secret-pw'
-sqoop list-tables --connect 'jdbc:mysql://localhost:13306/swd' --username 'root' --password 'my-secret-pw'
+sqoop-list-databases --connect jdbc:mysql://localhost:${MYSQL_PORT}/swd  --username 'root' --password 'my-secret-pw'
+sqoop list-tables --connect jdbc:mysql://localhost:${MYSQL_PORT}/swd --username 'root' --password 'my-secret-pw'
 
 # (siehe Beispiel unter https://sqoop.apache.org/docs/1.4.6/SqoopUserGuide.html#_example_invocations_2)
 # das "--bindir ./" ist nötig, andernfalls schreibt sqoop Fehler, dass sie Class studensmssql nicht findet, tatsächlich wird im aktuellen Verzeichnis ein studentsmysql.java angelegt

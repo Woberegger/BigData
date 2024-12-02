@@ -17,7 +17,7 @@ sudo apt install mysql-server
 sudo systemctl start mysql.service
 
 sudo mysql <<!
-   ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
+   ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'my-secret-pw';
 !
 
 su - hduser
@@ -26,7 +26,7 @@ export MYSQL_USER=root
 hdfs dfs -mkdir /user/${MYSQL_USER}
 hdfs dfs -chmod 777 /user/${MYSQL_USER}
 
-export DATABASE_NAME=testdb
+export DATABASE_NAME=swd
 # relogin mit dem gesetzten Passwort:
 mysql -u $MYSQL_USER -p <<!
 
@@ -45,7 +45,9 @@ show tables;
 !
 
 # jetzt legen wir eine idente Tabelle in Hive an
-beeline -u jdbc:hive2:// scott tiger <<!
+# wenn Hive-Server (hive --service hiveserver2 &) verwendet wird, dann muss der Connectstring so gesetzt sein, andernfalls leer
+export HIVE_CONNECT_STRING=localhost:10000
+beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    set hive.execution.engine=mr;
    set hive.metastore.warehouse.dir;
    create database if not exists fh;
@@ -73,7 +75,7 @@ beeline -u jdbc:hive2:// scott tiger <<!
 
 # wir können die Datei ins hdfs reinladen oder benutzen hier mal das "LOCAL INPATH" zum Laden von lokaler Datei
 # hdfs dfs -put BigData/data/students.csv /tmp/
-beeline -u jdbc:hive2:// scott tiger <<!
+beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    use fh;
    LOAD DATA LOCAL INPATH '/home/hduser/BigData/data/students.csv' OVERWRITE INTO TABLE students;
    select * from students limit 10;
@@ -84,14 +86,17 @@ cp -p /usr/local/hadoop/share/hadoop/mapreduce/*.jar $SQOOP_HOME/lib/
 # weiters generiert Sqoop eine Klasse "students.jar" für den Import, die im ClassPath gefunden werden muss
 # Daher ist der Parameter --bindir auf z.B. /usr/local/hadoop/share/hadoop/common/lib zu setzen
 
-export DATABASE_NAME=testdb
+export DATABASE_NAME=swd
+# Wichtig: port forward für mysql docker container auf 13306, native auf 3306
+export MYSQL_PORT=3306
+export MYSQL_PASSWD=my-secret-pw
 # liste auf, ob unsere Datenbank und unsere Tabelle "studentsMySQL" gefunden werden
-sqoop-list-databases --connect jdbc:mysql://localhost:3306  --username $MYSQL_USER --password password
-sqoop-list-tables --connect jdbc:mysql://localhost:3306/${DATABASE_NAME} --username $MYSQL_USER --password password
+sqoop-list-databases --connect jdbc:mysql://localhost:${MYSQL_PORT}  --username $MYSQL_USER --password ${MYSQL_PASSWD}
+sqoop-list-tables --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME} --username $MYSQL_USER --password ${MYSQL_PASSWD}
 
 # -m 1 ... Anzahl an Mappern, hier derzeit immer 1
-sqoop export --connect jdbc:mysql://localhost:3306/${DATABASE_NAME}  \
-   --table studentsMySQL --username $MYSQL_USER --password password  \
+sqoop export --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  \
+   --table studentsMySQL --username $MYSQL_USER --password ${MYSQL_PASSWD}  \
    --export-dir /user/hive/warehouse/fh.db/students --num-mappers 1  \
    --driver com.mysql.cj.jdbc.Driver  --input-fields-terminated-by ',' \
    --input-lines-terminated-by '\n' --bindir /usr/local/hadoop/share/hadoop/common/lib
@@ -102,7 +107,8 @@ SELECT * FROM studentsMySQL LIMIT 10;
 !
 
 # die andere Richtung am besten testen, indem eine 2. Tabelle in Hive angelegt wird
-hdfs dfs -rm -R /user/hduser/studentsMySQL
+# Verzeichnis löschen, falls von vorigem Versuch noch was existiert
+hdfs dfs -rm -R /user/hduser/studentsMySQL 2>/dev/null
 # möglicherweise gibt es Fehler, der jedoch üblicherweise eine Folgeerscheinung ist, weil die Java VM den Zugriff auf die Datei
 # /usr/local/hive/lib/derby-10.14.2.0.jar nicht erlaubt:
 #java.lang.NoClassDefFoundError: Could not initialize class org.apache.derby.jdbc.EmbeddedDriver
@@ -111,13 +117,17 @@ https://db.apache.org/derby/docs/10.13/security/rsecpolicysample.html
 bzw. folgende Zeile in den generischen grant { ... } Abschnitt:
     permission javax.management.MBeanTrustPermission "register";
 
-sqoop import --connect jdbc:mysql://localhost:3306/${DATABASE_NAME}  --username $MYSQL_USER --password password \
+sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
    --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --hive-import --hive-database fh \
    --hive-table studentsFromMySQL --hive-overwrite --num-mappers 1  \
    --bindir /usr/local/hadoop/share/hadoop/common/lib
 
+# Sollte obiger Befehl nicht funktionieren, kann man versuchen, die MySQL Daten zumindest ins HDFS abzuholen und nicht direkt in Hive reinschreiben.
+sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
+   --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --target-dir /user/hduser/studentsMySQL
+
 # verifiziere die Inhalte
-beeline -u jdbc:hive2:// scott tiger <<!
+beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    set hive.execution.engine=mr;
    set hive.metastore.warehouse.dir;
    use fh;
