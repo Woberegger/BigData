@@ -73,7 +73,7 @@ cp hive-default.xml.template hive-site.xml
    <name>system:user.name</name>
    <value>${user.name}</value>
  </property>
-
+ 
 # check for following tag and change it to same directory as used with the hdfs command above (take care, that hduser was write permissions)
     <name>hive.metastore.warehouse.dir</name>
     <value>/user/hive/warehouse</value>
@@ -140,12 +140,15 @@ cd /usr/local/hive/bin
 # Hive kann entweder lokal betrieben werden oder gegen Hive-Server. Ich hatte Probleme mit dieser Version im lokalen Betrieb, musste daher Hive-Server starten
 # (andernfalls Exception: Connecting to jdbc:hive2:// java.lang.NoClassDefFoundError: org/apache/hive/service/cli/thrift/EmbeddedThriftBinaryCLIService
 #        at org.apache.hive.jdbc.HiveConnection.<init>(HiveConnection.java:176)
-hive --service hiveserver2 &; export HIVE_CONNECT_STRING=localhost:10000
+hive --service hiveserver2 &
+export HIVE_CONNECT_STRING=localhost:10000
 
 # Abhängig davon, ob man Hiveserver oder HiveEmbedded verwendet, ist unterschiedlicher connect-String zu verwenden (bei Embedded Mode ist die Variable leer)
 
 beeline --verbose
 !connect jdbc:hive2://localhost:10000 scott tiger
+# WICHTIG: Falls es Fehler "Connection refused" "user ... is not allowed to impersonate scott" bei beeline Kommando gibt,
+# dann muss der Eintrag hive.server2.enable.doAs auf "false" gesetzt sein.
 
 # Wenn obiges Prompt o.k. aussieht und nicht "closed" meldet, dann schaut Installation gut aus und man kann mal testweise Objekte anlegen 
 beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger <<!
