@@ -6950,7 +6950,7 @@
   </property>
   <property>
     <name>hive.execution.engine</name>
-    <value>tez</value>
+    <value>mr</value>
     <description>
       Expects one of [mr, tez].
       Chooses execution engine. Options are: mr (Map reduce, default), tez. While MR
