@@ -23,3 +23,6 @@ put 'emp', '21' , 'property:age', '30'
 put 'emp', '21' , 'property:age', '50'
 
 get 'emp', '21'
+
+# show the created regions for our table
+list_regions 'emp'
