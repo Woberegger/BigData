@@ -68,5 +68,5 @@ SELECT word, count(1) AS count FROM
 GROUP BY temp.word
 ORDER BY temp.word;
 
--- und das sollte die ersten 100 records finden
-SELECT * FROM word_counts LIMIT 100;
+-- und das sollte die ersten 100 records finden, absteigend nach Vorkommen
+SELECT * FROM word_counts ORDER BY count DESC, Word ASC LIMIT 100;
