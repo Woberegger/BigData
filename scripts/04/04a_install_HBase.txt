@@ -21,8 +21,12 @@ source ~/.bashrc
 
 # Ändern der Datei $HBASE_HOME/conf/hbase-env.sh
 cd $HBASE_HOME/conf
+export SSH_PORT=10222
 #in Datei $HBASE_HOME/conf/hbase-env.sh das JAVA_HOME korrekt setzen, z.B.:
-#export JAVA_HOME=/usr/lib/jvm/jdk
+echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)" >>${HBASE_HOME}/conf/hbase-env.sh
+#im selben File auch den ssh-Port angeben, wenn dieser von 22 abweicht:
+echo "export HADOOP_SSH_OPTS=\"-p $SSH_PORT -l hduser\"" >>${HBASE_HOME}/conf/hbase-env.sh
+
 # besser auch das Regionserver File konfigurieren, falls später weitere Nodes dazukommen
 #export HBASE_REGIONSERVERS=${HBASE_HOME}/conf/regionservers
 
