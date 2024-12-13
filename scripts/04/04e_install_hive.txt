@@ -169,7 +169,7 @@ beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger <<!
    show databases;
    use default;
    --
-CREATE TABLE IF NOT EXISTS default.employhive.server2.enable.doAsee (
+CREATE TABLE IF NOT EXISTS default.employee (
 id int,
 name string,
 age int,
