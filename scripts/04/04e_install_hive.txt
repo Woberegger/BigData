@@ -160,7 +160,7 @@ export HIVE_CONNECT_STRING=localhost:10000
 beeline --verbose
 !connect jdbc:hive2://localhost:10000 scott tiger
 # WICHTIG: Falls es Fehler "Connection refused" "user ... is not allowed to impersonate scott" bei beeline Kommando gibt,
-# dann muss der Eintrag  auf "false" gesetzt sein.
+# dann muss der Eintrag "hive.server2.enable.doAs" in hive-site.xml auf "false" gesetzt sein.
 
 # Wenn obiges Prompt o.k. aussieht und nicht "closed" meldet, dann schaut Installation gut aus und man kann mal testweise Objekte anlegen 
 beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger <<!

@@ -19,7 +19,8 @@ export PATH=\$PATH:\$HBASE_HOME/bin
 
 source ~/.bashrc
 
-# Ändern der Datei $HBASE_HOME/conf/hbase-env.sh
+# Ändern der Dateien $HBASE_HOME/conf/hbase-env.sh und ${HBASE_HOME}/conf/regionservers
+# (am besten durch Ausgabeumleitung wie im Folgenden)
 cd $HBASE_HOME/conf
 export SSH_PORT=10222
 #in Datei $HBASE_HOME/conf/hbase-env.sh das JAVA_HOME korrekt setzen, z.B.:
