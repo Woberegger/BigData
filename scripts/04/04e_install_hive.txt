@@ -98,6 +98,12 @@ cp hive-default.xml.template hive-site.xml
     <description>Whether Hive enables the optimization about converting common join into mapjoin based on the input file size</description>
   </property>
 
+# das folgende sicherheitshalber auch gleich setzen, das kann je nach Version zu Fehler:
+# "user ... is not allowed to impersonate scott" führen 
+  <property>   
+     <name>hive.server2.enable.doAs</name>
+     <value>false</value>
+  </property>
 
 ### nachdem alle Einträge passiert sind, kann man hive mal testweise starten
 
@@ -129,6 +135,9 @@ mv $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar /tmp
    <value>false</value>
 </property>
 
+# damit hiveServer auf Console gleich loggen würde, wenn es einen Fehler gibt, folgendes machen
+echo 'export HADOOP_CLIENT_OPTS="-Dhive.root.logger=console"' >$HIVE_HOME/conf/hive-env.sh
+
 # init schema (das sollte das Verzeichnis metastore_db unter $HIVE_HOME/conf anlegen)
 cd /usr/local/hive/bin
 
@@ -140,14 +149,18 @@ cd /usr/local/hive/bin
 # (andernfalls Exception: Connecting to jdbc:hive2:// java.lang.NoClassDefFoundError: org/apache/hive/service/cli/thrift/EmbeddedThriftBinaryCLIService
 #        at org.apache.hive.jdbc.HiveConnection.<init>(HiveConnection.java:176)
 hive --service hiveserver2 &
-export HIVE_CONNECT_STRING=localhost:10000
+
+# nach dem Starten des Hive-Servers, sollte der Status auch in folgender Web-GUI sichtbar sein (viel sieht man darin jedoch nicht)
+"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://localhost:10002
+#firefox -new-tab http://localhost:10002
 
 # Abhängig davon, ob man Hiveserver oder HiveEmbedded verwendet, ist unterschiedlicher connect-String zu verwenden (bei Embedded Mode ist die Variable leer)
+export HIVE_CONNECT_STRING=localhost:10000
 
 beeline --verbose
 !connect jdbc:hive2://localhost:10000 scott tiger
 # WICHTIG: Falls es Fehler "Connection refused" "user ... is not allowed to impersonate scott" bei beeline Kommando gibt,
-# dann muss der Eintrag hive.server2.enable.doAs auf "false" gesetzt sein.
+# dann muss der Eintrag  auf "false" gesetzt sein.
 
 # Wenn obiges Prompt o.k. aussieht und nicht "closed" meldet, dann schaut Installation gut aus und man kann mal testweise Objekte anlegen 
 beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger <<!
@@ -156,7 +169,7 @@ beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger <<!
    show databases;
    use default;
    --
-CREATE TABLE IF NOT EXISTS default.employee (
+CREATE TABLE IF NOT EXISTS default.employhive.server2.enable.doAsee (
 id int,
 name string,
 age int,
