@@ -14,13 +14,6 @@ wget --no-check-certificate https://dlcdn.apache.org/hive/hive-${HIVE_VERSION}/a
 tar -xzf apache-hive-${HIVE_VERSION}-bin.tar.gz
 ln -s /usr/local/apache-hive-${HIVE_VERSION}-bin /usr/local/hive
 
-#########b) source (building from source will take several minutes!)
-#########git clone https://github.com/apache/hive.git
-#########cd hive
-#########git checkout master # or maybe origin/branch-3
-########## important to set -DskipTests, otherwise this fails because of missing dependencies
-#########mvn clean package -Pdist -DskipTests -Dmaven.javadoc.skip=true
-
 #########################################################
 
 chown -R hduser:hadoop /usr/local/*hive*
