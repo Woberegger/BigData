@@ -115,7 +115,7 @@ hbase shell
 # Befehl "status" sollte eine Ausgabe wie die folgende liefern
 # 1 active master, 0 backup masters, 1 servers, 0 dead, 3.0000 average load
 
-# Inhalt von 04_HBase_Shell_commands.txt und 04b_HBase_Shell_split_table.txt und 04c_HBase_Shell_split_table.txt ausführen
+# Inhalt von 04b_HBase_Shell_commands.txt und 04c_HBase_Shell_split_table.txt ausführen
 # Cheat Sheet für HBase shell commands z.B. unter https://sparkbyexamples.com/hbase/hbase-shell-commands-cheat-sheet/
 
 #6.) nach dem Anlegen der Tabellen sollten die auch in folgender Web-GUI sichtbar sein
