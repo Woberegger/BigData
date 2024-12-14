@@ -2,7 +2,8 @@ create 'people', 'id', 'property'
 
 put 'people', 'row1', 'id:email', 'chef@jofre.de'
 put 'people', 'row1', 'property:age', '28'
-put 'people', 'row2', 'id:name', 'Rene K.'
+put 'people', 'row2', 'id:name', 'John Doe'
 put 'people', 'row2', 'property:job', 'Consultant'
+put 'people', 'row2', 'property:age', '31'
 
 get 'people', 'row1'
