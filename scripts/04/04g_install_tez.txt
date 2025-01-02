@@ -79,6 +79,16 @@ hdfs dfs -put share/tez.tar.gz /apps/tez-${TEZ_VERSION}/
   <name>tez.runtime.optimize.local.fetch</name>
   <value>true</value>
 </property>
+<property>
+  <name>hive.jar.directory</name>
+  <value>/tmp/hive-jars</value>
+  <description>directory, where Hive can place automatically created Jar files</description>
+</property>
+<property>
+  <name>hive.user.install.directory</name>
+  <value>/tmp/hive-user</value>
+  <description>User-specific directory foir installing Hive resources</description>
+</property>
 
 # weiters den existierenden Wert für property "hive.execution.engine" auf "tez" setzen
 
