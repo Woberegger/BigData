@@ -25,6 +25,8 @@ cat >>~/.bashrc <<!
 export HIVE_HOME=/usr/local/hive
 export HCAT_HOME=\$HIVE_HOME/hcatalog
 export PATH=\$PATH:\$HIVE_HOME/bin
+# !!! optional, wenn java.long.OutOfMemoryError bei einzelnen Abfragen passiert, dann wäre folgendes zu setzen !!!
+#export HADOOP_HEAPSIZE=2048
 !
 
 # damit Änderungen aktiv werden
