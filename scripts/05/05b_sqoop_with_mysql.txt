@@ -133,8 +133,23 @@ sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --
    --bindir /usr/local/hadoop/share/hadoop/common/lib
 
 # Sollte obiger Befehl nicht funktionieren, kann man versuchen, die MySQL Daten zumindest ins HDFS abzuholen und nicht direkt in Hive reinschreiben.
+# Dann müsste man jedoch die Tabelle StudentsFromFile neu definieren als "external table" (dieser erlauben keine Constraints)
+
+#CREATE EXTERNAL TABLE IF NOT EXISTS StudentsFromFile (
+#    id INT,
+#    first_name string,
+#    last_name string,
+#    entry_date DATE,
+#    course string)
+#    COMMENT 'StudentsAsHDFSFile'
+#    ROW FORMAT DELIMITED
+#    FIELDS TERMINATED BY ','
+#    STORED AS TEXTFILE
+#    LOCATION '/user/hduser/studentsMySQL';
+ 
+# TODO: das folgende erstellt Text ohne irgendwelche Delimiter, obwohl das mit Paramter --as-textfile anders sein sollte 
 sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
-   --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --target-dir /user/hduser/studentsMySQL
+   --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --target-dir /user/hduser/studentsMySQL --as-textfile
 
 # und danach hiveserver wieder zu starten, damit beeline funktioniert
 hive --service hiveserver2 &
