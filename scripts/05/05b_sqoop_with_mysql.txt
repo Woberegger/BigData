@@ -47,6 +47,9 @@ CREATE TABLE IF NOT EXISTS studentsMySQL (
 );
 show tables;
 !
+# Falls es hier Fehler gibt, dass der User "hduser" keinen Zugriff auf Socket hat, kann es nötig sein,
+# den user in die Gruppe "mysql hinzufügen mit folgendem Befehl als "root" user
+#usermod -a -G mysql hduser
 
 # jetzt legen wir eine idente Tabelle in Hive an
 # wenn Hive-Server (hive --service hiveserver2 &) verwendet wird, dann muss der Connectstring so gesetzt sein, andernfalls leer
@@ -135,7 +138,7 @@ sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --
 # Sollte obiger Befehl nicht funktionieren, kann man versuchen, die MySQL Daten zumindest ins HDFS abzuholen und nicht direkt in Hive reinschreiben.
 # Dann müsste man jedoch die Tabelle StudentsFromFile neu definieren als "external table" (dieser erlauben keine Constraints)
 
-#CREATE EXTERNAL TABLE IF NOT EXISTS StudentsFromFile (
+#CREATE EXTERNAL TABLE IF NOT EXISTS studentsFromFile (
 #    id INT,
 #    first_name string,
 #    last_name string,
@@ -145,11 +148,11 @@ sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --
 #    ROW FORMAT DELIMITED
 #    FIELDS TERMINATED BY ','
 #    STORED AS TEXTFILE
-#    LOCATION '/user/hduser/studentsMySQL';
+#    LOCATION '/user/hduser/studentsFromFile';
  
 # TODO: das folgende erstellt Text ohne irgendwelche Delimiter, obwohl das mit Paramter --as-textfile anders sein sollte 
 sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
-   --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --target-dir /user/hduser/studentsMySQL --as-textfile
+   --table studentsMySQL  --columns id,first_name,last_name,entry_date,course --driver com.mysql.cj.jdbc.Driver  --target-dir /user/hduser/studentsFromFile --fields-terminated-by , --as-textfile
 
 # und danach hiveserver wieder zu starten, damit beeline funktioniert
 hive --service hiveserver2 &
