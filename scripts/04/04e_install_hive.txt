@@ -70,7 +70,7 @@ cp hive-default.xml.template hive-site.xml
  
 # check for following tag and change it to same directory as used with the hdfs command above (take care, that hduser was write permissions)
     <name>hive.metastore.warehouse.dir</name>
-    <value>/user/hive/warehouse</value>
+    <value>hdfs://namenode:9000/user/hive/warehouse</value>
 
 # und im folgenden Wert muss eine absoluter Pfad für metastore_db angegeben werden, andernfalls wird immer eine neue DB angelegt, je nachdem, wo man beeline gerade startet
 # (und man sieht die zuvor angelegten Tabellen  nicht mehr...)

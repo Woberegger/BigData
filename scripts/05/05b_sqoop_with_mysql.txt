@@ -6,19 +6,23 @@ su - hduser
 cd $SQOOP_HOME
 # fuer ubuntu könnte man auch ein Debian-Package verwenden, aber wir bleiben bei den generischen tar-Files:
 # alternativ download unter http://www.mysql.com/downloads/connector/j/5.1.html
+
 MYSQLCON_VERSION=8.0.29
 wget http://ftp.ntu.edu.tw/MySQL/Downloads/Connector-J/mysql-connector-java-${MYSQLCON_VERSION}.tar.gz
 # wir müssen nur das jar-File verwenden und ins lib-Directory kopieren
 tar -xzf mysql-connector-java-${MYSQLCON_VERSION}.tar.gz
 cp -p mysql-connector-java-${MYSQLCON_VERSION}/mysql-connector-java-${MYSQLCON_VERSION}.jar lib/
 
-# und dann halt mySQL selber (entweder direkt oder als docker container) - als root/osboxes-user (z.B. in anderer shell)
+# und dann halt mySQL selber (entweder direkt oder als docker container) - als root-user (z.B. in anderer shell)
+# oder man verwendet Anleitung ../grp02_install_mysql_docker.txt für mySQL als Docker-container
+# und kann dann die Zeilen bis #End-MySQLNative überspringen
 sudo apt install mysql-server
 sudo systemctl start mysql.service
 
 sudo mysql <<!
    ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'my-secret-pw';
 !
+#End-MySQLNative
 
 su - hduser
 # Wichtig der MySQL user braucht ein Verzeichnis im hdfs, anderenfalls gibt es exception "java.io.IOException: java.lang.ClassNotFoundException: students"
