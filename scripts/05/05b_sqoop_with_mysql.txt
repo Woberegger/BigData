@@ -145,3 +145,6 @@ beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    use fh;
    SELECT * FROM studentsFromMySQL LIMIT 10;
 !
+# falls die Tabelle leer ist, dann hat sqoop import nicht funktioniert und sind die Ausgaben zu kontrollieren.
+# für einen erneuten Versuch muss zuerst das Verzeichnis wieder gelöscht werden über
+# hdfs dfs -rm -R /user/hduser/studentsMySQL
