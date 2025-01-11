@@ -122,6 +122,10 @@ https://db.apache.org/derby/docs/10.13/security/rsecpolicysample.html
 bzw. folgende Zeile in den generischen grant { ... } Abschnitt:
     permission javax.management.MBeanTrustPermission "register";
 
+# ACHTUNG: Bei Verwendung von derby als Metadatenbank für Hive (=default) ist zu beachten, dass Derby keine
+#          konkurrierenden Zugriffe erlaubt, d.h. vor dem Sqoop-Import ist hive-server zu beenden
+kill $(ps aux | grep hiveserver2 | grep -v grep | awk '{ print $2}')
+
 sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
    --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --hive-import --hive-database fh \
    --hive-table studentsFromMySQL --hive-overwrite --num-mappers 1  \
@@ -130,6 +134,9 @@ sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --
 # Sollte obiger Befehl nicht funktionieren, kann man versuchen, die MySQL Daten zumindest ins HDFS abzuholen und nicht direkt in Hive reinschreiben.
 sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
    --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --target-dir /user/hduser/studentsMySQL
+
+# und danach hiveserver wieder zu starten, damit beeline funktioniert
+hive --service hiveserver2 &
 
 # verifiziere die Inhalte
 beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
