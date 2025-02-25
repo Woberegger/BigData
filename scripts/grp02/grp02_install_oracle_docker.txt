@@ -33,7 +33,7 @@ docker exec -i --tty=false $DOCKER_CONTAINERNAME sqlplus -s / as sysdba <<!
 !
 # wir müssen einen tns-Alias für die neue DB anlegen, damit wir mit user/pwd@PluggableDB uns anmelden können
 docker exec -it $DOCKER_CONTAINERNAME /bin/bash
-cat >>/opt/oracle/product/23c/dbhomeFree/network/admin/tnsnames.ora <<!
+cat >>/opt/oracle/product/23ai/dbhomeFree/network/admin/tnsnames.ora <<!
 IMS =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = 0.0.0.0)(PORT = 1521))
@@ -86,8 +86,8 @@ docker exec -it Oracle23Free sqlplus / as sysdba
 # cd /usr/local
 # mkdir instantclient
 # cd instantclient
-# wget https://download.oracle.com/otn_software/linux/instantclient/23c/instantclient-basic-linux.x64-23.3.0.0.0.zip
-# wget https://download.oracle.com/otn_software/linux/instantclient/23c/instantclient-sqlplus-linux.x64-23.3.0.0.0.zip
+# wget https://download.oracle.com/otn_software/linux/instantclient/23ai/instantclient-basic-linux.x64-23.3.0.0.0.zip
+# wget https://download.oracle.com/otn_software/linux/instantclient/23ai/instantclient-sqlplus-linux.x64-23.3.0.0.0.zip
 # unzip instantclient-sqlplus-linux.x64-23.3.0.0.0.zip
 # export PATH=$PATH:/usr/local/instantclient/instantclient_23_3
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/instantclient/instantclient_23_3
