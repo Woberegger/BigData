@@ -97,7 +97,7 @@ export DATABASE_NAME=swd
 # Wichtig: port forward für mysql docker container auf 13306, native auf 3306
 export MYSQL_PORT=13306
 export MYSQL_USER=root
-export MYSQL_PASSWD=
+export MYSQL_PASSWD=my-secret-pw
 
 # liste auf, ob unsere Datenbank und unsere Tabelle "studentsMySQL" gefunden werden
 sqoop-list-databases --connect jdbc:mysql://localhost:${MYSQL_PORT}  --username $MYSQL_USER --password ${MYSQL_PASSWD}
