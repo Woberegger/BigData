@@ -27,19 +27,19 @@ sudo -s
 update-alternatives --config java
 update-alternatives --config javac
 # optional dazu...
-   #cd /usr/lib/jvm/
+cd /usr/lib/jvm/
    ### abhängig von der Rechnerarchitektur könnte die Ausgabe von "dpkg --print-architecture" amd64 oder arm64 oder ??? liefern
    ### wenn dpkg Befehl nicht funktioniert, liefert auch "uname -m" Info zur Architektur, die jedoch dann interpretiert werden muss, da z.B. x86_64 als amd64 zu interpretieren ist
 ln -s java-11-openjdk-$(dpkg --print-architecture) jdk
 # additionally it is good practice to verify, that /etc/alternatives/java points to correct java version
 ls -lsa /etc/alternatives/java
 echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)" >/etc/profile.d/java.sh
-
+export SSH_PORT=22
+echo "export SSH_PORT=$SSH_PORT" >>/etc/profile.d/java.sh
 # prüfen, ob sshd läuft, andernfalls starten, je nach Plattform mit systemctl oder service command
 # entweder man belässt den Port 22 oder man setzt besser einen nicht-privilegierten Port > 1024
 # in /etc/ssh/sshd_config File (ich habe Port 10222 verwendet)
-export SSH_PORT=10222
-sed -i 's/#Port 22/Port 10222/' /etc/ssh/sshd_config
+#sed -i 's/#Port 22/Port 10222/' /etc/ssh/sshd_config
 systemctl start ssh || service ssh start # Frage: Was macht das || in diesem Call?
 # damit systemctl bei WSL funktioniert, muss "systemctl=true" in /etc/wsl.conf vorhanden sein - siehe auch 01b_prepare_wsl.txt
 
@@ -64,7 +64,6 @@ git clone https://github.com/Woberegger/BigData
 ssh-keygen -t rsa -P ""
 cat ~/.ssh/id_rsa.pub  > ~/.ssh/authorized_keys
 
-export SSH_PORT=10222
 ##SSH Schlüssel des Systems hinzufügen; mit yes bestätigen - sollte nach Passwort gefragt werden, dann funktionieren keys nicht
 # (bzw. erlaubt die Option "-o" dies zu umgehen, was nur auf lokalem System zu empfehlen ist)
 ssh -p $SSH_PORT -o StrictHostKeyChecking=accept-new localhost "ls -lsa"
@@ -122,8 +121,6 @@ EOF
 gelesen wird, muss diese manuell neu eingelesen weerden. Verwenden Sie dazu den folgenden Befehl:
 
 source ~/.bashrc
-# Wenn ein anderer Port als 10222 für ssh zuvor gewählt wurde, dann ist folgende Zeile zu korrigieren auf diesen Port
-export SSH_PORT=10222
 
 ##Hadoop Konfigurationsdateien anpassen (als hduser)
 # leider wird das auch in dieser Datei redundanterweise verlangt
