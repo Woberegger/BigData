@@ -5,14 +5,19 @@ git clone https://github.com/Woberegger/BigData/
 #baue Docker-Container nach dem Runterladen der Sourcen (prüfen, ob der Pfad passt, sonst anpassen)
 export HADOOPDOCKERDIR=~/BigData/src/docker-hadoop/
 cd $HADOOPDOCKERDIR
+sudo -s
 docker-compose up -d
 
-# die Ausgabe von "jps" sollte wie folgt aussehen (2 Datanodes und 1 Namenode):
-jps | sort -k2 | awk '{ print $2}' 
+# die Ausgabe von "jps" sollte wie folgt aussehen (3 Datanodes und 1 Namenode):
+jps | sort -k2 | awk '{ print $2}'
+### ApplicationHistoryServer
+### DataNode
 ### DataNode
 ### DataNode
 ### Jps
 ### NameNode
+### NodeManager
+### ResourceManager
 
 # prüfe, ob die docker Container alle laufen, sollte historyserver, resourcemanager, nodemanager, namenode und 2x datanode finden
 docker ps
@@ -25,6 +30,7 @@ docker network inspect docker-hadoop_default
  iptables -I INPUT 1 -p tcp --dport 9870 -j ACCEPT
  
 # kopiere das Programm zum Wörterzählen in den Container (noch besser das selbst gebaute im 1. Teil der Übung)
+export HADOOPDOCKERDIR=~hduser/BigData/src/docker-hadoop/
 docker cp $HADOOPDOCKERDIR/../wordcount/Hadoopwordcount.jar namenode:/tmp/Hadoopwordcount.jar
 # verbinde mit dem namenode container
 docker exec -it namenode bash
@@ -52,6 +58,8 @@ docker exec -it namenode bash
 # Den Inhalt der Datei kann man sich entweder über http://localhost:9870/explorer.html#/output/elquijote ausgeben lassen oder schneller:
 hdfs dfs -get /output/elquijote/part-r-00000 /tmp/wordcountresult.txt
 tail -n 50 /tmp/wordcountresult.txt
+
+exit # verlasse Docker-Container
 
 # Zum Stoppen der Container kann man den "harten" Weg gehen ...
 ### for i in $(docker container list | tail +2 | cut -d' ' -f1); do docker container stop $i; done

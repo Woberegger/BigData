@@ -36,6 +36,7 @@ ls -lsa /etc/alternatives/java
 echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)" >/etc/profile.d/java.sh
 export SSH_PORT=22
 echo "export SSH_PORT=$SSH_PORT" >>/etc/profile.d/java.sh
+chmod 744 /etc/profile.d/java.sh
 # prüfen, ob sshd läuft, andernfalls starten, je nach Plattform mit systemctl oder service command
 # entweder man belässt den Port 22 oder man setzt besser einen nicht-privilegierten Port > 1024
 # in /etc/ssh/sshd_config File (ich habe Port 10222 verwendet)
@@ -50,6 +51,8 @@ systemctl start ssh || service ssh start # Frage: Was macht das || in diesem Cal
 groupadd hadoop
 useradd -g hadoop -s /bin/bash -m hduser 
 passwd hduser
+# add hduser to sudoers group
+adduser hduser sudo
 
 # da wir später einen Alias "namenode" verwenden über alle Clusterknoten, sollte man den bei wsl idealerweise
 # in c:\windows\system32\drivers\etc\hosts eintragen, da dies andernfalls beim Neustart von wsl wieder gelöscht wird
