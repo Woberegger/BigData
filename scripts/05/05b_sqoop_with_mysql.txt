@@ -122,7 +122,7 @@ hdfs dfs -rm -R /user/hduser/studentsMySQL 2>/dev/null
 # /usr/local/hive/lib/derby-10.14.2.0.jar nicht erlaubt:
 #java.lang.NoClassDefFoundError: Could not initialize class org.apache.derby.jdbc.EmbeddedDriver
 # Daher Inhalt von File ../grp02/grp02_java_policy_to_add.txt am Beginn von Datei $JAVA_HOME/lib/security/default.policy
-# also z.B. /usr/lib/jvm/java-11-openjdk-amd64/lib/security/default.policy einzutragen:
+# also z.B. /usr/lib/jvm/temurin-11-jdk-amd64/lib/security/default.policy einzutragen:
 # bzw. folgende Zeilen in den generischen grant { ... } Abschnitt am Ende der Datei:
 #    permission javax.management.MBeanTrustPermission "register";
 #    permission org.apache.derby.security.SystemPermission "engine", "usederbyinternals";

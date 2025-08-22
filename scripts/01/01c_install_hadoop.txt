@@ -5,22 +5,32 @@
 #sudo hostnamectl set-hostname swd<MatrikelNr>
 
 ##Packages Installieren
-sudo apt-get update
-sudo apt-get -y install ssh
-sudo apt-get -y install pdsh
-sudo apt-get -y install openjdk-11-jdk
-sudo apt-get -y install openssh-server
+sudo -s
+apt-get update
+apt-get -y install ssh
+apt-get -y install pdsh
+apt-get -y install openssh-server
 # tools, which make sense
-sudo apt-get -y install inetutils-telnet
-sudo apt-get -y install nmap
-sudo apt-get -y install curl
-sudo apt-get -y install wget
-sudo apt-get -y install vim
-sudo apt-get -y install net-tools
-sudo apt-get -y install git
-# (Virtual-Box-only!!!) damit shared folders und copy'n'paste funktionieren, ist meist die Installation der Guest-Additions nötig, danach ev. ein Reboot der VM
-#sudo apt-get install -y build-essential virtualbox-guest-utils virtualbox-guest-x11
+apt-get -y install inetutils-telnet
+apt-get -y install nmap
+apt-get -y install curl
+apt-get -y install wget
+apt-get -y install vim
+apt-get -y install vim-gtk3 # necessary on Debian image, where vim is built without clipboard support ("vim --version | grep clipboard")
+apt-get -y install net-tools
+apt-get -y install git
+apt-get -y install gpg # needed for apt keys to add 
 
+# we need to download older Java version from a different repository as the current one (as Debian "Trixie" only contains Java versions 21+, but hadoop 3.x.x only supports Java 8+11)
+mkdir -m 0755 -p /etc/apt/keyrings/
+wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public > /etc/apt/keyrings/adoption.gpg
+echo "deb [signed-by=/etc/apt/keyrings/adoption.gpg] https://packages.adoptium.net/artifactory/deb trixie main" /etc/apt/sources.list.d/adoptium.list
+
+export JAVA_FLAVOR=temurin-11-jdk
+apt-get -y install $JAVA_FLAVOR
+
+# not compatible version
+# apt-get -y install openjdk-21-jdk
 sudo -s
 ##Symbolischen Link für Java erstellen
 ### besser ist folgendes, das alle nötigen Pfade umsetzt:
@@ -30,10 +40,10 @@ update-alternatives --config javac
 cd /usr/lib/jvm/
    ### abhängig von der Rechnerarchitektur könnte die Ausgabe von "dpkg --print-architecture" amd64 oder arm64 oder ??? liefern
    ### wenn dpkg Befehl nicht funktioniert, liefert auch "uname -m" Info zur Architektur, die jedoch dann interpretiert werden muss, da z.B. x86_64 als amd64 zu interpretieren ist
-ln -s java-11-openjdk-$(dpkg --print-architecture) jdk
+ln -sf ${JAVA_FLAVOR}-$(dpkg --print-architecture) jdk
 # additionally it is good practice to verify, that /etc/alternatives/java points to correct java version
 ls -lsa /etc/alternatives/java
-echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)" >/etc/profile.d/java.sh
+echo "export JAVA_HOME=/usr/lib/jvm/${JAVA_FLAVOR}-$(dpkg --print-architecture)" >/etc/profile.d/java.sh
 export SSH_PORT=22
 echo "export SSH_PORT=$SSH_PORT" >>/etc/profile.d/java.sh
 chmod 744 /etc/profile.d/java.sh
@@ -49,8 +59,8 @@ systemctl start ssh || service ssh start # Frage: Was macht das || in diesem Cal
 
 ##Benutzer und Gruppe einrichten; als Passwort für hduser hduser verwenden
 groupadd hadoop
-useradd -g hadoop -s /bin/bash -m hduser 
-passwd hduser
+useradd -g hadoop -s /bin/bash -m hduser
+echo "hduser:hadoop" | chpasswd # allows to change password by script
 # add hduser to sudoers group
 adduser hduser sudo
 
@@ -69,6 +79,7 @@ cat ~/.ssh/id_rsa.pub  > ~/.ssh/authorized_keys
 
 ##SSH Schlüssel des Systems hinzufügen; mit yes bestätigen - sollte nach Passwort gefragt werden, dann funktionieren keys nicht
 # (bzw. erlaubt die Option "-o" dies zu umgehen, was nur auf lokalem System zu empfehlen ist)
+export SSH_PORT=22
 ssh -p $SSH_PORT -o StrictHostKeyChecking=accept-new localhost "ls -lsa"
 # wenn das nicht funktioniert wegen Firewallregeln, dann entweder Windows-Firewall Regel anlegen lt. https://pureinfotech.com/open-port-firewall-windows-10/
 # oder optional in WSL in /etc/ssh/sshd_config den Eintrag für "Port" z.B. wie folgt aktivieren auf einen Port > 1024 "Port=10222"
@@ -82,7 +93,7 @@ exit
 ##Download Hadoop in passender Version und entpacken (in Browser herunterladen oder per wget/curl)
 sudo -s
 cd /usr/local
-export HADOOP_VERSION=3.3.6
+export HADOOP_VERSION=3.4.1
 wget https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz --no-check-certificate
 wget https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz.sha512 --no-check-certificate
 # das ShaSum File referenziert einen anderen Dateinamen, daher ist es zu ersetzen
@@ -100,9 +111,11 @@ chown -R hduser:hadoop hadoop*
 ## Umgebungsvariablen in bashrc setzen
 
 su - hduser
+
+export JAVA_FLAVOR=temurin-11-jdk
 cat >>~/.bashrc <<EOF
 # Java (a copy of what is already in /etc/profile.d/java.sh)
-export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)
+export JAVA_HOME=/usr/lib/jvm/${JAVA_FLAVOR}-$(dpkg --print-architecture)
 
 # Hadoop export
 export HADOOP_INSTALL=/usr/local/hadoop
@@ -127,7 +140,7 @@ source ~/.bashrc
 
 ##Hadoop Konfigurationsdateien anpassen (als hduser)
 # leider wird das auch in dieser Datei redundanterweise verlangt
-echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
+echo "export JAVA_HOME=/usr/lib/jvm/${JAVA_FLAVOR}-$(dpkg --print-architecture)" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 echo "export HADOOP_SSH_OPTS=\"-p $SSH_PORT\"" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 
 ##Editieren Sie core-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
@@ -247,11 +260,13 @@ jps | sort -k2
 ##Web-GUI starten (als der in der graphischen Oberfläche eingeloggte User, wegen $DISPLAY variable), bei WSL den Browser im Windows verwenden
 # Namenode (nach start-dfs.sh) und Resourcemanager (nach start-yarn.sh)
 # a) in Windows command prompt:
-"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://localhost:9870
-"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://localhost:8088
+"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://<ip_of_VM>:9870
+"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://<ip_of_VM>:8088
 # b) unter Linux
-firefox -new-tab http://localhost:9870/
-firefox -new-tab http://localhost:8088/
+firefox -new-tab http://<ip_of_VM>:9870/
+firefox -new-tab http://<ip_of_VM>:8088/
+
+# Bei Problemen in die Logfiles der Prozesse schauen (unter /usr/local/hadoop/logs)
 
 ##Hadoop stoppen (als hduser)
 stop-dfs.sh

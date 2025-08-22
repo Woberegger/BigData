@@ -24,7 +24,7 @@ source ~/.bashrc
 cd $HBASE_HOME/conf
 export SSH_PORT=10222
 #in Datei $HBASE_HOME/conf/hbase-env.sh das JAVA_HOME korrekt setzen, z.B.:
-echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)" >>${HBASE_HOME}/conf/hbase-env.sh
+echo "export JAVA_HOME=/usr/lib/jvm/temurin-11-jdk-$(dpkg --print-architecture)" >>${HBASE_HOME}/conf/hbase-env.sh
 #im selben File auch den ssh-Port angeben, wenn dieser von 22 abweicht:
 echo "export HBASE_SSH_OPTS=\"-p $SSH_PORT -l hduser\"" >>${HBASE_HOME}/conf/hbase-env.sh
 
