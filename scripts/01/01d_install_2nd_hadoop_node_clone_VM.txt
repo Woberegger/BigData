@@ -40,10 +40,10 @@ ssh hduser@namenode
 
 # auf Namenode: und dem master alle workers bekanntmachen
 cat >$HADOOP_HOME/etc/hadoop/slaves <<!
-UbuntuBigData
-UbuntuBigDataNode1
+namenode
+datanode1
 !
-echo "UbuntuBigData" >$HADOOP_HOME/etc/hadoop/masters
+echo "namenode" >$HADOOP_HOME/etc/hadoop/masters
 cp -p $HADOOP_HOME/etc/hadoop/slaves $HADOOP_HOME/etc/hadoop/workers
 
 # auf allen Nodes:

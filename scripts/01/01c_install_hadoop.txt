@@ -24,14 +24,14 @@ apt-get -y install gpg # needed for apt keys to add
 # we need to download older Java version from a different repository as the current one (as Debian "Trixie" only contains Java versions 21+, but hadoop 3.x.x only supports Java 8+11)
 mkdir -m 0755 -p /etc/apt/keyrings/
 wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public > /etc/apt/keyrings/adoption.gpg
-echo "deb [signed-by=/etc/apt/keyrings/adoption.gpg] https://packages.adoptium.net/artifactory/deb trixie main" /etc/apt/sources.list.d/adoptium.list
+echo "deb [signed-by=/etc/apt/keyrings/adoption.gpg] https://packages.adoptium.net/artifactory/deb trixie main" >/etc/apt/sources.list.d/adoptium.list
 
+apt-get update # should find e.g. https://packages.adoptium.net/artifactory/deb package
 export JAVA_FLAVOR=temurin-11-jdk
 apt-get -y install $JAVA_FLAVOR
 
-# not compatible version
+# not compatible version with Hadoop 3.4.x
 # apt-get -y install openjdk-21-jdk
-sudo -s
 ##Symbolischen Link für Java erstellen
 ### besser ist folgendes, das alle nötigen Pfade umsetzt:
 update-alternatives --config java
@@ -46,12 +46,23 @@ ls -lsa /etc/alternatives/java
 echo "export JAVA_HOME=/usr/lib/jvm/${JAVA_FLAVOR}-$(dpkg --print-architecture)" >/etc/profile.d/java.sh
 export SSH_PORT=22
 echo "export SSH_PORT=$SSH_PORT" >>/etc/profile.d/java.sh
-chmod 744 /etc/profile.d/java.sh
+chmod 644 /etc/profile.d/java.sh
+##
+# erlaube Passwort-basierendes login für diese beiden user
+cat >/etc/ssh/sshd_config.d/10-student.conf <<EOF
+Match User student
+   PasswordAuthentication yes
+EOF
+cat >/etc/ssh/sshd_config.d/11-hadoop.conf <<EOF
+Match User hduser
+   PasswordAuthentication yes
+EOF
+
 # prüfen, ob sshd läuft, andernfalls starten, je nach Plattform mit systemctl oder service command
 # entweder man belässt den Port 22 oder man setzt besser einen nicht-privilegierten Port > 1024
 # in /etc/ssh/sshd_config File (ich habe Port 10222 verwendet)
 #sed -i 's/#Port 22/Port 10222/' /etc/ssh/sshd_config
-systemctl start ssh || service ssh start # Frage: Was macht das || in diesem Call?
+systemctl reload ssh || systemctl start ssh || service ssh start # Frage: Was macht das || in diesem Call?
 # damit systemctl bei WSL funktioniert, muss "systemctl=true" in /etc/wsl.conf vorhanden sein - siehe auch 01b_prepare_wsl.txt
 
 # Wenn der gezeigte Port 22 ist, obwohl man einen anderen gesetzt hat (tritt z.B. bei Ubuntu 24-04 oder höher auf),
@@ -68,6 +79,7 @@ adduser hduser sudo
 # in c:\windows\system32\drivers\etc\hosts eintragen, da dies andernfalls beim Neustart von wsl wieder gelöscht wird
 # (optional den Parameter "generateHosts=false" in /etc/wsl.conf setzen - siehe Datei 01b_prepare_wsl.txt)
 # der Alias kann in derselben Zeile wie "127.0.0.1 localhost" mit <BLANK> oder <TAB> angehängt oder in eigener Zeile stehen.
+### TODO: auf zusätzlichen datanodes anstelle von 127.0.0.1 die IP des namenodes (des internen Netzwerks, also z.B. 172.20.99.254) verwenden ###
 echo "127.0.0.1 namenode" >>/etc/hosts
 # sinnvollerweise sollte man gleich das github Repo klonen, dann hat man alle Scripts, Sourcen etc. lokal auf der VM vorhanden
 su - hduser
@@ -79,14 +91,13 @@ cat ~/.ssh/id_rsa.pub  > ~/.ssh/authorized_keys
 
 ##SSH Schlüssel des Systems hinzufügen; mit yes bestätigen - sollte nach Passwort gefragt werden, dann funktionieren keys nicht
 # (bzw. erlaubt die Option "-o" dies zu umgehen, was nur auf lokalem System zu empfehlen ist)
-export SSH_PORT=22
-ssh -p $SSH_PORT -o StrictHostKeyChecking=accept-new localhost "ls -lsa"
+ssh -o StrictHostKeyChecking=accept-new localhost "ls -lsa"
 # wenn das nicht funktioniert wegen Firewallregeln, dann entweder Windows-Firewall Regel anlegen lt. https://pureinfotech.com/open-port-firewall-windows-10/
 # oder optional in WSL in /etc/ssh/sshd_config den Eintrag für "Port" z.B. wie folgt aktivieren auf einen Port > 1024 "Port=10222"
 # danach in wsl als root "service ssh restart; service ssh status" ausführen und "ssh -p $SSH_PORT localhost" als "hduser" testen
 # falls der Name anders aufgelöst wird, ist es nötig, auch mit dem Hostname und "namenode" einmalig die Verbindung zu öffnen
-ssh -p $SSH_PORT -o StrictHostKeyChecking=accept-new $(hostname) "ls -lsa"
-ssh -p $SSH_PORT -o StrictHostKeyChecking=accept-new namenode "ls -lsa"
+ssh -o StrictHostKeyChecking=accept-new $(hostname) "ls -lsa"
+ssh -o StrictHostKeyChecking=accept-new namenode "ls -lsa"
 ## exit oder Ctrl<d> um wieder als ursprünglicher User zu arbeiten (da "hduser" nicht in sudoers enthalten ist)
 exit
 
@@ -134,14 +145,13 @@ export PDSH_RCMD_TYPE=ssh
 EOF
 
 ##Speichern Sie die Änderungen in der Datei .bashrc. Da die bashrc nur beim erstellen der Konsole 
-gelesen wird, muss diese manuell neu eingelesen weerden. Verwenden Sie dazu den folgenden Befehl:
+# gelesen wird, muss diese manuell neu eingelesen weerden. Verwenden Sie dazu den folgenden Befehl:
 
 source ~/.bashrc
 
 ##Hadoop Konfigurationsdateien anpassen (als hduser)
 # leider wird das auch in dieser Datei redundanterweise verlangt
 echo "export JAVA_HOME=/usr/lib/jvm/${JAVA_FLAVOR}-$(dpkg --print-architecture)" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
-echo "export HADOOP_SSH_OPTS=\"-p $SSH_PORT\"" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 
 ##Editieren Sie core-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
 # um idente files bei Clusterverwendung zu haben, besser anstelle von "localhost" einen Namen lt. /etc/hosts eintragen, z.B. "namenode"
