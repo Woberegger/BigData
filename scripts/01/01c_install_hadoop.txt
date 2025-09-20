@@ -97,6 +97,9 @@ git clone https://github.com/Woberegger/BigData
 ##SSH Schlüssel erzeugen und hinzufügen
 ssh-keygen -t rsa -P ""
 cat ~/.ssh/id_rsa.pub  > ~/.ssh/authorized_keys
+# Schlüssel auf die beiden Datanodes kopieren
+ssh-copy-id -i ~/.ssh/id_rsa.pub hduser@datanode1
+ssh-copy-id -i ~/.ssh/id_rsa.pub hduser@datanode2
 
 ##SSH Schlüssel des Systems hinzufügen; mit yes bestätigen - sollte nach Passwort gefragt werden, dann funktionieren keys nicht
 # (bzw. erlaubt die Option "-o" dies zu umgehen, was nur auf lokalem System zu empfehlen ist)
@@ -131,7 +134,9 @@ chown -R hduser:hadoop hadoop*
 ## Umgebungsvariablen in bashrc setzen
 
 su - hduser
-
+# WICHTIG: damit das mit geteilter VM für mehrere sekundäre Datanodes funktioniert, müssen wir den Namenode ident vorbereiten
+export NAMENODEIP=$(hostname -I | cut -d' ' -f1)
+ln -s /usr/local/hadoop/etc/hadoop /usr/local/hadoop/etc/datanode${NAMENODEIP}
 export JAVA_FLAVOR=temurin-11-jdk
 cat >>~/.bashrc <<EOF
 # Java (a copy of what is already in /etc/profile.d/java.sh)
@@ -140,6 +145,8 @@ export JAVA_HOME=/usr/lib/jvm/${JAVA_FLAVOR}-$(dpkg --print-architecture)
 # Hadoop export
 export HADOOP_INSTALL=/usr/local/hadoop
 export HADOOP_HOME=\$HADOOP_INSTALL
+# specifically necessary because of shared datanodes
+export HADOOP_CONF_DIR=\$HADOOP_INSTALL/etc/datanode\${NAMENODEIP}
 export HADOOP_MAPRED_HOME=\$HADOOP_INSTALL
 export HADOOP_COMMON_HOME=\$HADOOP_INSTALL
 export HADOOP_HDFS_HOME=\$HADOOP_INSTALL

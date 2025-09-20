@@ -42,9 +42,8 @@ ssh -p 10222 hduser@namenode
 # siehe generiertes File hdfs-site(for_multiple_datanodes_on_1_server).xml - Achtung: File wurde nicht getestet, ist inhaltlich zu verifizieren!!!
 
 # auf Namenode: und dem master alle workers bekanntmachen (bei WSL haben wir nur 1 IP, da muss man das anders lösen)
-echo "localhost" >$HADOOP_HOME/etc/hadoop/slaves
+echo "localhost" >$HADOOP_HOME/etc/hadoop/workers
 echo "localhost" >$HADOOP_HOME/etc/hadoop/masters
-cp -p $HADOOP_HOME/etc/hadoop/slaves $HADOOP_HOME/etc/hadoop/workers
 
 # auf allen Nodes:
 # und damit Dateien doppelt abgelegt werden, sollte man in hdfs-site.xml die Variable dfs.replication auf Wert 2 setzen

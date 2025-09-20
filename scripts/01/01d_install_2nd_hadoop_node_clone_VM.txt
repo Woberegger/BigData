@@ -39,12 +39,11 @@ ssh hduser@namenode
 ## in hdfs-site.xml den Wert für dfs.replication auf 2 erhöhen
 
 # auf Namenode: und dem master alle workers bekanntmachen
-cat >$HADOOP_HOME/etc/hadoop/slaves <<!
+cat >$HADOOP_HOME/etc/hadoop/workers <<!
 namenode
 datanode1
 !
 echo "namenode" >$HADOOP_HOME/etc/hadoop/masters
-cp -p $HADOOP_HOME/etc/hadoop/slaves $HADOOP_HOME/etc/hadoop/workers
 
 # auf allen Nodes:
 # und damit Dateien doppelt abgelegt werden, sollte man in hdfs-site.xml die Variable dfs.replication auf Wert 2 setzen
