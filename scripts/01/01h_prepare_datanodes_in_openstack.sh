@@ -15,7 +15,7 @@ Usage () {
    echo "       Example: $0 3 10.77.16.124"
    echo "       the value has to be the according numerical postfix of the datanode's name, e.g. for bigdataSWD03 use value '3'"
    echo "       This script has to be executed once on each additional datanode (beside the one, which runs on namenode) as user 'hduser'"
-   echo "       if you have logged in from that client, you can try: `basename $0` 3 \$(echo \$SSH_CLIENT | cut -d' ' -f1"
+   echo "       if you have logged in from that client, you can try: `basename $0` 3 \$(echo \$SSH_CLIENT | cut -d' ' -f1)"
 }
 #
 if [ $# -lt $NumParams -o "$1" = "-?" -o "$1" = "--help" ]; then
@@ -97,5 +97,12 @@ cat >${HADOOP_CONF_DIR}/hdfs-site.xml <<EOF
 EOF
 
 sed -i "s#/usr/local/hadoop/hadoopdata/hdfs/tmp#/usr/local/hadoop/hadoopdata/datanode${NameNodeIP}/tmp#" ${HADOOP_CONF_DIR}/core-site.xml
+
+echo "successfully prepared specific environment for Hadoop in ${HADOOP_CONF_DIR}"
+echo "Ports to use are: 501${PortPostfix}, 502${PortPostfix} and 508${PortPostfix}"
+echo "datanodes are started by namenode and executing ~/datanode.env with specific config"
+echo "HADOOP_CONF_DIR=${HADOOP_CONF_DIR}"
+echo "HADOOP_PID_DIR=${HADOOP_PID_DIR}"
+echo "HADOOP_LOG_DIR=${HADOOP_LOG_DIR}"
 
 exit $RetCode
