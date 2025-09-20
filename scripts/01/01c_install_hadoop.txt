@@ -88,6 +88,9 @@ adduser hduser sudo
 # der Alias kann in derselben Zeile wie "127.0.0.1 localhost" mit <BLANK> oder <TAB> angehängt oder in eigener Zeile stehen.
 ### TODO: auf zusätzlichen datanodes anstelle von 127.0.0.1 die IP des namenodes (des internen Netzwerks, also z.B. 172.20.99.254) verwenden ###
 echo "127.0.0.1 namenode" >>/etc/hosts
+echo "10.77.17.48 datanode1" >>/etc/hosts # this is the common one
+echo "10.77.18.25 datanode2" >>/etc/hosts # this is the common one
+
 # sinnvollerweise sollte man gleich das github Repo klonen, dann hat man alle Scripts, Sourcen etc. lokal auf der VM vorhanden
 su - hduser
 echo 'source /etc/vim/vimrc' >~/.vimrc
@@ -97,7 +100,7 @@ git clone https://github.com/Woberegger/BigData
 ##SSH Schlüssel erzeugen und hinzufügen
 ssh-keygen -t rsa -P ""
 cat ~/.ssh/id_rsa.pub  > ~/.ssh/authorized_keys
-# Schlüssel auf die beiden Datanodes kopieren
+# Schlüssel auf die beiden zusätzliche Datanodes kopieren
 ssh-copy-id -i ~/.ssh/id_rsa.pub hduser@datanode1
 ssh-copy-id -i ~/.ssh/id_rsa.pub hduser@datanode2
 
@@ -169,6 +172,52 @@ source ~/.bashrc
 # leider wird das auch in dieser Datei redundanterweise verlangt
 echo "export JAVA_HOME=/usr/lib/jvm/${JAVA_FLAVOR}-$(dpkg --print-architecture)" >>${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 
+
+##hier nehmen wir zur Sicherheit ein einheitliches Konfigurationsfile
+cat >${HADOOP_CONF_DIR}/hdfs-site.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+   <property>
+      <name>dfs.replication</name>
+      <value>2</value>
+   </property>
+   <property>
+      <name>dfs.namenode.maintenance.replication.min</name>
+      <value>1</value>
+   </property>
+   <property>
+      <name>dfs.namenode.hosts.provider.classname</name>
+      <value>org.apache.hadoop.hdfs.server.blockmanagement.CombinedHostFileManager</value>
+   </property>
+   <property>
+      <name>dfs.hosts</name>
+      <value>/usr/local/hadoop/etc/hadoop/hosts</value>
+   </property>
+   <property>
+      <name>dfs.permissions</name>
+      <value>false</value>
+   </property>
+   <property>
+      <name>dfs.namenode.name.dir</name>
+      <value>file:/usr/local/hadoop/hadoopdata/hdfs/namenode</value>
+   </property>
+   <property>
+      <name>dfs.datanode.data.dir</name>
+      <value>file:/usr/local/hadoop/hadoopdata/hdfs/datanode</value>
+   </property>
+   <property>
+      <name>dfs.namenode.heartbeat.recheck-interval</name>
+      <value>15000</value>
+      <description>Determines datanode heartbeat interval in milliseconds</description>
+   </property>
+   <property>
+      <name>dfs.block.size</name>
+      <value>2097152</value>
+   </property>
+</configuration>
+EOF
+
 ##Editieren Sie core-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
 # um idente files bei Clusterverwendung zu haben, besser anstelle von "localhost" einen Namen lt. /etc/hosts eintragen, z.B. "namenode"
 # Damit dort beim ssh-Connect der einmalige Prompt nicht zu Fehler "Host key verification failed" kommt, muss man ausführen:
@@ -182,31 +231,7 @@ echo "export JAVA_HOME=/usr/lib/jvm/${JAVA_FLAVOR}-$(dpkg --print-architecture)"
 		<name>hadoop.tmp.dir</name>
 		<value>/usr/local/hadoop/hadoopdata/hdfs/tmp</value>
 	</property>
-
-
-##Editieren Sie hdfs-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
-	<property>
-		<name>dfs.replication</name>
-		<value>1</value>
-	</property>
-	<property>
-		<name>dfs.permissions</name>
-		<value>false</value>
-	</property>
-	<property>
-		<name>dfs.namenode.name.dir</name>
-		<value>file:/usr/local/hadoop/hadoopdata/hdfs/namenode</value>
-	</property>
-	<property>
-		<name>dfs.datanode.data.dir</name>
-		<value>file:/usr/local/hadoop/hadoopdata/hdfs/datanode</value>
-	</property>
-   <property>
-		<name>dfs.block.size</name>
-		<value>4194304</value>
-	</property>
-
-
+   
 ##Editieren Sie mapred-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
 	<property>
 		<name>yarn.nodemanager.aux-services</name>
