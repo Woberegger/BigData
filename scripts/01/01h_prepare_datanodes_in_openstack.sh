@@ -109,4 +109,13 @@ echo "HADOOP_CONF_DIR=${HADOOP_CONF_DIR}"
 echo "HADOOP_PID_DIR=${HADOOP_PID_DIR}"
 echo "HADOOP_LOG_DIR=${HADOOP_LOG_DIR}"
 
+echo "take care, that on data node in .bashrc the case-lines after 'If not running interactively...' are outcommented"
+
+# If not running interactively, don't do anything
+#case $- in
+#    *i*) ;;
+#      *) return;;
+#esac
+
+
 exit $RetCode
