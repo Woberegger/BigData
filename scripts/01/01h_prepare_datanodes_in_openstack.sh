@@ -26,6 +26,7 @@ RetCode=0
 # the real code starts here
 let PortPostfix=$(printf %02d $1)
 NameNodeIP=$2
+if [ ! -n "$SSH_CLIENT" ]; then export SSH_CLIENT=$NameNodeIP; fi
 
 cd $HADOOP_HOME/etc
 cp -pR hadoop datanode${NameNodeIP}
@@ -101,6 +102,8 @@ sed -i "s#/usr/local/hadoop/hadoopdata/hdfs/tmp#/usr/local/hadoop/hadoopdata/dat
 echo "successfully prepared specific environment for Hadoop in ${HADOOP_CONF_DIR}"
 echo "Ports to use are: 501${PortPostfix}, 502${PortPostfix} and 508${PortPostfix}"
 echo "datanodes are started by namenode and executing ~/datanode.env with specific config"
+source ~/datanode.env
+
 echo "HADOOP_CONF_DIR=${HADOOP_CONF_DIR}"
 echo "HADOOP_PID_DIR=${HADOOP_PID_DIR}"
 echo "HADOOP_LOG_DIR=${HADOOP_LOG_DIR}"
