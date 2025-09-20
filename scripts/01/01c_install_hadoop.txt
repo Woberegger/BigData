@@ -21,6 +21,13 @@ apt-get -y install net-tools
 apt-get -y install git
 apt-get -y install gpg # needed for apt keys to add 
 
+# important: in order that paste with mouse in vim works on Debian (for all users), you have to call the following - optionally change user's .vimrc
+echo "set clipboard=unnamedplus" >>/etc/vim/vimrc.local # allow mouse-paste
+echo "syntax on" >>/etc/vim/vimrc.local # enable coloured syntax highlighting
+
+# on debian this is strange, we have to force to use the global settings in the user environments
+su - debian -c "echo 'source /etc/vim/vimrc' >~debian/.vimrc"
+
 # we need to download older Java version from a different repository as the current one (as Debian "Trixie" only contains Java versions 21+, but hadoop 3.x.x only supports Java 8+11)
 mkdir -m 0755 -p /etc/apt/keyrings/
 wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public > /etc/apt/keyrings/adoption.gpg
@@ -83,6 +90,8 @@ adduser hduser sudo
 echo "127.0.0.1 namenode" >>/etc/hosts
 # sinnvollerweise sollte man gleich das github Repo klonen, dann hat man alle Scripts, Sourcen etc. lokal auf der VM vorhanden
 su - hduser
+echo 'source /etc/vim/vimrc' >~/.vimrc
+
 git clone https://github.com/Woberegger/BigData
 
 ##SSH Schlüssel erzeugen und hinzufügen
