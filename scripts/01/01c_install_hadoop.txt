@@ -27,6 +27,7 @@ echo "syntax on" >>/etc/vim/vimrc.local # enable coloured syntax highlighting
 
 # on debian this is strange, we have to force to use the global settings in the user environments
 su - debian -c "echo 'source /etc/vim/vimrc' >~debian/.vimrc"
+echo 'source /etc/vim/vimrc' >/root/.vimrc
 
 # we need to download older Java version from a different repository as the current one (as Debian "Trixie" only contains Java versions 21+, but hadoop 3.x.x only supports Java 8+11)
 mkdir -m 0755 -p /etc/apt/keyrings/
@@ -88,8 +89,9 @@ adduser hduser sudo
 # der Alias kann in derselben Zeile wie "127.0.0.1 localhost" mit <BLANK> oder <TAB> angehängt oder in eigener Zeile stehen.
 ### TODO: auf zusätzlichen datanodes anstelle von 127.0.0.1 die IP des namenodes (des internen Netzwerks, also z.B. 172.20.99.254) verwenden ###
 echo "127.0.0.1 namenode" >>/etc/hosts
-echo "10.77.17.48 datanode1" >>/etc/hosts # this is the common one
-echo "10.77.18.25 datanode2" >>/etc/hosts # this is the common one
+# die folgende 2 Zeilen wurden bereits beim Anlegen des images gemacht
+#echo "10.77.17.48 datanode1" >>/etc/hosts # this is the common one
+#echo "10.77.18.25 datanode2" >>/etc/hosts # this is the common one
 
 # sinnvollerweise sollte man gleich das github Repo klonen, dann hat man alle Scripts, Sourcen etc. lokal auf der VM vorhanden
 su - hduser
