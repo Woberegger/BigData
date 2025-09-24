@@ -1,18 +1,17 @@
 # Die Aufgaben in diesem File sind mit 1 aktiven Datanode möglich, wobei man mehr mitkriegt, wie HDFS funktioniert,
 # wenn mehr als 1 (idealerweise 3) Datanodes angelegt wurden. Daher, falls genug Zeit vorhanden ist,
-# vorher mit einer der Anleitungen (02b_hadoop_docker.txt oder besser 01f_prepare_datanode_in_1WSL.sh + 01g_start_stop_datanode_in_1WSL.sh)
-# weitere Datanodes aktivieren
+# vorher mit einer der Anleitungen weitere Datanodes aktivieren
 
 # nach dem Installieren und Konfigurieren wollen wir evaluieren, wo und wie HDFS die Dateien ablegt
 su - hduser
 # eine gute Testdatei, die wir auch später für Mapreduce Beispiele verwenden, ist die folgende:
-# entweder wie folgt direkt aus dem Internet runterladen, bzw. besser aus dem GitRepo 
+# entweder wie folgt direkt aus dem Internet runterladen, bzw. besser aus dem GitRepo ~/BigData/data/airline_delay_causes.csv
 # cd /tmp && wget https://github.com/DistrictDataLabs/transportation-project-1/raw/master/airdelayhist/data/airline_delay_causes.csv
 
 # siehe Liste der Kommandos unter https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/FileSystemShell.html
 z.B.:hdfs dfs -ls # die letzten Kommandos mit '-' Prefix ähneln Linux OS-Kommandos
 
-# optional sieht man Dateien/Ordner über "firefox -new-tab http://localhost:9870/explorer.html#/" (als der User, unter dem man in GUI eingeloggt ist)
+# optional sieht man Dateien/Ordner über "firefox -new-tab http://namenode:9870/explorer.html#/" (als der User, unter dem man in GUI eingeloggt ist)
 
 # reingehängt haben wir das HDFS-Filesystem an folgendem Mountpoint
 # mit folgendem Kommando zwischendurch prüfen, ob und auf welchem Knoten das nach einem "put" etc. sich verändert
@@ -38,9 +37,9 @@ hdfs dfs -setrep -R 2 /user/hduser
 hdfs dfs -D dfs.blocksize=1048576 -put ~/BigData/data/airline_delay_causes.csv /user/hduser/testdir/BlockSize1MB.csv
 
 # Prüfen, über welchen Parameter man einstellen kann, ab wann auf einen toten DataNode reagiert wird. Ändern auf 60 Sekunden - siehe https://hadoop.apache.org/docs/r3.2.4/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml
-# Runterfahren des 2. Knotens und schauen, was nach 60 Sekunden mit den Replikas des Knotens passiert.
-# Wenn man nur 1 Knoten betreibt, funktioniert das auch, man muss nur den DataNode Prozess killen über z.B.
-kill $(jps | grep DataNode | cut -d' ' -f1)
+# Runterfahren des zugeteilten Prozesses des 2. Knotens und schauen, was nach 60 Sekunden mit den Replikas des Knotens passiert.
+# Da wir auf den weiteren Nodes ja alle gemeinsam arbeiten, muss man durch Übergabe der IP des Namenodes an das grep-Kommando die richtige Instanz finden
+kill $(jps -v | grep datanode<IP-Address> | cut -d' ' -f1)
 
 # Timeout equals to 2 * heartbeat.recheck.interval + 10 * heartbeat.interval. Default for heartbeat.interval is 3 seconds, default for recheck-intervall is 300
 #        <property>
@@ -51,7 +50,9 @@ kill $(jps | grep DataNode | cut -d' ' -f1)
 #                <name>dfs.namenode.stale.datanode.interval</name>
 #                <value>10</value>
 #        </property>
-# einen zuvor gekillten Datanode startet man danach am besten wieder direkt auf dem Datanode über:
+# einen zuvor gekillten Datanode startet man danach am besten wieder direkt auf dem Datanode über (optional auf namenode über "start-dfs.sh" mit Warnings):
+export SSH_CLIENT=<NameNode-IP-Address> # z.B. 10.77.16.124 (damit wir sicher unseren eigenen Datanode neu starten)
+source ~/datanode.env
 hdfs --daemon start datanode
 
 # "hdfs fsck" und "hdfs dfsadmin" Kommandos ausprobieren.
@@ -63,7 +64,6 @@ hdfs fsck  /user/hduser  -files -blocks -replicaDetails # hier sieht man, auf we
 hdfs dfs -put ~/BigData/data/airline_delay_causes.csv /user/hduser/data/
 
 ### put: Cannot create file/user/hduser/data/airline_delay_causes.csv._COPYING_. Name node is in safe mode. ###
-
 
 # optionale Zusatzaufgabe siehe Datei 02c_erasure_encoding.txt
 
