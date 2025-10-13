@@ -1,9 +1,5 @@
 ## Anleitung am besten aus dem Buch "Big data in der Praxis" oder z.B. von https://www.digitalocean.com/community/tutorials/how-to-install-hadoop-in-stand-alone-mode-on-ubuntu-20-04 oder https://tecadmin.net/how-to-install-apache-hadoop-on-ubuntu-22-04/ --
 
-# Damit jeder individuelle Screenshots erstellen muss, bitte unique hostnamen erstellen - wichtig ist, dass Hostname mit Buchstaben beginnt
-# Folgender Befehl nur in VM ausführen, in Wsl funktioniert dieser nicht
-#sudo hostnamectl set-hostname swd<MatrikelNr>
-
 ##Packages Installieren
 sudo -s
 apt-get update
@@ -221,9 +217,7 @@ cat >${HADOOP_CONF_DIR}/hdfs-site.xml <<EOF
 EOF
 
 ##Editieren Sie core-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
-# um idente files bei Clusterverwendung zu haben, besser anstelle von "localhost" einen Namen lt. /etc/hosts eintragen, z.B. "namenode"
-# Damit dort beim ssh-Connect der einmalige Prompt nicht zu Fehler "Host key verification failed" kommt, muss man ausführen:
-#ssh -p $SSH_PORT namenode
+# um idente files bei Clusterverwendung zu haben, wird hier anstelle von "localhost" einen Namen lt. /etc/hosts eingetragen, hier eben immer "namenode"
 
 	<property>
 		<name>fs.defaultFS</name>
@@ -289,13 +283,13 @@ hdfs namenode -format
 start-dfs.sh
 start-yarn.sh
 
-##oder über daemons (als hduser)
-hdfs --daemon   start namenode
-hdfs --daemon   start datanode
-hdfs --daemon   start secondarynamenode
-yarn --daemon   start resourcemanager
-yarn --daemon   start nodemanager
-mapred --daemon start historyserver
+##oder über daemons (als hduser). Eher nur dann zum Debugging zu machen, falls ein Prozess nicht startet
+#hdfs --daemon   start namenode
+#hdfs --daemon   start datanode
+#hdfs --daemon   start secondarynamenode
+#yarn --daemon   start resourcemanager
+#yarn --daemon   start nodemanager
+#mapred --daemon start historyserver
 
 ##Checken ob Prozesse gestartet wurden
 
@@ -322,13 +316,13 @@ firefox -new-tab http://<ip_of_VM>:8088/
 # Bei Problemen in die Logfiles der Prozesse schauen (unter /usr/local/hadoop/logs)
 
 ##Hadoop stoppen (als hduser)
-stop-dfs.sh
 stop-yarn.sh 
+stop-dfs.sh
 
 ##oder Hadoop daemons einzeln stoppen (als hduser)
-hdfs --daemon stop namenode
-hdfs --daemon stop datanode
-hdfs --daemon stop secondarynamenode
-yarn --daemon stop nodemanager
-yarn --daemon stop resourcemanager
-mapred --daemon stop historyserver
+#hdfs --daemon stop namenode
+#hdfs --daemon stop datanode
+#hdfs --daemon stop secondarynamenode
+#yarn --daemon stop nodemanager
+#yarn --daemon stop resourcemanager
+#mapred --daemon stop historyserver
