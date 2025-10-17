@@ -62,17 +62,10 @@ Match User hduser
    PasswordAuthentication yes
 EOF
 
-# prüfen, ob sshd läuft, andernfalls starten, je nach Plattform mit systemctl oder service command
-# entweder man belässt den Port 22 oder man setzt besser einen nicht-privilegierten Port > 1024
-# in /etc/ssh/sshd_config File (ich habe Port 10222 verwendet)
-#sed -i 's/#Port 22/Port 10222/' /etc/ssh/sshd_config
 systemctl reload ssh || systemctl start ssh || service ssh start # Frage: Was macht das || in diesem Call?
 # damit systemctl bei WSL funktioniert, muss "systemctl=true" in /etc/wsl.conf vorhanden sein - siehe auch 01b_prepare_wsl.txt
 
-# Wenn der gezeigte Port 22 ist, obwohl man einen anderen gesetzt hat (tritt z.B. bei Ubuntu 24-04 oder höher auf),
-# bitte Anleitung 01c_different_ssh_port.txt beachten!
-
-##Benutzer und Gruppe einrichten; als Passwort für hduser hduser verwenden
+##Benutzer und Gruppe einrichten; als Passwort für hduser hadoop verwenden
 groupadd hadoop
 useradd -g hadoop -s /bin/bash -m hduser
 echo "hduser:hadoop" | chpasswd # allows to change password by script
