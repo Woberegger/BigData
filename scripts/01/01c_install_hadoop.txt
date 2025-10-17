@@ -79,12 +79,7 @@ echo "hduser:hadoop" | chpasswd # allows to change password by script
 # add hduser to sudoers group
 adduser hduser sudo
 
-# da wir später einen Alias "namenode" verwenden über alle Clusterknoten, sollte man den bei wsl idealerweise
-# in c:\windows\system32\drivers\etc\hosts eintragen, da dies andernfalls beim Neustart von wsl wieder gelöscht wird
-# (optional den Parameter "generateHosts=false" in /etc/wsl.conf setzen - siehe Datei 01b_prepare_wsl.txt)
-# der Alias kann in derselben Zeile wie "127.0.0.1 localhost" mit <BLANK> oder <TAB> angehängt oder in eigener Zeile stehen.
-### TODO: auf zusätzlichen datanodes anstelle von 127.0.0.1 die IP des namenodes (des internen Netzwerks, also z.B. 172.20.99.254) verwenden ###
-echo "127.0.0.1 namenode" >>/etc/hosts
+echo "$(hostname -I | cut -d' ' -f1) namenode" >>/etc/hosts
 # die folgende 2 Zeilen wurden bereits beim Anlegen des images gemacht
 #echo "10.77.17.48 datanode1" >>/etc/hosts # this is the common one
 #echo "10.77.18.25 datanode2" >>/etc/hosts # this is the common one

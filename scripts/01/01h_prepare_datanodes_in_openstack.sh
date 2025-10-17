@@ -33,6 +33,8 @@ cd $HADOOP_HOME/etc
 cp -pR hadoop datanode${NameNodeIP}
 export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/datanode${NameNodeIP}
 
+sed -i "s/namenode\:/${NameNodeIP}\:/" ${HADOOP_CONF_DIR}/mapred-site.xml ${HADOOP_CONF_DIR}/core-site.xml ${HADOOP_CONF_DIR}/yarn-site.xml
+
 cat >${HADOOP_CONF_DIR}/hdfs-site.xml <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
