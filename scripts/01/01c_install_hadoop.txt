@@ -34,10 +34,10 @@ apt-get update # should find e.g. https://packages.adoptium.net/artifactory/deb 
 export JAVA_FLAVOR=temurin-11-jdk
 apt-get -y install $JAVA_FLAVOR
 
-# not compatible version with Hadoop 3.4.x
-# apt-get -y install openjdk-21-jdk
+# openjdk-21-jdk is not compatible version with Hadoop 3.4.x
 ##Symbolischen Link für Java erstellen
 ### besser ist folgendes, das alle nötigen Pfade umsetzt:
+# hier die Version 11 auswählen, falls mehr als 1 Version gefunden wird
 update-alternatives --config java
 update-alternatives --config javac
 # optional dazu...
