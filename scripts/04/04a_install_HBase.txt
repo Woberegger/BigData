@@ -22,7 +22,7 @@ source ~/.bashrc
 # Ändern der Dateien $HBASE_HOME/conf/hbase-env.sh und ${HBASE_HOME}/conf/regionservers
 # (am besten durch Ausgabeumleitung wie im Folgenden)
 cd $HBASE_HOME/conf
-export SSH_PORT=10222
+export SSH_PORT=22
 #in Datei $HBASE_HOME/conf/hbase-env.sh das JAVA_HOME korrekt setzen, z.B.:
 echo "export JAVA_HOME=/usr/lib/jvm/temurin-11-jdk-$(dpkg --print-architecture)" >>${HBASE_HOME}/conf/hbase-env.sh
 #im selben File auch den ssh-Port angeben, wenn dieser von 22 abweicht:
@@ -87,7 +87,7 @@ $HBASE_HOME/bin/start-hbase.sh
 #b) duplicate implementation von log4j:
 # Lösung: Datei $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar umbenennen auf log4j-slf4j-impl-2.17.2.jar.duplicate
 #c) Fehler mit ssh:
-# Lösung in hbase-env.sh: export HBASE_SSH_OPTS="-p 22 -l hduser" # bzw. Port 10222, wenn anderer Port für ssh verwendet wurde
+# Lösung in hbase-env.sh: export HBASE_SSH_OPTS="-p 22 -l hduser"
 #d) Fehler wie folgt:
 # HADOOP_ORG.APACHE.HADOOP.HBASE.UTIL.GETJAVAPROPERTY_USER: invalid variable name
 # Lösung: ersetze Datei $HADOOP_HOME/libexec/hadoop-functions.sh durch folgende Version https://github.com/Woberegger/BigData/blob/main/scripts/04/hadoop-functions.sh
