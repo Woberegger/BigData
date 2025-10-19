@@ -1,7 +1,7 @@
 # Installation von HBase, basierend auf vorheriger Installation von Hadoop
 sudo -s
 cd /usr/local
-export HBASE_VERSION=2.5.10
+export HBASE_VERSION=2.5.12
 wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz
 wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz.sha512
 shasum -a 512 hbase-${HBASE_VERSION}-bin.tar.gz; cat hbase-${HBASE_VERSION}-bin.tar.gz.sha512
@@ -33,6 +33,8 @@ echo "export HBASE_SSH_OPTS=\"-p $SSH_PORT -l hduser\"" >>${HBASE_HOME}/conf/hba
 
 # hier das eintragen, das man als Hostnamen mit "hdfs getconf -confKey fs.defaultFS | cut -d':' -f2 | cut -c3-" rausbekommt (sollte "namenode" sein)
 echo $(hdfs getconf -confKey fs.defaultFS | cut -d':' -f2 | cut -c3-) >${HBASE_HOME}/conf/regionservers
+# Kontrolle des Eintrags
+cat ${HBASE_HOME}/conf/regionservers
 
 #Sicherungskopie von hbase-site.xml anlegen und dann bearbeiten
 cp -p hbase-site.xml hbase-site.xml.orig
@@ -45,6 +47,8 @@ mkdir $HADOOP_HOME/zookeeper
 
 # Ändern der Datei $HBASE_HOME/conf/hbase-site.xml (existierende Einträge können gelöscht werden)
 
+cat >$HBASE_HOME/conf/hbase-site.xml <<EOF
+<configuration>
    <property>
      <name>hbase.tmp.dir</name>
      <value>./tmp</value>
@@ -70,6 +74,8 @@ mkdir $HADOOP_HOME/zookeeper
      <name>hbase.wal.provider</name>
   	  <value>filesystem</value>
    </property>
+</configuration>
+EOF
    
 #Testen von HBase
 #1.) Hadoop starten
