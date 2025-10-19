@@ -45,9 +45,9 @@ b) in hdfs-site.xml:
 	  <value>false</value>
 	</property>
 
-sudo apt install rpcbind
+sudo apt install -y rpcbind
 sudo systemctl start rpcbind # sudo /etc/init.d/rpcbind start # (in WSL)
-sudo apt install nfs-common
+sudo apt install -y nfs-common
 sudo /etc/init.d/nfs-common start #(nötig in WSL)
 su - hduser
    stop-dfs.sh
@@ -58,7 +58,7 @@ su - hduser
 sudo mkdir /mnt/hdfs
 sudo mount -t nfs -o vers=3,proto=tcp,nolock,noacl,sync localhost:/ /mnt/hdfs
 
-# dann sollte man Inhalte des HDFS im normalen Filesystem sehen
-ls -lsa /mnt/hdfs/user/hduser/testdir
+# dann sollte man Inhalte des HDFS im normalen Filesystem sehen (z.B. das Verzeichnis /input)
+ls -lsa /mnt/hdfs/input 
 
 
