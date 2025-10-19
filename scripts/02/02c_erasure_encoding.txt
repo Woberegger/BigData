@@ -4,22 +4,28 @@
 # das Script in $NF funktioniert nur, wenn jeder Datanode eine eigene IP-Adresse bekommt, daher besser random-Wert
 cat >$HADOOP_HOME/bin/rack-topology.sh <<! 
 #!/bin/bash
-# Adjust/Add the property "net.topology.script.file.name"
-# to core-site.xml with the "absolute" path to this
-# file. ENSURE the file is "executable".
-# Dynamically assign racks based on input (IP or hostname)
-# echo \$@ | xargs -n 1 | echo "/rack-"\$NF}'
-if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-   # Input is an IP address; use the last octet
-   last_octet=$(echo "$1" | awk -F. '{print $NF}')
-   rack=$((last_octet % 3 + 1))
-   echo "/rack-$rack"
-else
-   # Input is a hostname; hash it to assign a rack
-   rack=$(echo "$1" | cksum | awk '{print $1 % 3 + 1}')
-   echo "/rack-$rack"
+# topology.sh - reads from a mapping file
+MAPFILE=\$HADOOP_CONF_DIR/topology.txt
+
+if [ -f \$MAPFILE ]; then
+  while read host rack; do
+    if [[ "$host" == "$1" ]]; then
+      echo "$rack"
+      exit 0
+    fi
+  done < \$MAPFILE
 fi
+
+# default
+echo "/dflt-rack"
 !
+
+# scheinbar funktionieren hier nur IP-Adressen und keine Hostnamen. Also fügen wir eigene IP sowie die der beiden Datanodes ins Mappingfile ein
+MAPFILE=$HADOOP_CONF_DIR/topology.txt
+echo "$(hostname -I | cut -d' ' -f1) /rack0" >$MAPFILE
+echo "10.77.17.48 /rack1" >>$MAPFILE
+echo "10.77.18.25 /rack2" >>$MAPFILE
+
 chmod 755 $HADOOP_HOME/bin/rack-topology.sh
 
 # Einfügen folgender Zeilen in core-site.xml
@@ -27,16 +33,36 @@ chmod 755 $HADOOP_HOME/bin/rack-topology.sh
       <name>net.topology.script.file.name</name>
       <value>/usr/local/hadoop/bin/rack-topology.sh</value>
    </property>
-   
-# Kopieren von core-site.xml und rack-topology.sh auf alle Knoten und Restart von hdfs
-# Danach sollte es möglich sein, ein neues Verzeichnis anzulegen und dort die Policy zu ändern und zu überprüfen
-hdfs dfsadmin -printTopology
+# Danach hdfs neu starten
+stop-dfs.sh
+start-dfs.sh
 
-hdfs ec -listPolicies # welche Policies gibt es, wähle diejenige aus, die mit den wenigsten Datanodes auskommt
+hdfs dfsadmin -printTopology
+# erwarteter Output
+#Rack: /rack0
+#   10.77.16.124:9866 (namenode) In Service
+#
+#Rack: /rack1
+#   10.77.17.48:50100 (datanode1) In Service
+#
+#Rack: /rack2
+#   10.77.18.25:50100 (datanode2) In Service
+
+
+# Danach sollte es möglich sein, ein neues Verzeichnis anzulegen und dort die Policy zu ändern und zu überprüfen
+
+hdfs ec -listPolicies # welche Policies gibt es, wähle diejenige aus, die mit den wenigsten Datanodes auskommt (z.B. XOR-2-1-1024k)
 hdfs ec -enablePolicy -policy <PolicyName>
 
 hdfs dfs -mkdir /ErasureCoding
 hdfs ec -setPolicy -path /ErasureCoding -policy <PolicyName>
 
-# nachdem man eine grosse Datei reingestellt hat (1x in ein "normales" Verzeichnis und danach in ein ErasureCoding Verzeichnis, sollte man prüfen, wie die Größen anwachsen
-du -d1 /usr/local/hadoop/hadoopdata
+# nachdem man eine grosse Datei reingestellt hat (1x in ein "normales" Verzeichnis und danach in ein ErasureCoding Verzeichnis,
+# sollte man diese über die Webseite ansehen.
+# Man sieht Replikationsfaktor 1, aber dennoch jeden Block auf allen 3 Datanodes
+
+# Der Anwachs der Größe ist eher schwierig, da müsste man davor und danach folgendes Kommando ausführen - es sollte nur um 50% der Dateigröße gewachsen sein:
+du -d1 /mnt/node1data/
+
+# die folgende Warnung kann man ignorieren, es funktioniert trotzdem:
+# WARN erasurecode.ErasureCodeNative: Loading ISA-L failed: Failed to load libisal.so.2 (libisal.so.2: cannot open shared object file: No such file or directory)

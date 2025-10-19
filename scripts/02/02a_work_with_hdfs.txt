@@ -1,9 +1,15 @@
 # Die Aufgaben in diesem File sind mit 1 aktiven Datanode möglich, wobei man mehr mitkriegt, wie HDFS funktioniert,
 # wenn mehr als 1 (idealerweise 3) Datanodes angelegt wurden. Daher, falls genug Zeit vorhanden ist,
 # vorher mit einer der Anleitungen weitere Datanodes aktivieren
+### WICHTIG: alle Kommandos unter user "hduser" ausführen ###
+su - hduser
+# Wenn man weitere Datanodes ins "workers" File dazugehängt hat, dann kann man entweder stop-dfs.sh und start-dfs.sh ausführen
+# oder man macht das, was produktiv sinnvoller ist und hängt die Datenodes zur Laufzeit dazu
+hadoop-daemons.sh start datanode --hosts datanode1
+hadoop-daemons.sh start datanode --hosts datanode2
 
 # nach dem Installieren und Konfigurieren wollen wir evaluieren, wo und wie HDFS die Dateien ablegt
-su - hduser
+
 # eine gute Testdatei, die wir auch später für Mapreduce Beispiele verwenden, ist die folgende:
 # entweder wie folgt direkt aus dem Internet runterladen, bzw. besser aus dem GitRepo ~/BigData/data/airline_delay_causes.csv
 # cd /tmp && wget https://github.com/DistrictDataLabs/transportation-project-1/raw/master/airdelayhist/data/airline_delay_causes.csv
@@ -38,6 +44,7 @@ hdfs dfs -D dfs.blocksize=1048576 -put ~/BigData/data/airline_delay_causes.csv /
 
 # Prüfen, über welchen Parameter man einstellen kann, ab wann auf einen toten DataNode reagiert wird. Ändern auf 60 Sekunden - siehe https://hadoop.apache.org/docs/r3.2.4/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml
 # Runterfahren des zugeteilten Prozesses des 2. Knotens und schauen, was nach 60 Sekunden mit den Replikas des Knotens passiert.
+# Wann werden Replikas von einem Knoten auf den anderen übertragen, damit wir wieder die gewünschte Anzahl von 2 haben?
 # Da wir auf den weiteren Nodes ja alle gemeinsam arbeiten, muss man durch Übergabe der IP des Namenodes an das grep-Kommando die richtige Instanz finden
 kill $(jps -v | grep datanode<IP-Address> | cut -d' ' -f1)
 
@@ -65,6 +72,6 @@ hdfs dfs -put ~/BigData/data/airline_delay_causes.csv /user/hduser/data/
 
 ### put: Cannot create file/user/hduser/data/airline_delay_causes.csv._COPYING_. Name node is in safe mode. ###
 
-# optionale Zusatzaufgabe siehe Datei 02c_erasure_encoding.txt
+# optionale Zusatzaufgabe (für Zusatzpunkte) siehe Datei 02c_erasure_encoding.txt
 
 # optionale Zusatzaufgabe (für Zusatzpunkte) siehe Datei 02d_nfs_mount.txt
