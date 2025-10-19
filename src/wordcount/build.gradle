@@ -17,8 +17,8 @@ dependencies {
     // for Ant scp task to directly transfer the generated jar files into VM
     scpAntTask 'org.apache.ant:ant-jsch:1.10.0', 'com.jcraft:jsch:0.1.55'
     // we do not need to copy the libraries directly, but use those from Maven central repo
-    implementation 'org.apache.hadoop:hadoop-common:3.3.6'
-    implementation 'org.apache.hadoop:hadoop-mapreduce-client-core:3.3.6'
+    implementation 'org.apache.hadoop:hadoop-common:3.4.1'
+    implementation 'org.apache.hadoop:hadoop-mapreduce-client-core:3.4.1'
 
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
