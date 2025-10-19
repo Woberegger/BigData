@@ -71,10 +71,10 @@ tasks.register('deploy') {
     dependsOn 'build'
     doLast {
         ant.scp(
-                todir:"hduser:hadoop@localhost:/home/hduser",
+                todir:"hduser:hadoop@namenode:/home/hduser",
                 // better would be to generate key pair on host and transfer public key into VM
                 //keyfile:"${System.getProperty('user.home')}/.ssh/id_rsa",
-                port:10222,
+                port:22,
                 // the "trust" has to be set, otherwise "known_hosts" needs to be adapted
                 trust:"true",
                 verbose: true
