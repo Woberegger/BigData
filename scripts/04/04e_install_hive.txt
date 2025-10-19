@@ -5,10 +5,10 @@ sudo -s
 update-ca-certificates -f
 # Attention: Take care, that your hadoop version is compatible to the hive version - see https://hive.apache.org/general/downloads/
 #            Unfortunately this is wrong, better use latest version 4.x, Hive 3.1.3 does not seem to work with our Hadoop version
-#            The version below (4.0.1) was tested and works with Hadoop 3.3.6
+#            The version 4.0.1 was tested and works with Hadoop 3.3.6, version 4.1.0 should work with hadoop 3.4.1
 
 cd /usr/local
-export HIVE_VERSION=4.0.1
+export HIVE_VERSION=4.1.0
 wget --no-check-certificate https://dlcdn.apache.org/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz
 
 tar -xzf apache-hive-${HIVE_VERSION}-bin.tar.gz
