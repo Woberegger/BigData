@@ -220,6 +220,10 @@ cat >${HADOOP_CONF_DIR}/core-site.xml <<EOF
 EOF
    
 ##Editieren Sie mapred-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
+cat >${HADOOP_CONF_DIR}/mapred-site.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
 	<property>
 		<name>yarn.nodemanager.aux-services</name>
 		<value>mapreduce_shuffle</value>
@@ -236,9 +240,14 @@ EOF
 		<name>yarn.nodemanager.delete.debug-delay-sec</name>
 		<value>600</value>
 	</property>
+</configuration>
+EOF
 
 ##Editieren Sie yarn-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
-
+cat >${HADOOP_CONF_DIR}/yarn-site.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
 	<property>
 		<name>yarn.nodemanager.aux-services</name>
 		<value>mapreduce_shuffle</value>
@@ -259,6 +268,8 @@ EOF
 		<name>yarn.nodemanager.vmem-check-enabled</name>
 		<value>false</value>
 	</property>
+</configuration>
+EOF
 
 ##Erstellen Sie die für Hadoop benötigten Verzeichnisse (als User hduser)
 

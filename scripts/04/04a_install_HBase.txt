@@ -106,6 +106,12 @@ $HBASE_HOME/bin/start-hbase.sh
 # hbase-daemons.sh --config $HBASE_HOME/conf start zookeeper
 # danach die Ausgaben in $HBASE_HOME/logs betrachten, ob hier Fehler zu sehen sind
 
+jps | sort -k2
+# sollte die folgenden zusätzlichen Prozesse finden:
+#6511 HMaster
+#6413 HQuorumPeer
+#6623 HRegionServer
+
 #3.) Prüfen ob HBase Ordner in HDFS angelegt wurden
 hdfs dfs -ls /hbase
 
@@ -119,8 +125,8 @@ hdfs dfs -mkdir /hbase
 hdfs dfsadmin -safemode leave
  
 #4.) check status in web browserstatus
-"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://localhost:16010/master-status
-firefox -new-tab http://localhost:16010/master-status
+"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://<namenodeIP>:16010/master-status
+firefox -new-tab http://<namenodeIP>:16010/master-status
 
 #5.) HBase Shell öffnen und einfache Tabellen mit Daten anlegen
 hbase shell
@@ -151,7 +157,7 @@ Optionen:
 #b) Wenn man mehrere Regionserver ausprobieren will, muss man auf allen hbase installieren und folgende Datei um die anderen Server erweitern (und hbase services neu starten)
 $HBASE_HOME/conf/regionservers
 
-# Dazu muss man jedoch hbase auf allen Nodes installieren und dort folgendes ausführen
+# und auf den jeweiligen Knoten dann folgendes ausführen
 $HBASE_HOME/bin/hbase-daemon.sh --config $HBASE_HOME/conf start regionserver
 
 #c) Hbase analog zu HDFS in Autostart reinhängen und ebenso stoppen beim Runterfahren der VM (systemctl Script unter /etc/systemd/system anlegen)
