@@ -2,20 +2,18 @@
 
 ##Packages Installieren
 sudo -s
-apt-get update
-apt-get -y install ssh
-apt-get -y install pdsh
-apt-get -y install openssh-server
+apt update
+apt -y install pdsh
 # tools, which make sense
-apt-get -y install inetutils-telnet
-apt-get -y install nmap
-apt-get -y install curl
-apt-get -y install wget
-apt-get -y install vim
-apt-get -y install vim-gtk3 # necessary on Debian image, where vim is built without clipboard support ("vim --version | grep clipboard")
-apt-get -y install net-tools
-apt-get -y install git
-apt-get -y install gpg # needed for apt keys to add 
+apt -y install inetutils-telnet
+apt -y install nmap
+apt -y install curl
+apt -y install wget
+apt -y install vim
+apt -y install vim-gtk3 # necessary on Debian image, where vim is built without clipboard support ("vim --version | grep clipboard")
+apt -y install net-tools
+apt -y install git
+apt -y install gpg # needed for apt keys to add 
 
 # important: in order that paste with mouse in vim works on Debian (for all users), you have to call the following - optionally change user's .vimrc
 echo "set clipboard=unnamedplus" >>/etc/vim/vimrc.local # allow mouse-paste
@@ -30,9 +28,9 @@ mkdir -m 0755 -p /etc/apt/keyrings/
 wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public > /etc/apt/keyrings/adoption.gpg
 echo "deb [signed-by=/etc/apt/keyrings/adoption.gpg] https://packages.adoptium.net/artifactory/deb trixie main" >/etc/apt/sources.list.d/adoptium.list
 
-apt-get update # should find e.g. https://packages.adoptium.net/artifactory/deb package
+apt update # should find e.g. https://packages.adoptium.net/artifactory/deb package
 export JAVA_FLAVOR=temurin-11-jdk
-apt-get -y install $JAVA_FLAVOR
+apt -y install $JAVA_FLAVOR
 
 # openjdk-21-jdk is not compatible version with Hadoop 3.4.x
 ##Symbolischen Link für Java erstellen
@@ -206,7 +204,10 @@ EOF
 
 ##Editieren Sie core-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
 # um idente files bei Clusterverwendung zu haben, wird hier anstelle von "localhost" einen Namen lt. /etc/hosts eingetragen, hier eben immer "namenode"
-
+cat >${HADOOP_CONF_DIR}/core-site.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
 	<property>
 		<name>fs.defaultFS</name>
 		<value>hdfs://namenode:9000</value>
@@ -215,6 +216,8 @@ EOF
 		<name>hadoop.tmp.dir</name>
 		<value>/usr/local/hadoop/hadoopdata/hdfs/tmp</value>
 	</property>
+</configuration>
+EOF
    
 ##Editieren Sie mapred-site.xml in /usr/local/hadoop/etc/hadoop und fügen Sie zwischen den Tags <configuration> folgende Properties ein
 	<property>

@@ -48,6 +48,8 @@ mkdir $HADOOP_HOME/zookeeper
 # Ändern der Datei $HBASE_HOME/conf/hbase-site.xml (existierende Einträge können gelöscht werden)
 
 cat >$HBASE_HOME/conf/hbase-site.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <configuration>
    <property>
      <name>hbase.tmp.dir</name>
