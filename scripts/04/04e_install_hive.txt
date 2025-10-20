@@ -5,10 +5,10 @@ sudo -s
 update-ca-certificates -f
 # Attention: Take care, that your hadoop version is compatible to the hive version - see https://hive.apache.org/general/downloads/
 #            Unfortunately this is wrong, better use latest version 4.x, Hive 3.1.3 does not seem to work with our Hadoop version
-#            The version 4.0.1 was tested and works with Hadoop 3.3.6, version 4.1.0 should work with hadoop 3.4.1
+#            The version 4.0.1 was tested and works with Hadoop 3.3.6, version 4.0.1 and 4.1.0 should work with hadoop 3.4.1
 
 cd /usr/local
-export HIVE_VERSION=4.1.0
+export HIVE_VERSION=4.0.1 # we better do not use 4.1.0, as this was compiled with Java17, so we would need an additional Java version for that, which differs to HDFS's java
 wget --no-check-certificate https://dlcdn.apache.org/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz
 
 tar -xzf apache-hive-${HIVE_VERSION}-bin.tar.gz
@@ -107,7 +107,7 @@ hive
 
 # bei folgendem Fehler passen die Versionen von hadoop und hive nicht zusammen, obwohl das auf der Downloadseite anders beschrieben ist:
 # java.lang.NoSuchMethodError - siehe Fix unter https://issues.apache.org/jira/browse/HIVE-22915
-mv $HIVE_HOME/lib/guava-19.0.jar /tmp
+mv $HIVE_HOME/lib/guava-22.0.jar /tmp
 ln -s $HADOOP_HOME/share/hadoop/hdfs/lib/guava-27.0-jre.jar $HIVE_HOME/lib/
 
 # die Warnings für log4j sollte man auch loswerden, indem man Folgendes verschiebt:
@@ -146,11 +146,10 @@ cd /usr/local/hive/bin
 hive --service hiveserver2 &
 
 # nach dem Starten des Hive-Servers, sollte der Status auch in folgender Web-GUI sichtbar sein (viel sieht man darin jedoch nicht)
-"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://localhost:10002
-#firefox -new-tab http://localhost:10002
+"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://<nameNodeIP>:10002http://<nameNodeIP>:10002
+#firefox -new-tab http://<nameNodeIP>:10002
 
-# Abhängig davon, ob man Hiveserver oder HiveEmbedded verwendet, ist unterschiedlicher connect-String zu verwenden (bei Embedded Mode ist die Variable leer)
-export HIVE_CONNECT_STRING=localhost:10000
+# !!! die folgenden Dinge besser in neuer Session eingeben, da sonst eventuelle Ausgaben von Hiveserver im Hintergrund verwirren !!!
 
 beeline --verbose
 !connect jdbc:hive2://localhost:10000 scott tiger
@@ -158,40 +157,6 @@ beeline --verbose
 # dann muss der Eintrag "hive.server2.enable.doAs" in hive-site.xml auf "false" gesetzt sein.
 
 # Wenn obiges Prompt o.k. aussieht und nicht "closed" meldet, dann schaut Installation gut aus und man kann mal testweise Objekte anlegen 
-beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger <<!
-   set hive.execution.engine=mr;
-   set hive.metastore.warehouse.dir;
-   show databases;
-   use default;
-   --
-CREATE TABLE IF NOT EXISTS default.employee (
-id int,
-name string,
-age int,
-gender string )
-COMMENT 'Employee Table'
-ROW FORMAT DELIMITED
-FIELDS TERMINATED BY ',';
- 
-CREATE TABLE IF NOT EXISTS addresses (
-cust_id STRING,
-first_name STRING,
-last_name STRING,
-company_name STRING,
-address STRING,
-city STRING,
-county STRING,
-state STRING,
-zip STRING,
-phone1 STRING,
-phone2 STRING,
-email STRING,
-web STRING )
-COMMENT 'Adresses'
-ROW FORMAT DELIMITED
-FIELDS TERMINATED BY ','
-STORED AS TEXTFILE
-LOCATION '/tmp/addresses';
---
-   show tables;
-!
+# mit "<Ctrl>c" verlässt man die beeline shell
+
+# über Script 04f_hive_commands.txt
