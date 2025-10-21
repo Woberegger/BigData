@@ -240,6 +240,11 @@ cat >${HADOOP_CONF_DIR}/mapred-site.xml <<EOF
 		<name>yarn.nodemanager.delete.debug-delay-sec</name>
 		<value>600</value>
 	</property>
+   <!-- IMPORTANT: set this parameter to use Yarn and not local mode for computation -->
+   <property>
+      <name>mapred.framework.name</name>
+      <value>yarn</value>
+   </property>
 </configuration>
 EOF
 
@@ -268,6 +273,11 @@ cat >${HADOOP_CONF_DIR}/yarn-site.xml <<EOF
 		<name>yarn.nodemanager.vmem-check-enabled</name>
 		<value>false</value>
 	</property>
+   <!-- IMPORTANT: set this parameter to use Yarn and not local mode for computation -->
+   <property>
+      <name>yarn.resourcemanager.hostname</name>
+      <value>namenode</value>
+   </property>
 </configuration>
 EOF
 
