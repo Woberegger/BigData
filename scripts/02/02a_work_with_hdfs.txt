@@ -21,13 +21,14 @@ z.B.:hdfs dfs -ls # die letzten Kommandos mit '-' Prefix ähneln Linux OS-Komman
 
 # reingehängt haben wir das HDFS-Filesystem an folgendem Mountpoint
 # mit folgendem Kommando zwischendurch prüfen, ob und auf welchem Knoten das nach einem "put" etc. sich verändert
+# WICHTIG: eventuell ist das ein Link, dann muss man auf das tatsächliche Verzeichnis schauen
 du -d0 /usr/local/hadoop/hadoopdata
 
 hdfs dfs -mkdir -p /user/hduser/testdir
 hdfs dfs -ls -R /user/hduser/testdir # -R listet rekursiv
 hdfs dfs -put -l ~/BigData/data/airline_delay_causes.csv /user/hduser/testdir/ # -l ... overruled die replications und speichert nur 1 Instanz
 
-# versuchen, Trashbin zu aktivieren (prüfen, über welche Option) und dann verifizieren, ob die Datei wirklich dort landet
+# versuchen, Trashbin zu aktivieren (prüfen, über welche Option) und dann verifizieren, ob die Datei wirklich dort landet.
 hdfs dfs -put ~/BigData/data/airline_delay_causes.csv /user/hduser/testdir/copy_to_delete.csv
 hdfs dfs -rm -r /user/hduser/testdir/copy_to_delete.csv
 hdfs dfs -rm -r -skipTrash /user/hduser/testdir/airline_delay_causes.csv
@@ -36,6 +37,7 @@ hdfs dfs -ls -R /user/hduser/.Trash/
 # schauen, was passiert - werden auch die Replikas behalten im Trashbin?
 
 # Herauf- und Heruntersetzen der Replikaanzahl "-setrep" call - was passiert? Prüfen über web GUI.
+# Prüfen mit ganzen Verzeichnissen oder einzelnen Dateien
 hdfs dfs -setrep -R 3 /user/hduser
 hdfs dfs -setrep -R 2 /user/hduser
 
@@ -68,7 +70,7 @@ hdfs fsck  /user/hduser  -files -blocks -replicaDetails # hier sieht man, auf we
 # Sinn von Snapshots erheben und ausprobieren - was dauert lange und belegt Platz, das Anlegen oder erst das Ändern einer Datei?
 
 # Zusatzaufgabe: Was könnte folgende Fehlermeldung bedeuten - wann tritt sie auf, was kann man unternehmen?
-hdfs dfs -put ~/BigData/data/airline_delay_causes.csv /user/hduser/data/
+hdfs dfs -put ~/BigData/data/airline_delay_causes.csv /user/hduser/testdir/copy2.csv
 
 ### put: Cannot create file/user/hduser/data/airline_delay_causes.csv._COPYING_. Name node is in safe mode. ###
 
