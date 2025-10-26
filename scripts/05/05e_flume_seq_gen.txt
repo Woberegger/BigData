@@ -37,10 +37,16 @@ SeqGenAgent.sinks.HDFS.channel = MemChannel
 hdfs dfs -rm /user/hduser/sink/*
 cd $FLUME_HOME
 # Die Parameter können in kurzer oder langer Form stehen, also z.B. -c oder --conf
+
+### Das folgende Kommando würde endlos laufen, einfach nach einigen Sekunden mit <Ctrl>c abbrechen
 ./bin/flume-ng agent --conf conf/ -f conf/seq_gen.conf -n SeqGenAgent -Dflume.root.logger=INFO,console
+
 
 # Dateien anzeigen 
 hdfs dfs -ls -R /user/hduser/sink
 
 # Inhalte der Dateien (am besten im Webbrowser oder wie folgt):
 hdfs dfs -cat /user/hduser/sink/<FileName>
+
+# wenn alles passt, anschließend die Dateien wieder löschen...
+hdfs dfs -rm /user/hduser/sink/log*
