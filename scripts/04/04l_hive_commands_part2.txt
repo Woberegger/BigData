@@ -7,7 +7,7 @@ export HIVE_CONNECT_STRING=localhost:10000
 # Kommentare in beeline starten mit '--'
 
 # testweise Tabellen anlegen
-beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tigerexit
+beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger
    set hive.execution.engine=mr;
    set hive.metastore.warehouse.dir;
    show databases;
