@@ -1,12 +1,12 @@
 #siehe Beispielkonfiguration unter https://www.syslog-ng.com/community/b/blog/posts/kafka-destination-improved-with-template-support-in-syslog-ng
 sudo -s
-apt install syslog-ng
+apt install -y syslog-ng
 # die folgende C++ Library ist nötig für die Integration von Kafka
-apt install librdkafka-dev
+apt install -y librdkafka-dev
 
 cp -p /etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf.backup
 
-# über Editor folgenden Abschnitt erweitern
+# über Editor folgenden Abschnitt "s_src" erweitern um die 2 letzten Zeilen
 vim /etc/syslog-ng/syslog-ng.conf
 
 source s_src {
@@ -23,7 +23,7 @@ destination d_kafka {
                    queue.buffering.max.ms("1000"))
         topic("syslogcollect")
         bootstrap-servers("localhost:9092")
-        message("$(format-json --scope rfc5424 --scope nv-pairs)"));
+        message("\$(format-json --scope rfc5424 --scope nv-pairs)"));
 };
 
 log {
@@ -37,7 +37,9 @@ systemctl start syslog-ng
 # Bei Problemen, wenn das Service nicht started, wie folgt im Vordergrund aufrufen zur Ausgabe der Fehler
 # syslog-ng -F
 
-# Das Topic wurde bereits beim Call von syslog-Daemon angelegt, daher ist folgendes nachträglich nicht nötig
+su - hduser
+unset CLASSPATH
+# Das Topic wurde bereits beim Call von syslog-Daemon über Datei /etc/syslog-ng/conf.d/kafka.conf angelegt, daher ist folgendes nachträglich nicht nötig
 #$KAFKA_HOME/bin/kafka-topics.sh --create --topic syslogcollect --bootstrap-server localhost:9092  
 
 # und dann versuchen wir, die Syslog-Events abzuholen und in Datei zu schreiben
