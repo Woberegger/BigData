@@ -74,7 +74,7 @@ cp ~/BigData/external_libs/mysql-connector-j-8.1.0.jar $HIVE_HOME/lib/
 mv $HIVE_HOME/conf/metastore_db  $HIVE_HOME/conf/metastore_db.derby
 cd $HIVE_HOME/bin && ./schematool -initSchema -dbType mysql -userName hive -passWord hivepassword -verbose
 
-# nachdem alle Changes gemacht wurden, Hive-Server neu starten
+# nachdem alle Changes gemacht wurden, Hive-Server neu starten (dfs und yarn müssen laufen)
 hive --service hiveserver2 --hiveconf hive.server2.thrift.port=10000 &
 # wenn alles gutgegangen ist, muss folgendes ein "listen" anzeigen
 netstat -an | grep 10000

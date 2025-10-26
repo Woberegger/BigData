@@ -9,7 +9,8 @@ update-ca-certificates -f
 
 cd /usr/local
 export HIVE_VERSION=4.0.1 # we better do not use 4.1.0, as this was compiled with Java17, so we would need an additional Java version for that, which differs to HDFS's java
-wget --no-check-certificate https://dlcdn.apache.org/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz
+# if the certificate is not accepted (although we have called the updata-ca-certificates), then add parameter: --no-check-certificate
+wget https://dlcdn.apache.org/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz
 
 tar -xzf apache-hive-${HIVE_VERSION}-bin.tar.gz
 ln -s /usr/local/apache-hive-${HIVE_VERSION}-bin /usr/local/hive
@@ -25,8 +26,8 @@ cat >>~/.bashrc <<!
 export HIVE_HOME=/usr/local/hive
 export HCAT_HOME=\$HIVE_HOME/hcatalog
 export PATH=\$PATH:\$HIVE_HOME/bin
-# !!! optional, wenn java.long.OutOfMemoryError bei einzelnen Abfragen passiert, dann wäre folgendes zu setzen !!!
-#export HADOOP_HEAPSIZE=2048
+# um Fehler "java.long.OutOfMemoryError" vorzubeugen, das ist nämlich dann schwer zu finden, wo das passiert
+export HADOOP_HEAPSIZE=2048
 !
 
 # damit Änderungen aktiv werden
@@ -77,7 +78,7 @@ cp hive-default.xml.template hive-site.xml
 # Der Wert sollte dann am besten nach dem Aufruf von "./schematool -initSchema -dbType derby" auf "create=false" gesetzt werden
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:derby:;databaseName=/usr/local/hive/conf/metastore_db;create=true</value>
+    <value>jdbc:mysql:;databaseName=/usr/local/hive/conf/metastore_db;create=true</value>
     <description>
       JDBC connect string for a JDBC metastore.
       To use SSL to encrypt/authenticate the connection, provide database-specific SSL flag in the connection URL.
@@ -107,11 +108,11 @@ hive
 
 # bei folgendem Fehler passen die Versionen von hadoop und hive nicht zusammen, obwohl das auf der Downloadseite anders beschrieben ist:
 # java.lang.NoSuchMethodError - siehe Fix unter https://issues.apache.org/jira/browse/HIVE-22915
-mv $HIVE_HOME/lib/guava-22.0.jar /tmp
+mv $HIVE_HOME/lib/guava-22.0.jar $HIVE_HOME/lib/guava-22.0.jar.wrong_version
 ln -s $HADOOP_HOME/share/hadoop/hdfs/lib/guava-27.0-jre.jar $HIVE_HOME/lib/
 
 # die Warnings für log4j sollte man auch loswerden, indem man Folgendes verschiebt:
-mv $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar /tmp
+mv $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar.wrong_version
 
 # Wenn es Fehler gibt, dann das hive-site.xml File nochmal prüfen, im default File gibt es bei gewissen Versionen folgenden Fehler, der händisch zu beheben ist (Sonderzeichen in Kommentar bei property hive.txn.xlock.iow)
 #Caused by: com.ctc.wstx.exc.WstxParsingException: Illegal character entity: expansion character (code 0x8
@@ -120,11 +121,11 @@ mv $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar /tmp
 # Manchmal gehen erste Befehle gut und dann gibt es auf einmal Fehler in beeline.
 # Fix siehe https://issues.apache.org/jira/browse/HIVE-21302 - dazu folgende 2 Einträge in hive-site.xml ändern:
 
-<property>
-   <name>datanucleus.schema.autoCreateAll</name>
-  	<value>true</value>
-   <description>creates necessary schema on a startup if one doesnt exist.</description>
-</property>
+#<property>
+#   <name>datanucleus.schema.autoCreateAll</name>
+#  	<value>true</value>
+#   <description>creates necessary schema on a startup if one doesnt exist.</description>
+#</property>
 <property>
    <name>hive.metastore.schema.verification</name>
    <value>false</value>

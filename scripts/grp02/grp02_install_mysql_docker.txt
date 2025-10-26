@@ -1,7 +1,8 @@
 # das folgende ist zu tun, wenn man einen docker Container mit der gewählten Datenbank installieren möchte
 # siehe https://hub.docker.com/_/mysql
 sudo -s
-snap install docker
+apt install docker.io
+# eventuell ist es nötig, hier ein Reboot auszuführen, falls ein entsprechendes Menü aufpoppt.
 docker pull mysql
 export DOCKER_CONTAINERNAME=swdMysql
 export NETWORK=my-docker-network
@@ -9,14 +10,16 @@ docker network create --driver=bridge --subnet=10.0.4.0/24 --ip-range=10.0.4.0/2
 # mySQL JDBC port 3306 auf 13306 forwarden.
 docker run --name ${DOCKER_CONTAINERNAME} --network $NETWORK -p 13306:3306 -e MYSQL_ROOT_PASSWORD=my-secret-pw -e MYSQL_DATABASE=swd -e MYSQL_USER=scott -e MYSQL_PASSWORD=tiger -d mysql:latest
 #docker run --name ${DOCKER_CONTAINERNAME} -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql:latest
+# prüfen, ob alles gut gegangen ist...
+docker logs swdMysql
 docker run -it --rm mysql mysql -hswd -uexample-user -p
 docker exec -it -u mysql ${DOCKER_CONTAINERNAME} /bin/bash
-# und im Container dann folgendes eingeben:
+# und im Container dann folgendes eingeben (als Passwort "my-secret-pw" verwenden)
 mysql -u root -p <<!
 CREATE DATABASE swd;
 use swd;
 show tables;
--- wenn Tabelle schon vorher angelegt wurde, kann man direkt insertieren, andernfalls Tabelle lt. anderem SCript anlegen
+-- wenn Tabelle schon vorher angelegt wurde, kann man direkt insertieren, andernfalls Tabelle lt. anderem Script anlegen
 INSERT INTO studentsMySQL  VALUES (-1, 'John', 'Doe', '20221001', 'SWD');
 INSERT INTO studentsMySQL  VALUES (-2, 'Mary','Clark', '20221001', 'SWD');
 INSERT INTO studentsMySQL  VALUES (-3, 'Ann', 'Others', '20221001', 'ITM');
@@ -25,8 +28,9 @@ SELECT * FROM studentsMySQL;
 !
 
 su - hduser
-# Wichtig: port forward für mysql docker container auf 13306, da andernfalls Konflikt mit native installiertem MySQL
-export MYSQL_PORT=13306
+# Wichtig: port forward für mysql docker container auf 13306, da andernfalls Konflikt mit eventuell native installiertem MySQL
+export MYSQL_PORT=13306 >>~/.bashrc
+source .bashrc
 
 # sonstige Einstellungen, damit sqoop import funktioniert, siehe Anleitung für mssql:
 sqoop-list-databases --connect jdbc:mysql://localhost:${MYSQL_PORT}/swd  --username 'root' --password 'my-secret-pw'

@@ -1,6 +1,8 @@
 # Start hdfs und yarn, sollten diese nicht schon laufen...
 start-dfs.sh
 start-yarn.sh
+# ebenso hiveServer (der läuft im Hintergrund, Eingaben daher besser in anderer Session die Hive-Commandos eingeben
+hive --service hiveserver2 --hiveconf hive.server2.thrift.port=10000 &
 
 # Verzeichnisse für externe Hive-Daten in HDFS bereitstellen
 hdfs dfs -mkdir -p /user/hduser/hive_external/adr
@@ -9,48 +11,29 @@ hdfs dfs -put ~/BigData/data/adr_data.csv /user/hduser/hive_external/adr/
 hdfs dfs -put ~/BigData/data/sales_data.csv /user/hduser/hive_external/sales/
 hdfs dfs -put ~/BigData/data/Bibel.txt /tmp
 
-
+### in weiterer Session die Kommandos eingeben ###
 # Abhängig davon, ob man Hiveserver oder HiveEmbedded verwendet, ist unterschiedlicher connect-String zu verwenden (bei Embedded Mode ist die Variable leer)
 export HIVE_CONNECT_STRING=localhost:10000
 
+# Hive Session beenden durch <Ctrl>c.
+
 # testweise Tabellen anlegen
-beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger <<!
+beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tigerexit
    set hive.execution.engine=mr;
    set hive.metastore.warehouse.dir;
    show databases;
    use default;
    --
 CREATE TABLE IF NOT EXISTS default.employee (
-id int,
-name string,
-age int,
-gender string )
-COMMENT 'Employee Table'
-ROW FORMAT DELIMITED
-FIELDS TERMINATED BY ',';
- 
-CREATE TABLE IF NOT EXISTS addresses (
-cust_id STRING,
-first_name STRING,
-last_name STRING,
-company_name STRING,
-address STRING,
-city STRING,
-county STRING,
-state STRING,
-zip STRING,
-phone1 STRING,
-phone2 STRING,
-email STRING,
-web STRING )
-COMMENT 'Adresses'
-ROW FORMAT DELIMITED
-FIELDS TERMINATED BY ','
-STORED AS TEXTFILE
-LOCATION '/tmp/addresses';
+   id int,
+   name string,
+   age int,
+   gender string )
+   COMMENT 'Employee Table'
+   ROW FORMAT DELIMITED
+   FIELDS TERMINATED BY ',';
 --
    show tables;
-!
 
 # --- HIVE Import & Join ---
 # man sieht auch schön, dass im Hintergrund MapReduce Jobs laufen, da wir "set hive.execution.engine=mr" setzen.
