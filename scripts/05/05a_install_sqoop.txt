@@ -7,22 +7,6 @@ ln -s sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0 sqoop
 chown -R hduser:hadoop sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0
 
 su - hduser
-
-# wichtig: damit Sqoop- und Flume-import funktionieren und nicht deren eigene hive-Instanz anlegen, muss man folgendes in hive-site.xml ändern auf absoluten Pfad, wo die metastore_db liegt.
-# andernfalls müsste man darauf achten, dass die sqoop-import Kommandos im richtigen Pfad ausgeführt werden, wo sich das "metastore_db" Verzeichnis befindet
-# also wie folgt
-# (sollte üblicherweise ohnehin schon beim hive-install so gemacht worden sein)
-cd $HIVE_HOME && find . -name metastore_db
-
-  <property>
-    <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:derby:;databaseName=/usr/local/hive/conf/metastore_db;create=false</value>
-    <description>
-      JDBC connect string for a JDBC metastore.
-      To use SSL to encrypt/authenticate the connection, provide database-specific SSL flag in the connection URL.
-      For example, jdbc:postgresql://myhost/db?ssl=true for postgres database.
-    </description>
-  </property>
   
 cat >> ~/.bashrc <<!
 export SQOOP_HOME=/usr/local/sqoop

@@ -1,28 +1,5 @@
-# und damit man mit Sqoop auf Datenbanken zugreifen kann, braucht man z.B. einen entspr. JDBC Connector
-# fuer mySQL
+# und damit man mit Sqoop auf Datenbanken zugreifen kann, braucht man z.B. einen entspr. JDBC Connector fuer mySQL
 # VORSICHT: MySQL-Objekte sind per default case-sensitive, d.h. studentsMySQL != studentsmysql
-
-su - hduser
-cd $SQOOP_HOME
-# fuer ubuntu könnte man auch ein Debian-Package verwenden, aber wir bleiben bei den generischen tar-Files:
-# alternativ download unter http://www.mysql.com/downloads/connector/j/5.1.html
-
-MYSQLCON_VERSION=8.0.29
-wget http://ftp.ntu.edu.tw/MySQL/Downloads/Connector-J/mysql-connector-java-${MYSQLCON_VERSION}.tar.gz
-# wir müssen nur das jar-File verwenden und ins lib-Directory kopieren
-tar -xzf mysql-connector-java-${MYSQLCON_VERSION}.tar.gz
-cp -p mysql-connector-java-${MYSQLCON_VERSION}/mysql-connector-java-${MYSQLCON_VERSION}.jar lib/
-
-# und dann halt mySQL selber (entweder direkt oder als docker container) - als root-user (z.B. in anderer shell)
-# oder man verwendet Anleitung ../grp02_install_mysql_docker.txt für mySQL als Docker-container
-# und kann dann die Zeilen bis #End-MySQLNative überspringen
-sudo apt install mysql-server
-sudo systemctl start mysql.service
-
-sudo mysql <<!
-   ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'my-secret-pw';
-!
-#End-MySQLNative
 
 su - hduser
 # Wichtig der MySQL user braucht ein Verzeichnis im hdfs, anderenfalls gibt es exception "java.io.IOException: java.lang.ClassNotFoundException: students"
@@ -30,9 +7,20 @@ export MYSQL_USER=root
 hdfs dfs -mkdir /user/${MYSQL_USER}
 hdfs dfs -chmod 777 /user/${MYSQL_USER}
 
+sudo -s
+export DOCKER_CONTAINERNAME=swdMysql
 export DATABASE_NAME=swd
-# relogin mit dem gesetzten Passwort:
-mysql -u $MYSQL_USER -p <<!
+
+# prüfen, ob der Container "swdMysql" läuft, andernfalls mit "docker start swdMysql" starten
+docker ps
+
+# testweise mal mit dem docker container verbinden, den wir in Übung 4 für Metadatastore erstellt haben
+docker exec -it -u mysql ${DOCKER_CONTAINERNAME} /bin/bash
+
+# und mit "-i --tty=false" kann man dem Docker-Container ein Here-Dokument übergeben, da nicht interaktiv
+docker exec -i --tty=false -u mysql ${DOCKER_CONTAINERNAME} /bin/bash <<EOF
+# im Container wird dann folgender Block ausgeführt (als Passwort "my-secret-pw")
+mysql -u root -pmy-secret-pw <<!
 
 CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;
 show databases;
@@ -47,12 +35,11 @@ CREATE TABLE IF NOT EXISTS studentsMySQL (
 );
 show tables;
 !
-# Falls es hier Fehler gibt, dass der User "hduser" keinen Zugriff auf Socket hat, kann es nötig sein,
-# den user in die Gruppe "mysql hinzufügen mit folgendem Befehl als "root" user
-#usermod -a -G mysql hduser
+EOF
 
 # jetzt legen wir eine idente Tabelle in Hive an
 # wenn Hive-Server (hive --service hiveserver2 &) verwendet wird, dann muss der Connectstring so gesetzt sein, andernfalls leer
+su - hduser
 export HIVE_CONNECT_STRING=localhost:10000
 beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    set hive.execution.engine=mr;
@@ -98,11 +85,13 @@ export DATABASE_NAME=swd
 export MYSQL_PORT=13306
 export MYSQL_USER=root
 export MYSQL_PASSWD=my-secret-pw
+export DOCKER_CONTAINERNAME=swdMysql
 
 # liste auf, ob unsere Datenbank und unsere Tabelle "studentsMySQL" gefunden werden
 sqoop-list-databases --connect jdbc:mysql://localhost:${MYSQL_PORT}  --username $MYSQL_USER --password ${MYSQL_PASSWD}
 sqoop-list-tables --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME} --username $MYSQL_USER --password ${MYSQL_PASSWD}
 
+# Exportiere Daten von Sqoop nach MySQL (ist eher nicht der übliche Anwendungszweck), aber auch möglich
 # -m 1 ... Anzahl an Mappern, hier derzeit immer 1
 sqoop export --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  \
    --table studentsMySQL --username $MYSQL_USER --password ${MYSQL_PASSWD}  \
@@ -110,10 +99,13 @@ sqoop export --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  \
    --driver com.mysql.cj.jdbc.Driver  --input-fields-terminated-by ',' \
    --input-lines-terminated-by '\n' --bindir /usr/local/hadoop/share/hadoop/common/lib
 
-mysql -u $MYSQL_USER -p <<!
+# prüfen in mySQL, ob die Daten vorhanden sind...
+sudo docker exec -i --tty=false -u mysql ${DOCKER_CONTAINERNAME} /bin/bash <<EOF
+mysql -u $MYSQL_USER -p${MYSQL_PASSWD} <<!
 use $DATABASE_NAME;
 SELECT * FROM studentsMySQL LIMIT 10;
 !
+EOF
 
 # die andere Richtung am besten testen, indem eine 2. Tabelle in Hive angelegt wird
 # Verzeichnis löschen, falls von vorigem Versuch noch was existiert
@@ -129,7 +121,8 @@ hdfs dfs -rm -R /user/hduser/studentsMySQL 2>/dev/null
 
 # ACHTUNG: Bei Verwendung von derby als Metadatenbank für Hive (=default) ist zu beachten, dass Derby keine
 #          konkurrierenden Zugriffe erlaubt, d.h. vor dem Sqoop-Import ist hive-server zu beenden
-kill $(ps aux | grep hiveserver2 | grep -v grep | awk '{ print $2}')
+# !!! Wenn wir mySQL als Metadatenbank verwenden, dann ist dies nicht nötig !!!
+# kill $(ps aux | grep hiveserver2 | grep -v grep | awk '{ print $2}')
 
 sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
    --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --hive-import --hive-database fh \
@@ -147,8 +140,8 @@ sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --
 # prüfen, ob Daten korrekt vorhanden sind
 hdfs dfs -cat /user/hduser/studentsFromFile/part* | head
     
-# und danach hiveserver wieder zu starten, damit beeline funktioniert
-hive --service hiveserver2 &
+# nur bei Derby Metastore: danach hiveserver wieder zu starten, damit beeline funktioniert
+# hive --service hiveserver2 &
 
 # verifiziere die Inhalte
 export HIVE_CONNECT_STRING=localhost:10000
