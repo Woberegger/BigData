@@ -1,7 +1,7 @@
 # siehe Tutorial https://kafka.apache.org/quickstart
 sudo -s
 cd /usr/local
-export KAFKA_VERSION=3.9.0
+export KAFKA_VERSION=3.9.1
 wget https://dlcdn.apache.org/kafka/${KAFKA_VERSION}/kafka_2.13-${KAFKA_VERSION}.tgz
 tar -xzf kafka_2.13-${KAFKA_VERSION}.tgz
 ln -s kafka_2.13-${KAFKA_VERSION} kafka
@@ -14,7 +14,12 @@ export PATH=\$PATH:\$KAFKA_HOME/bin
 !
 source ~/.bashrc
 
-# wenn CLASSPATH im .bashrc für eventuell andere Prozesse gesetzt sein sollte, bitte das deaktivieren oder um Pfad für Kafka erweitern
+# da Kafka den Zookeeper mitbenutzt, den wir ja mit HBase betreiben, müssen wir neben DFS/YARN auch HBase starten
+start-hbase.sh
+# nach ein paar Sekunden (wenn hochgefahren), sollte man ein Listen auf Port 2181 sehen
+netstat -an | grep 2181
+
+# eigenartigerweise funktioniert es nicht, wenn man $KAFKA_HOME/lib dazuhängt, daher besser komplett löschen, dann geht das
 unset CLASSPATH
 $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties &
 
@@ -34,6 +39,7 @@ $KAFKA_HOME/bin/kafka-console-consumer.sh --topic quickstart-events --from-begin
 # beende consumer mit <Ctrl>c
 
 # danach erstellen wir einen Wordcount task - dafür brauchen wir Plaintext-Input und Wordcount Topic
+# ACHTUNG: bitte Zeile für Zeile eingeben, da man manchmal mit <Ctrl>c abbrechen muss, bevor man das nächste Kommando eingibt
 $KAFKA_HOME/bin/kafka-topics.sh --create --topic streams-plaintext-input --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 $KAFKA_HOME/bin/kafka-topics.sh --create --topic streams-wordcount-output --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --config cleanup.policy=compact
 $KAFKA_HOME/bin/kafka-run-class.sh org.apache.kafka.streams.examples.wordcount.WordCountDemo
