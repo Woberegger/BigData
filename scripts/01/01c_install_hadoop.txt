@@ -55,10 +55,6 @@ cat >/etc/ssh/sshd_config.d/10-student.conf <<EOF
 Match User student
    PasswordAuthentication yes
 EOF
-cat >/etc/ssh/sshd_config.d/11-hadoop.conf <<EOF
-Match User hduser
-   PasswordAuthentication yes
-EOF
 
 systemctl reload ssh || systemctl start ssh || service ssh start # Frage: Was macht das || in diesem Call?
 # damit systemctl bei WSL funktioniert, muss "systemctl=true" in /etc/wsl.conf vorhanden sein - siehe auch 01b_prepare_wsl.txt
