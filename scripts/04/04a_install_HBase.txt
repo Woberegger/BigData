@@ -14,6 +14,7 @@ su - hduser
 
 cat >>~/.bashrc <<!
 export HBASE_HOME=/usr/local/HBase
+#export HBASE_MASTER=namenode # only necessary on additional regionservers
 export PATH=\$PATH:\$HBASE_HOME/bin
 !
 
@@ -76,6 +77,15 @@ cat >$HBASE_HOME/conf/hbase-site.xml <<EOF
      <name>hbase.wal.provider</name>
   	  <value>filesystem</value>
    </property>
+   <!-- necessary, when multiple regionservers are used -->
+   <property>
+     <name>hbase.zookeeper.quorum</name>
+     <value>namenode</value>
+   </property>
+   <property>
+     <name>hbase.master.info.port</name>
+     <value>16010</value>
+   </property>
 </configuration>
 EOF
    
@@ -86,23 +96,24 @@ start-yarn.sh
 
 #mit jps testen, ob Hadoop erfolgreich gestartet
 
+# damit Warnung "duplicate implementation von log4j" nicht aufpoppt:
+mv $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar.duplicate
+ 
 #2.) HBase starten
 $HBASE_HOME/bin/start-hbase.sh
 
 # möglicherweise gibt es Fehler beim Hochstarten wie folgt:
 #a) /usr/local/hadoop/libexec/hadoop-functions.sh: line 2369: HADOOP_ORG.APACHE.HADOOP.HBASE.UTIL.GETJAVAPROPERTY_USER: invalid variable name 
 # Lösung: setze Folgendes in hbase-env.sh: export HBASE_DISABLE_HADOOP_CLASSPATH_LOOKUP="true"
-#b) duplicate implementation von log4j:
-# Lösung: Datei $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar umbenennen auf log4j-slf4j-impl-2.17.2.jar.duplicate
-#c) Fehler mit ssh:
+#b) Fehler mit ssh:
 # Lösung in hbase-env.sh: export HBASE_SSH_OPTS="-p 22 -l hduser"
-#d) Fehler wie folgt:
+#c) Fehler wie folgt:
 # HADOOP_ORG.APACHE.HADOOP.HBASE.UTIL.GETJAVAPROPERTY_USER: invalid variable name
 # Lösung: ersetze Datei $HADOOP_HOME/libexec/hadoop-functions.sh durch folgende Version https://github.com/Woberegger/BigData/blob/main/scripts/04/hadoop-functions.sh
-#e) Fehler beim Starten oder bei Kommando "hbase classpath"
+#d) Fehler beim Starten oder bei Kommando "hbase classpath"
 # Error: Could not find or load main class org.apache.hadoop.hbase.util.GetJavaProperty
 # Lösung: ln -s $HBASE_HOME/lib/hbase-server-2.5.6.jar $HADOOP_HOME/share/hadoop/common/
-#f) wenn z.B. Prozesse immer schreiben, dass sie jars nicht finden, probier mal den jeweiligen Daemon in der entspr. Reihenfolge lt. start-hbase.sh einzeln zu starten, beginnend mit zookeeper:
+#e) wenn z.B. Prozesse immer schreiben, dass sie jars nicht finden, probier mal den jeweiligen Daemon in der entspr. Reihenfolge lt. start-hbase.sh einzeln zu starten, beginnend mit zookeeper:
 # hbase-daemons.sh --config $HBASE_HOME/conf start zookeeper
 # danach die Ausgaben in $HBASE_HOME/logs betrachten, ob hier Fehler zu sehen sind
 

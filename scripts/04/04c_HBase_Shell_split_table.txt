@@ -26,3 +26,10 @@ get 'emp', '21'
 
 # show the created regions for our table
 list_regions 'emp'
+
+### expected output, when multiple regions exist:
+#                   SERVER_NAME |                                            REGION_NAME |  START_KEY |    END_KEY |  SIZE |   REQ |   LOCALITY |
+# ----------------------------- | ------------------------------------------------------ | ---------- | ---------- | ----- | ----- | ---------- |
+# datanode1,16020,1761465824268 |   emp,,1761465929138.eeedbf3b61495df417f75c074f3583be. |            |          1 |     0 |     0 |        0.0 |
+# datanode1,16020,1761465824268 |  emp,1,1761465929138.d9367e8109d374c6149fb2c1450b764b. |          1 |         20 |     0 |     1 |        0.0 |
+#  namenode,16020,1761465830925 | emp,20,1761465929138.bf160eaff41db660f12e859c6cbb17db. |         20 |            |     0 |     5 |        0.0 |
