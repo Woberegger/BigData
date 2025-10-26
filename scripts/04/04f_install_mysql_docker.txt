@@ -1,0 +1,30 @@
+# MySQL als Docker-Container starten, da mySQL als Metastore besser funktioniert als das default "Derby", vor allem später mit Sqoop und Flume
+
+sudo -s
+apt install docker.io
+# eventuell ist es nötig, hier ein Reboot auszuführen, falls ein entsprechendes Menü aufpoppt.
+docker pull mysql
+# Die Variablen immer setzen, wenn man den Container verwendet
+export DOCKER_CONTAINERNAME=swdMysql
+export NETWORK=my-docker-network
+docker network create --driver=bridge --subnet=10.0.4.0/24 --ip-range=10.0.4.0/24 --gateway=10.0.4.1 $NETWORK
+# mySQL JDBC port 3306 auf 13306 forwarden.
+docker run --name ${DOCKER_CONTAINERNAME} --network $NETWORK -p 13306:3306 -e MYSQL_ROOT_PASSWORD=my-secret-pw -e MYSQL_DATABASE=swd -e MYSQL_USER=scott -e MYSQL_PASSWORD=tiger -d mysql:latest
+#docker run --name ${DOCKER_CONTAINERNAME} -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql:latest
+# prüfen, ob alles gut gegangen ist...
+docker logs swdMysql
+# testweise mal mit docker container verbinden
+docker exec -it -u mysql ${DOCKER_CONTAINERNAME} /bin/bash
+
+# und mit "-i --tty=false" kann man dem Docker-Container ein Here-Dokument übergeben, da nicht interaktiv
+docker exec -i --tty=false -u mysql ${DOCKER_CONTAINERNAME} /bin/bash <<EOF
+# im Container wird dann folgender Block ausgeführt (als Passwort "my-secret-pw")
+mysql -u root -pmy-secret-pw <<!
+   USE default;
+   # the following is not necessary, this is anyway created by schematool command, otherwise this would fail with hint, that table exists
+   #SOURCE $MYSQL_SCHEMA_FILE;
+   show tables;
+!
+EOF
+
+# weiter mit Script 04h_hive_metastore_mysql.txt

@@ -57,54 +57,8 @@ hdfs dfs -chmod a+w /user/hduser/hive_external
 
 cd /usr/local/hive/conf
 cp hive-default.xml.template hive-site.xml
-
-#Folgendes Property am Begin nach Tag <configuration> in hive-site.xml einfügen
-
- <property>
-   <name>system:java.io.tmpdir</name>
-   <value>/tmp/hive/java</value>
- </property>
- <property>
-   <name>system:user.name</name>
-   <value>${user.name}</value>
- </property>
- 
-# check for following tag and change it to same directory as used with the hdfs command above (take care, that hduser was write permissions)
-    <name>hive.metastore.warehouse.dir</name>
-    <value>hdfs://namenode:9000/user/hive/warehouse</value>
-
-# und im folgenden Wert muss eine absoluter Pfad für metastore_db angegeben werden, andernfalls wird immer eine neue DB angelegt, je nachdem, wo man beeline gerade startet
-# (und man sieht die zuvor angelegten Tabellen  nicht mehr...)
-# Der Wert sollte dann am besten nach dem Aufruf von "./schematool -initSchema -dbType derby" auf "create=false" gesetzt werden
-  <property>
-    <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:mysql:;databaseName=/usr/local/hive/conf/metastore_db;create=true</value>
-    <description>
-      JDBC connect string for a JDBC metastore.
-      To use SSL to encrypt/authenticate the connection, provide database-specific SSL flag in the connection URL.
-      For example, jdbc:postgresql://myhost/db?ssl=true for postgres database.
-    </description>
-  </property>
-
-
-# und ganz wichtig: der folgende Wert muss ersetzt auf "false" gesetzt werden, bei "true" gibt es Exceptions bei join über 2 oder mehr Tabellen
-  <property>
-    <name>hive.auto.convert.join</name>
-    <value>false</value>
-    <description>Whether Hive enables the optimization about converting common join into mapjoin based on the input file size</description>
-  </property>
-
-# das folgende sicherheitshalber auch gleich setzen, das kann je nach Version zu Fehler:
-# "user ... is not allowed to impersonate scott" führen 
-  <property>   
-     <name>hive.server2.enable.doAs</name>
-     <value>false</value>
-  </property>
-
-### nachdem alle Einträge passiert sind, kann man hive mal testweise starten
-
-hive
-#
+# da in der Konfiguration sehr viele Einstellungen zu treffen sind und daher die Wahrscheinlichkeit eines Fehlers hoch, bitte das eingecheckte script nehmen!
+cp ~/BigData/scripts/04/hive-site.xml .
 
 # bei folgendem Fehler passen die Versionen von hadoop und hive nicht zusammen, obwohl das auf der Downloadseite anders beschrieben ist:
 # java.lang.NoSuchMethodError - siehe Fix unter https://issues.apache.org/jira/browse/HIVE-22915
@@ -113,6 +67,10 @@ ln -s $HADOOP_HOME/share/hadoop/hdfs/lib/guava-27.0-jre.jar $HIVE_HOME/lib/
 
 # die Warnings für log4j sollte man auch loswerden, indem man Folgendes verschiebt:
 mv $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar.wrong_version
+
+# hive mal testweise starten
+hive
+#
 
 # Wenn es Fehler gibt, dann das hive-site.xml File nochmal prüfen, im default File gibt es bei gewissen Versionen folgenden Fehler, der händisch zu beheben ist (Sonderzeichen in Kommentar bei property hive.txn.xlock.iow)
 #Caused by: com.ctc.wstx.exc.WstxParsingException: Illegal character entity: expansion character (code 0x8
@@ -126,38 +84,9 @@ mv $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar $HIVE_HOME/lib/log4j-slf4j-impl-2.
 #  	<value>true</value>
 #   <description>creates necessary schema on a startup if one doesnt exist.</description>
 #</property>
-<property>
-   <name>hive.metastore.schema.verification</name>
-   <value>false</value>
-</property>
+#<property>
+#   <name>hive.metastore.schema.verification</name>
+#   <value>false</value>
+#</property>
 
-# damit hiveServer auf Console gleich loggen würde, wenn es einen Fehler gibt, folgendes machen
-echo 'export HADOOP_CLIENT_OPTS="-Dhive.root.logger=console"' >$HIVE_HOME/conf/hive-env.sh
-
-# init schema (das sollte das Verzeichnis metastore_db unter $HIVE_HOME/conf anlegen)
-cd /usr/local/hive/bin
-
-./schematool -initSchema -dbType derby
-# wenn mal gar nichts mehr funktioniert und man neu beginnen will, am besten HDFS Verzeichnisse /user/hive/warehouse und /user/hduser/hive_external
-# sowie $HIVE_HOME/conf/metastore_db rekursiv löschen
-
-# Hive kann entweder lokal betrieben werden oder gegen Hive-Server. Ich hatte Probleme mit dieser Version im lokalen Betrieb, musste daher Hive-Server starten
-# (andernfalls Exception: Connecting to jdbc:hive2:// java.lang.NoClassDefFoundError: org/apache/hive/service/cli/thrift/EmbeddedThriftBinaryCLIService
-#        at org.apache.hive.jdbc.HiveConnection.<init>(HiveConnection.java:176)
-hive --service hiveserver2 &
-
-# nach dem Starten des Hive-Servers, sollte der Status auch in folgender Web-GUI sichtbar sein (viel sieht man darin jedoch nicht)
-"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://<nameNodeIP>:10002http://<nameNodeIP>:10002
-#firefox -new-tab http://<nameNodeIP>:10002
-
-# !!! die folgenden Dinge besser in neuer Session eingeben, da sonst eventuelle Ausgaben von Hiveserver im Hintergrund verwirren !!!
-
-beeline --verbose
-!connect jdbc:hive2://localhost:10000 scott tiger
-# WICHTIG: Falls es Fehler "Connection refused" "user ... is not allowed to impersonate scott" bei beeline Kommando gibt,
-# dann muss der Eintrag "hive.server2.enable.doAs" in hive-site.xml auf "false" gesetzt sein.
-
-# Wenn obiges Prompt o.k. aussieht und nicht "closed" meldet, dann schaut Installation gut aus und man kann mal testweise Objekte anlegen 
-# mit "<Ctrl>c" verlässt man die beeline shell
-
-# über Script 04f_hive_commands.txt
+# weiter mit Script 04f_install_mysql_docker.txt

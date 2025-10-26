@@ -1,21 +1,10 @@
-# Start hdfs und yarn, sollten diese nicht schon laufen...
-start-dfs.sh
-start-yarn.sh
-# ebenso hiveServer (der läuft im Hintergrund, Eingaben daher besser in anderer Session die Hive-Commandos eingeben
-hive --service hiveserver2 --hiveconf hive.server2.thrift.port=10000 &
+# auszuführen in neuer Session, nachdem in anderer Session "hiveserver" gestartet wurde
 
-# Verzeichnisse für externe Hive-Daten in HDFS bereitstellen
-hdfs dfs -mkdir -p /user/hduser/hive_external/adr
-hdfs dfs -mkdir -p /user/hduser/hive_external/sales
-hdfs dfs -put ~/BigData/data/adr_data.csv /user/hduser/hive_external/adr/
-hdfs dfs -put ~/BigData/data/sales_data.csv /user/hduser/hive_external/sales/
-hdfs dfs -put ~/BigData/data/Bibel.txt /tmp
-
-### in weiterer Session die Kommandos eingeben ###
 # Abhängig davon, ob man Hiveserver oder HiveEmbedded verwendet, ist unterschiedlicher connect-String zu verwenden (bei Embedded Mode ist die Variable leer)
 export HIVE_CONNECT_STRING=localhost:10000
 
 # Hive Session beenden durch <Ctrl>c.
+# Kommentare in beeline starten mit '--'
 
 # testweise Tabellen anlegen
 beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tigerexit
@@ -23,7 +12,7 @@ beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tigerexit
    set hive.metastore.warehouse.dir;
    show databases;
    use default;
-   --
+   -- testweise mal eine Tabelle anlegen
 CREATE TABLE IF NOT EXISTS default.employee (
    id int,
    name string,
@@ -32,12 +21,12 @@ CREATE TABLE IF NOT EXISTS default.employee (
    COMMENT 'Employee Table'
    ROW FORMAT DELIMITED
    FIELDS TERMINATED BY ',';
---
+   --
    show tables;
 
-# --- HIVE Import & Join ---
-# man sieht auch schön, dass im Hintergrund MapReduce Jobs laufen, da wir "set hive.execution.engine=mr" setzen.
-beeline -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger
+   -- HIVE Import & Join ---
+   -- man sieht auch schön, dass im Hintergrund MapReduce Jobs laufen, da wir "set hive.execution.engine=mr" setzen.
+
    set hive.execution.engine=mr;
    set hive.metastore.warehouse.dir;
    show databases;
