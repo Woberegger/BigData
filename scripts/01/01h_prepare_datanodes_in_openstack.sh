@@ -137,6 +137,10 @@ cat >${HADOOP_CONF_DIR}/yarn-site.xml <<EOF
       <name>yarn.nodemanager.webapp.https.address</name>
       <value>0.0.0.0:55${PortPostfix}</value>
    </property>
+   <property>
+       <name>yarn.nodemanager.localizer.address</name>
+       <value>0.0.0.0:56${PortPostfix}</value>
+   </property>
    <!-- IMPORTANT: set this parameter to use Yarn and not local mode for computation -->
    <property>
       <name>yarn.resourcemanager.hostname</name>
