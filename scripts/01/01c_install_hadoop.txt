@@ -236,6 +236,22 @@ cat >${HADOOP_CONF_DIR}/mapred-site.xml <<EOF
 		<name>yarn.nodemanager.delete.debug-delay-sec</name>
 		<value>600</value>
 	</property>
+   <property>
+      <name>mapreduce.jobhistory.address</name>
+      <value>namenode:10020</value>
+   </property>
+   <property>
+      <name>mapreduce.jobhistory.webapp.address</name>
+      <value>namenode:19888</value>
+   </property>
+   <property>
+      <name>mapreduce.jobhistory.done-dir</name>
+      <value>/mr-history/done</value>
+   </property>
+   <property>
+      <name>mapreduce.jobhistory.intermediate-done-dir</name>
+      <value>/mr-history/tmp</value>
+   </property>
    <!-- IMPORTANT: set this parameter to use Yarn and not local mode for computation -->
    <property>
       <name>mapred.framework.name</name>
@@ -269,6 +285,18 @@ cat >${HADOOP_CONF_DIR}/yarn-site.xml <<EOF
 		<name>yarn.nodemanager.vmem-check-enabled</name>
 		<value>false</value>
 	</property>
+   <property>
+      <name>yarn.nodemanager.address</name>
+      <value>0.0.0.0:8040</value>
+   </property>
+   <property>
+      <name>yarn.nodemanager.webapp.address</name>
+      <value>0.0.0.0:8042</value>
+   </property>
+   <property>
+      <name>yarn.nodemanager.webapp.https.address</name>
+      <value>0.0.0.0:8044</value>
+   </property>
    <!-- IMPORTANT: set this parameter to use Yarn and not local mode for computation -->
    <property>
       <name>yarn.resourcemanager.hostname</name>

@@ -100,6 +100,51 @@ cat >${HADOOP_CONF_DIR}/hdfs-site.xml <<EOF
 </configuration>
 EOF
 
+cat >${HADOOP_CONF_DIR}/yarn-site.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+	<property>
+		<name>yarn.nodemanager.aux-services</name>
+		<value>mapreduce_shuffle</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+      <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.vmem-pmem-ratio</name>
+		<value>3</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.delete.debug-delay-sec</name>
+		<value>600</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.vmem-check-enabled</name>
+		<value>false</value>
+	</property>
+   <!-- DataNode X Konfiguration (eigene Ports) -->
+   <property>
+      <name>yarn.nodemanager.address</name>
+      <value>0.0.0.0:53${PortPostfix}</value>
+   </property>
+   <property>
+      <name>yarn.nodemanager.webapp.address</name>
+      <value>0.0.0.0:54${PortPostfix}</value>
+   </property>
+   <property>
+      <name>yarn.nodemanager.webapp.https.address</name>
+      <value>0.0.0.0:55${PortPostfix}</value>
+   </property>
+   <!-- IMPORTANT: set this parameter to use Yarn and not local mode for computation -->
+   <property>
+      <name>yarn.resourcemanager.hostname</name>
+      <value>${NameNodeIP}</value>
+   </property>
+</configuration>
+EOF
+
 sed -i "s#/usr/local/hadoop/hadoopdata/hdfs/tmp#/usr/local/hadoop/hadoopdata/datanode${NameNodeIP}/tmp#" ${HADOOP_CONF_DIR}/core-site.xml
 
 echo "successfully prepared specific environment for Hadoop in ${HADOOP_CONF_DIR}"
