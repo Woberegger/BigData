@@ -48,7 +48,10 @@ hdfs dfs -D dfs.blocksize=1048576 -put ~/BigData/data/airline_delay_causes.csv /
 # Runterfahren des zugeteilten Prozesses des 2. Knotens und schauen, was nach 60 Sekunden mit den Replikas des Knotens passiert.
 # Wann werden Replikas von einem Knoten auf den anderen übertragen, damit wir wieder die gewünschte Anzahl von 2 haben?
 # Da wir auf den weiteren Nodes ja alle gemeinsam arbeiten, muss man durch Übergabe der IP des Namenodes an das grep-Kommando die richtige Instanz finden
-kill $(jps -v | grep datanode<IP-Address> | cut -d' ' -f1)
+# entweder:
+kill $(jps -v | grep datanode<IP-Address> | cut -d' ' -f1) # Kommando auf Datanode1 bzw. DataNode2
+# oder:
+hdfs --daemon stop datanode # Kommando, wenn man den primären Datanode auf NameNode stoppen will 
 
 # Timeout equals to 2 * heartbeat.recheck.interval + 10 * heartbeat.interval. Default for heartbeat.interval is 3 seconds, default for recheck-intervall is 300
 #        <property>
@@ -59,10 +62,12 @@ kill $(jps -v | grep datanode<IP-Address> | cut -d' ' -f1)
 #                <name>dfs.namenode.stale.datanode.interval</name>
 #                <value>10</value>
 #        </property>
-# einen zuvor gekillten Datanode startet man danach am besten wieder direkt auf dem Datanode über (optional auf namenode über "start-dfs.sh" mit Warnings):
+# einen zuvor gekillten Datanode (auf datanode1 oder datanode2) startet man danach am besten wieder direkt auf dem Datanode über folgende Befehlsfolge:
 export SSH_CLIENT=<NameNode-IP-Address> # z.B. 10.77.16.124 (damit wir sicher unseren eigenen Datanode neu starten)
 source ~/datanode.env
 hdfs --daemon start datanode
+# optional wenn datanode auf der primären VM (=namenode) gestoppt wurde, über
+#    hdfs --daemon start datanode
 
 # "hdfs fsck" und "hdfs dfsadmin" Kommandos ausprobieren.
 hdfs fsck  /user/hduser  -files -blocks -replicaDetails # hier sieht man, auf welchen Knoten die Repliken liegen, wieviele Blocks belegt werden usw.
