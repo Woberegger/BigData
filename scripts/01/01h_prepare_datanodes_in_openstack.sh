@@ -33,7 +33,28 @@ cd $HADOOP_HOME/etc
 cp -pRT hadoop datanode${NameNodeIP}
 export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/datanode${NameNodeIP}
 
-sed -i "s/namenode\:/${NameNodeIP}\:/" ${HADOOP_CONF_DIR}/mapred-site.xml ${HADOOP_CONF_DIR}/core-site.xml ${HADOOP_CONF_DIR}/yarn-site.xml
+cat >${HADOOP_CONF_DIR}/core-site.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://${NameNodeIP}:9000</value>
+  </property>
+  <property>
+    <name>hadoop.tmp.dir</name>
+    <value>/usr/local/hadoop/hadoopdata/datanode${NameNodeIP}/tmp</value>
+  </property>
+  <property>
+    <name>fs.trash.interval</name>
+    <value>1440</value>
+  </property>
+  <property>
+    <name>fs.trash.checkpoint.interval</name>
+    <value>60</value>
+  </property>
+</configuration>
+EOF
 
 # replace the shuffle default port 13562
 cat >${HADOOP_CONF_DIR}/mapred-site.xml <<EOF
@@ -46,7 +67,7 @@ cat >${HADOOP_CONF_DIR}/mapred-site.xml <<EOF
    </property>
    <property>
       <name>mapreduce.job.tracker</name>
-      <value>namenode:9001</value>
+      <value>${NameNodeIP}:9001</value>
    </property>
    <!-- IMPORTANT: set this parameter to use Yarn and not local mode for computation -->
    <property>
@@ -169,8 +190,6 @@ cat >${HADOOP_CONF_DIR}/yarn-site.xml <<EOF
    </property>
 </configuration>
 EOF
-
-sed -i "s#/usr/local/hadoop/hadoopdata/hdfs/tmp#/usr/local/hadoop/hadoopdata/datanode${NameNodeIP}/tmp#" ${HADOOP_CONF_DIR}/core-site.xml
 
 echo "successfully prepared specific environment for Hadoop in ${HADOOP_CONF_DIR}"
 echo "Ports to use are: 51${PortPostfix}, 52${PortPostfix} and 58${PortPostfix}"
