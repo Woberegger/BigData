@@ -30,10 +30,12 @@ if [ ! -n "$SSH_CLIENT" ]; then export SSH_CLIENT=$NameNodeIP; fi
 echo "creating environment for PortPostfix $PortPostfix and namenode $NameNodeIP"
 
 cd $HADOOP_HOME/etc
-cp -pR hadoop datanode${NameNodeIP}
+cp -pRT hadoop datanode${NameNodeIP}
 export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/datanode${NameNodeIP}
 
 sed -i "s/namenode\:/${NameNodeIP}\:/" ${HADOOP_CONF_DIR}/mapred-site.xml ${HADOOP_CONF_DIR}/core-site.xml ${HADOOP_CONF_DIR}/yarn-site.xml
+# replace the shuffle default port 13562
+sed -i "s/13562:/59${PortPostfix}/" ${HADOOP_CONF_DIR}/mapred-site.xml
 
 cat >${HADOOP_CONF_DIR}/hdfs-site.xml <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
