@@ -34,8 +34,27 @@ cp -pRT hadoop datanode${NameNodeIP}
 export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/datanode${NameNodeIP}
 
 sed -i "s/namenode\:/${NameNodeIP}\:/" ${HADOOP_CONF_DIR}/mapred-site.xml ${HADOOP_CONF_DIR}/core-site.xml ${HADOOP_CONF_DIR}/yarn-site.xml
+
 # replace the shuffle default port 13562
-sed -i "s/13562:/59${PortPostfix}/" ${HADOOP_CONF_DIR}/mapred-site.xml
+cat >${HADOOP_CONF_DIR}/mapred-site.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+   <property>
+      <name>mapreduce.shuffle.port</name>
+      <value>59${PortPostfix}</value>
+   </property>
+   <property>
+      <name>mapreduce.job.tracker</name>
+      <value>namenode:9001</value>
+   </property>
+   <!-- IMPORTANT: set this parameter to use Yarn and not local mode for computation -->
+   <property>
+      <name>mapreduce.framework.name</name>
+      <value>yarn</value>
+   </property>
+</configuration>
+EOF
 
 cat >${HADOOP_CONF_DIR}/hdfs-site.xml <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
