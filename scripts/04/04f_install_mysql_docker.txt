@@ -20,7 +20,7 @@ docker exec -it -u mysql ${DOCKER_CONTAINERNAME} /bin/bash
 docker exec -i --tty=false -u mysql ${DOCKER_CONTAINERNAME} /bin/bash <<EOF
 # im Container wird dann folgender Block ausgeführt (als Passwort "my-secret-pw")
 mysql -u root -pmy-secret-pw <<!
-   USE default;
+   USE mysql;
    # the following is not necessary, this is anyway created by schematool command, otherwise this would fail with hint, that table exists
    #SOURCE $MYSQL_SCHEMA_FILE;
    show tables;
