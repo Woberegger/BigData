@@ -1,7 +1,8 @@
 # Installation von HBase, basierend auf vorheriger Installation von Hadoop
 sudo -s
 cd /usr/local
-export HBASE_VERSION=2.5.12
+# Achtung, wenn die neueste Version sich ändert, kann sein, dass die ältere von diesem Link nicht mehr downloadbar ist
+export HBASE_VERSION=2.5.13
 wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz
 wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz.sha512
 shasum -a 512 hbase-${HBASE_VERSION}-bin.tar.gz; cat hbase-${HBASE_VERSION}-bin.tar.gz.sha512
