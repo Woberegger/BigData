@@ -21,7 +21,7 @@ EOF
 # Wichtig: port forward für mysql docker container auf 13306, da andernfalls Konflikt mit eventuell native installiertem MySQL
 #          das ist auch so in hive-site.xml konfiguriert
 su - hduser
-hdfs dfs -chmod 777 /tmp/hive /user/hive/warehouse
+hdfs dfs -chmod 777 /tmp /user/hive/warehouse
   
 # download driver from MySQL bzw. besser gleich die Version aus github verwenden
 cp ~/BigData/external_libs/mysql-connector-j-8.1.0.jar $HIVE_HOME/lib/
