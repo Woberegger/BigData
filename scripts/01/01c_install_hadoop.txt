@@ -228,10 +228,19 @@ cat >${HADOOP_CONF_DIR}/mapred-site.xml <<EOF
       <name>mapreduce.job.tracker</name>
       <value>namenode:9001</value>
    </property>
-   <!-- IMPORTANT: set this parameter to use Yarn and not local mode for computation -->
+   <property>
+      <name>mapreduce.jobhistory.address</name>
+      <value>namenode:10020</value>
+   </property>
+   <property>
+      <name>mapreduce.jobhistory.webapp.address</name>
+      <value>namenode:19888</value>
+   </property>   
+   <!-- IMPORTANT: with value "yarn" all NodeManager processes on all datanodes must correctly talk to Namenode (only with "yarn" the jobhistory is on port 8088 is available)
+                   therefore better use "local", this should always work -->
    <property>
       <name>mapreduce.framework.name</name>
-      <value>yarn</value>
+      <value>local</value>
    </property>
 </configuration>
 EOF
