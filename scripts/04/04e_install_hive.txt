@@ -33,6 +33,10 @@ export HADOOP_HEAPSIZE=2048
 # damit Änderungen aktiv werden
 source ~/.bashrc
 
+# um sicherzugehen, aktualisieren wir die Daten aus dem Repo, weil wir später Dateien kopieren
+cd ~/BigData
+git pull
+
 # start HADOOP, if not running yet
 
 start-dfs.sh

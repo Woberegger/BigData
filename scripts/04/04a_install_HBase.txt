@@ -31,7 +31,7 @@ echo "export JAVA_HOME=/usr/lib/jvm/temurin-11-jdk-$(dpkg --print-architecture)"
 echo "export HBASE_SSH_OPTS=\"-p $SSH_PORT -l hduser\"" >>${HBASE_HOME}/conf/hbase-env.sh
 
 # besser auch das Regionserver File konfigurieren, falls später weitere Nodes dazukommen
-#export HBASE_REGIONSERVERS=${HBASE_HOME}/conf/regionservers
+echo "export HBASE_REGIONSERVERS=${HBASE_HOME}/conf/regionservers" >>${HBASE_HOME}/conf/hbase-env.sh
 
 # hier das eintragen, das man als Hostnamen mit "hdfs getconf -confKey fs.defaultFS | cut -d':' -f2 | cut -c3-" rausbekommt (sollte "namenode" sein)
 echo $(hdfs getconf -confKey fs.defaultFS | cut -d':' -f2 | cut -c3-) >${HBASE_HOME}/conf/regionservers
