@@ -55,8 +55,7 @@ echo 'export HADOOP_CLIENT_OPTS="-Dhive.root.logger=console"' >$HIVE_HOME/conf/h
 # !!! die folgenden Dinge besser in neuer Session eingeben, da sonst eventuelle Ausgaben von Hiveserver im Hintergrund verwirren !!!
 
 beeline --verbose
-export HIVE_CONNECT_STRING=localhost:10000
-!connect jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger
+!connect jdbc:hive2://localhost:10000 scott tiger
 # WICHTIG: Falls es Fehler "Connection refused" "user ... is not allowed to impersonate scott" bei beeline Kommando gibt,
 # dann muss der Eintrag "hive.server2.enable.doAs" in hive-site.xml auf "false" gesetzt sein.
 
