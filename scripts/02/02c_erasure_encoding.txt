@@ -9,8 +9,8 @@ MAPFILE=\$HADOOP_CONF_DIR/topology.txt
 
 if [ -f \$MAPFILE ]; then
   while read host rack; do
-    if [[ "$host" == "$1" ]]; then
-      echo "$rack"
+    if [[ "\$host" == "\$1" ]]; then
+      echo "\$rack"
       exit 0
     fi
   done < \$MAPFILE
@@ -25,6 +25,10 @@ MAPFILE=$HADOOP_CONF_DIR/topology.txt
 echo "$(hostname -I | cut -d' ' -f1) /rack0" >$MAPFILE
 echo "10.77.17.48 /rack1" >>$MAPFILE
 echo "10.77.18.25 /rack2" >>$MAPFILE
+echo "namenode /rack0" >>$MAPFILE
+echo "datanode1 /rack1" >>$MAPFILE
+echo "datanode2 /rack2" >>$MAPFILE
+
 
 chmod 755 $HADOOP_HOME/bin/rack-topology.sh
 

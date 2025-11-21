@@ -58,7 +58,7 @@ su - hduser
 sudo mkdir /mnt/hdfs
 sudo mount -t nfs -o vers=3,proto=tcp,nolock,noacl,sync localhost:/ /mnt/hdfs
 
-# dann sollte man Inhalte des HDFS im normalen Filesystem sehen (z.B. das Verzeichnis /input)
-ls -lsa /mnt/hdfs/input 
+# dann sollte man Inhalte des HDFS im normalen Filesystem sehen (z.B. rekursiv das ganze HDFS-Filesystem)
+ls -lsR /mnt/hdfs 
 
 

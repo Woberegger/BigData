@@ -10,9 +10,9 @@ git pull
 
 # Wenn man weitere Datanodes ins "workers" File dazugehängt hat, dann kann man entweder stop-dfs.sh und start-dfs.sh ausführen
 # oder man macht das, was produktiv sinnvoller ist und hängt die Datenodes zur Laufzeit dazu
-# (hier gibt es Warning, dass halt einige schon laufen, aber ist einfacher, als sich auf die datanodes hinzuverbinden)
-# Eigenartigerweise gibt es Info, dass Befehl "deprecated" ist, der angegebene alternative Befehl funktioniert aber syntaktisch nicht.
-hadoop-daemons.sh start datanode
+# (führt man das "start" ohne vorheriges "stop" aus, gibt es Warning, dass halt einige schon laufen)
+hdfs --workers --daemon stop datanode
+hdfs --workers --daemon start datanode
 
 # nach dem Installieren und Konfigurieren wollen wir evaluieren, wo und wie HDFS die Dateien ablegt
 
