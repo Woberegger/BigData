@@ -3,6 +3,11 @@
 # vorher mit einer der Anleitungen weitere Datanodes aktivieren
 ### WICHTIG: alle Kommandos unter user "hduser" ausführen ###
 su - hduser
+
+# damit auf jeden Fall die letztgültigen Dateien vorhanden sind.
+cd ~/BigData/
+git pull
+
 # Wenn man weitere Datanodes ins "workers" File dazugehängt hat, dann kann man entweder stop-dfs.sh und start-dfs.sh ausführen
 # oder man macht das, was produktiv sinnvoller ist und hängt die Datenodes zur Laufzeit dazu
 hadoop-daemons.sh start datanode --hosts datanode1
