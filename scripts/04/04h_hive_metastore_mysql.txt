@@ -1,43 +1,13 @@
-# testweise mal mit docker container verbinden
-sudo -s
-export DOCKER_CONTAINERNAME=swdMysql
-docker exec -it -u mysql ${DOCKER_CONTAINERNAME} /bin/bash
-
-# und mit "-i --tty=false" kann man dem Docker-Container ein Here-Dokument übergeben, da nicht interaktiv
-docker exec -i --tty=false -u mysql ${DOCKER_CONTAINERNAME} /bin/bash <<EOF
-# im Container wird dann folgender Block ausgeführt (als Passwort "my-secret-pw")
-mysql -u root -pmy-secret-pw <<!
-   CREATE DATABASE metastore_db;
-   USE metastore_db;
-   # the following is not necessary, this is anyway created by schematool command, otherwise this would fail with hint, that table exists
-   #SOURCE $MYSQL_SCHEMA_FILE;
-   show tables;
-   CREATE USER 'hive'@'%' IDENTIFIED BY 'hivepassword';
-   GRANT ALL ON *.* to 'hive'@'%';
-   FLUSH PRIVILEGES;
-!
-EOF
-
 # Wichtig: port forward für mysql docker container auf 13306, da andernfalls Konflikt mit eventuell native installiertem MySQL
 #          das ist auch so in hive-site.xml konfiguriert
 su - hduser
 hdfs dfs -chmod 777 /tmp /user/hive/warehouse
   
-# download driver from MySQL bzw. besser gleich die Version aus github verwenden
+# download driver from https://downloads.mysql.com bzw. besser gleich die Version aus github verwenden
 cp ~/BigData/external_libs/mysql-connector-j-8.1.0.jar $HIVE_HOME/lib/
-### das wäre die Anleitung, wo sonst der Driver runterzuladen wäre ...
-#sudo -s
-#cd /tmp
-#wget https://downloads.mysql.com/archives/get/p/3/file/mysql-connector-j_8.1.0-1ubuntu23.04_all.deb
-#dpkg -i mysql-connector-j_8.1.0-1ubuntu23.04_all.deb
-#
-#su - hduser
-## dann kopiere das entpackte Jar-File nach Hive-Libraries 
-#cp /usr/share/java/mysql-connector-j-8.1.0.jar /usr/local/hive/lib/
 
-# Hive Metadaten erstmals initialisieren ((das sollte das Verzeichnis metastore_db unter $HIVE_HOME/conf anlegen)
-
-cd $HIVE_HOME/bin && ./schematool -initSchema -dbType mysql -userName hive -passWord hivepassword -verbose
+# Initialisieren der Metadaten-Datenbank: in dem Fall am besten die auf datanode1 verwenden, dann braucht man kein lokales MySQL
+cd $HIVE_HOME/bin && ./schematool -initSchema -dbType mysql -verbose
 # wenn mal gar nichts mehr funktioniert und man neu beginnen will, am besten HDFS Verzeichnisse /user/hive/warehouse und /user/hduser/hive_external
 # sowie $HIVE_HOME/conf/metastore_db rekursiv löschen
 

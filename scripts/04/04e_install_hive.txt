@@ -63,6 +63,9 @@ cd /usr/local/hive/conf
 cp hive-default.xml.template hive-site.xml
 # da in der Konfiguration sehr viele Einstellungen zu treffen sind und daher die Wahrscheinlichkeit eines Fehlers hoch, bitte das eingecheckte script nehmen!
 cp ~/BigData/scripts/04/hive-site.xml .
+# ACHTUNG !!! in dem Script sind jedoch username und passwort zu ändern, damit jeder sein eigenes Schema hat
+HiveUserName=$(echo ${HOSTNAME//bigdata}hive)
+sed -i "s/swd00hive/${HiveUserName}/g" hive-site.xml
 
 # bei folgendem Fehler passen die Versionen von hadoop und hive nicht zusammen, obwohl das auf der Downloadseite anders beschrieben ist:
 # java.lang.NoSuchMethodError - siehe Fix unter https://issues.apache.org/jira/browse/HIVE-22915
@@ -93,4 +96,4 @@ hive
 #   <value>false</value>
 #</property>
 
-# weiter mit Script 04f_install_mysql_docker.txt
+# weiter mit Script 04h_hive_metastore_mysql.txt bzw. bei Verwendung von lokalem Metastore mit local_mysql_docker/04f_install_mysql_docker.txt

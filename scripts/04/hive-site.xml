@@ -947,7 +947,7 @@
   </property>
   <property>
     <name>javax.jdo.option.ConnectionPassword</name>
-    <value>hivepassword</value>
+    <value>swd00hive</value>
     <description>password to use against metastore database</description>
   </property>
   <property>
@@ -962,7 +962,7 @@
   </property>
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:mysql://localhost:13306/metastore_db?createDatabaseIfNotExist=true</value>
+    <value>jdbc:mysql://datanode1:13306/swd00hive?createDatabaseIfNotExist=true</value>
     <description>
       JDBC connect string for a JDBC metastore.
       To use SSL to encrypt/authenticate the connection, provide database-specific SSL flag in the connection URL.
@@ -1512,7 +1512,7 @@
   </property>
   <property>
     <name>javax.jdo.option.ConnectionUserName</name>
-    <value>hive</value>
+    <value>swd00hive</value>
     <description>Username to use against metastore database</description>
   </property>
   <property>
