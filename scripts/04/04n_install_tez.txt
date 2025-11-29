@@ -110,7 +110,7 @@ cp tez-default-template.xml tez-site.xml
   <property>
      <description>URL for where the Tez UI is hosted</description>
      <name>tez.tez-ui.history-url.base</name>
-     <value>http://localhost:9001</value>
+     <value>http://namenode:9001</value>
   </property>
 
 # danach DFS und YARN neu starten:

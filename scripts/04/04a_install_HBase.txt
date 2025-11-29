@@ -150,8 +150,8 @@ hbase shell
 # Cheat Sheet für HBase shell commands z.B. unter https://sparkbyexamples.com/hbase/hbase-shell-commands-cheat-sheet/
 
 #6.) nach dem Anlegen der Tabellen sollten die auch in folgender Web-GUI sichtbar sein
-"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://localhost:16010/master-status#userTables
-firefox -new-tab http://localhost:16010/master-status#userTables
+"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://<namenodeIP>:16010/master-status#userTables
+firefox -new-tab http://<namenodeIP>:16010/master-status#userTables
 
 #################################
 Optionen:
