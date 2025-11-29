@@ -10,7 +10,7 @@ update-ca-certificates -f
 cd /usr/local
 export HIVE_VERSION=4.0.1 # we better do not use 4.1.0, as this was compiled with Java17, so we would need an additional Java version for that, which differs to HDFS's java
 # if the certificate is not accepted (although we have called the updata-ca-certificates), then add parameter: --no-check-certificate
-wget https://dlcdn.apache.org/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz
+wget https://archive.apache.org/dist/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz
 
 tar -xzf apache-hive-${HIVE_VERSION}-bin.tar.gz
 ln -s /usr/local/apache-hive-${HIVE_VERSION}-bin /usr/local/hive
