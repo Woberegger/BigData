@@ -1,6 +1,13 @@
 # create table with more than 1 column family
 create 'people2', 'id', 'property', 'specialdate'
-
+enable 'people2'
+# Wait until all regions are assigned
+# This ensures no client-side hang during the first Put - sleep at least 1 second
+while ! is_enabled 'people2'
+  sleep 1
+  puts "Waiting for records to be inserted ..."
+end
+puts "Table 'people2' ready. Inserting data..."
 
 put 'people2', 'row1', 'id:email', 'chef@jofre.de'
 put 'people2', 'row1', 'property:age', '28'
@@ -13,6 +20,15 @@ get 'people2', 'row1'
 
 # create table to split across multiple regions by ID - can be even multiple regions on 1 server - see http://localhost:16010/table.jsp?name=emp
 create 'emp', 'id', 'property', SPLITS => ['1', '20']
+enable 'emp'
+# Wait until all regions are assigned
+# This ensures no client-side hang during the first Put - sleep at least 1 second
+while ! is_enabled 'emp'
+  sleep 1
+  puts "Waiting for records to be inserted ..."
+end
+puts "Table 'emp' ready. Inserting data..."
+
 # list should find all our created tables
 list
 
