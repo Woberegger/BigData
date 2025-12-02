@@ -20,12 +20,12 @@ mysql --ssl=FALSE -u $MYSQL_USER -D $DATABASE_NAME -h $MYSQL_HOST -P 13306 --pas
 
 CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;
 use $DATABASE_NAME;
-
+# entry_date as DATE does not work with sqoop export, so use VARCHAR for it.
 CREATE TABLE IF NOT EXISTS studentsMySQL (
     id INT PRIMARY KEY,
     first_name VARCHAR(80) NOT NULL,
     last_name VARCHAR(80) NOT NULL,
-    entry_date DATE,
+    entry_date VARCHAR(20) NOT NULL,
     course VARCHAR(80) NOT NULL
 );
 show tables;
