@@ -57,13 +57,6 @@ beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    COMMENT 'Students to sync with mySQL';
 !
 
-# dann generiere ein csv-File über https://generatedata.com/ mit den benötigten Daten.
-# Eine bereits generierte Version liegt im git Repo unter "data/students.csv"
-# die generierten Daten ev. noch nachbearbeiten:
-# a) Split auf Vorname+Nachname:
-#    sed -i 's/ /,/g' students.csv
-# b) ev. passendes Datumsformat mit padding (ist aber nicht nötig für unseren Testfall):
-
 # wir können die Datei ins hdfs reinladen oder benutzen hier mal das "LOCAL INPATH" zum Laden von lokaler Datei
 # hdfs dfs -put BigData/data/students.csv /tmp/
 beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
@@ -129,9 +122,6 @@ sqoop import --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME}
    -m 1 --bindir /usr/local/hadoop/share/hadoop/common/lib
 # prüfen, ob Daten korrekt vorhanden sind
 hdfs dfs -cat /user/hduser/studentsFromFile/part* | head
-    
-# nur bei Derby Metastore: danach hiveserver wieder zu starten, damit beeline funktioniert
-# hive --service hiveserver2 &
 
 # verifiziere die Inhalte
 export HIVE_CONNECT_STRING=localhost:10000
@@ -157,6 +147,6 @@ beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    SELECT * FROM studentsFromMySQL LIMIT 10;
 !
 
-# falls die Tabelle leer ist, dann hat sqoop import nicht funktioniert und sind die Ausgaben zu kontrollieren.
+# falls beide Tabellen leer sind, dann hat sqoop import nicht funktioniert und sind die Ausgaben zu kontrollieren.
 # für einen erneuten Versuch muss zuerst das Verzeichnis wieder gelöscht werden über
 # hdfs dfs -rm -R /user/hduser/studentsMySQL (bzw. /user/hduser/studentsFromFile)
