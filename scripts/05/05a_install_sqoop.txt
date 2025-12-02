@@ -6,6 +6,17 @@ tar -xzf sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz
 ln -s sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0 sqoop
 chown -R hduser:hadoop sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0
 
+# in Datei /usr/lib/jvm/jdk/conf/security/policy/unlimited/default_local.policy folgende Zeile eintragen
+# andernfalls gibt es exception beim sqoop import/export
+cat >/usr/lib/jvm/jdk/conf/security/policy/unlimited/default_local.policy <<!
+// Country-specific policy file for countries with no limits on crypto strength.
+grant {
+    // There is no restriction to any algorithms.
+    permission javax.crypto.CryptoAllPermission;
+    permission javax.management.MBeanTrustPermission "register";
+};
+!
+
 su - hduser
   
 cat >> ~/.bashrc <<!
