@@ -74,6 +74,28 @@ cat >${HADOOP_CONF_DIR}/mapred-site.xml <<EOF
       <name>mapreduce.framework.name</name>
       <value>yarn</value>
    </property>
+   <!-- IMPORTANT: set this on additional datanodes only -->
+   <property>
+      <name>mapreduce.reduce.env</name>
+      <value>HADOOP_MAPRED_HOME=/usr/local/hadoop</value>
+      <description>
+          User added environment variables for the reduce task processes.
+      </description>
+   </property>
+   <property>
+      <name>mapreduce.map.env</name>
+      <value>HADOOP_MAPRED_HOME=/usr/local/hadoop</value>
+      <description>
+          User added environment variables for the map task processes.
+      </description>
+   </property>
+   <property>
+      <name>yarn.app.mapreduce.am.env</name>
+      <value>HADOOP_MAPRED_HOME=/usr/local/hadoop</value>
+      <description>
+          User added environment variables for mapreduce processes.
+      </description>
+   </property>   
 </configuration>
 EOF
 
