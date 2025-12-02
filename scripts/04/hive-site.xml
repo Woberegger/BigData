@@ -1007,12 +1007,12 @@
   </property>
   <property>
     <name>hive.metastore.server.min.threads</name>
-    <value>200</value>
+    <value>5</value>
     <description>Minimum number of worker threads in the Thrift server's pool.</description>
   </property>
   <property>
     <name>hive.metastore.server.max.threads</name>
-    <value>1000</value>
+    <value>10</value>
     <description>Maximum number of worker threads in the Thrift server's pool.</description>
   </property>
   <property>
@@ -1022,7 +1022,7 @@
   </property>
   <property>
     <name>hive.metastore.wm.default.pool.size</name>
-    <value>4</value>
+    <value>2</value>
     <description>
       The size of a default pool to create when creating an empty resource plan;
       If not positive, no default pool will be created.
@@ -1134,7 +1134,7 @@
   </property>
   <property>
     <name>datanucleus.connectionPool.maxPoolSize</name>
-    <value>10</value>
+    <value>2</value>
     <description>
       Specify the maximum number of connections in the connection pool. Note: The configured size will be used by
       2 connection pools (TxnHandler and ObjectStore). When configuring the max connection pool size, it is
@@ -1143,6 +1143,18 @@
       (2 * pool_size * metastore_instances + 2 * pool_size * HS2_instances_with_embedded_metastore) = 
       (2 * physical_core_count + hard_disk_count).
     </description>
+  </property>
+  <property>
+    <name>datanucleus.connectionPool.minPoolSize</name>
+    <value>1</value>
+  </property>    
+  <property>
+    <name>datanucleus.connectionPool.maxIdle</name>
+    <value>10</value>
+  </property> 
+  <property>
+    <name>datanucleus.connectionPool.maxActive</name>
+    <value>2</value>
   </property>
   <property>
     <name>datanucleus.rdbms.initializeColumnInfo</name>
