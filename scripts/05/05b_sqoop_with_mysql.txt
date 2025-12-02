@@ -1,5 +1,7 @@
 # und damit man mit Sqoop auf Datenbanken zugreifen kann, braucht man z.B. einen entspr. JDBC Connector fuer mySQL
 # VORSICHT: MySQL-Objekte sind per default case-sensitive, d.h. studentsMySQL != studentsmysql
+# mysql-client - approx 86MB of size
+sudo apt install default-mysql-client
 
 su - hduser
 
@@ -110,9 +112,11 @@ hdfs dfs -rm -R /user/hduser/studentsMySQL 2>/dev/null
 # !!! Wenn wir mySQL als Metadatenbank verwenden, dann ist dies nicht nötig !!!
 # kill $(ps aux | grep hiveserver2 | grep -v grep | awk '{ print $2}')
 
+# Wichtig ist auch, dass "-m 1" bzw. "--num-mappers 1" gesetzt wird, damit nur 1 Connection zu MySql geöffnet wird
+
 sqoop import --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
    --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --hive-import --hive-database fh \
-   --hive-table studentsFromMySQL --hive-overwrite --num-mappers 1  \
+   --hive-table studentsFromMySQL --hive-overwrite -m 1  \
    --bindir /usr/local/hadoop/share/hadoop/common/lib
 
 # Sollte obiger Befehl nicht funktionieren, kann man versuchen, die MySQL Daten zumindest ins HDFS abzuholen und nicht direkt in Hive reinschreiben.
@@ -122,7 +126,7 @@ sqoop import --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME}
 sqoop import --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
    --query "SELECT * FROM studentsMySQL WHERE \$CONDITIONS" --split-by , --driver com.mysql.cj.jdbc.Driver \
    --target-dir /user/hduser/studentsFromFile --fields-terminated-by , --as-textfile \
-   --num-mappers 1 --bindir /usr/local/hadoop/share/hadoop/common/lib
+   -m 1 --bindir /usr/local/hadoop/share/hadoop/common/lib
 # prüfen, ob Daten korrekt vorhanden sind
 hdfs dfs -cat /user/hduser/studentsFromFile/part* | head
     
@@ -147,7 +151,9 @@ beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
     FIELDS TERMINATED BY ','
     STORED AS TEXTFILE
     LOCATION '/user/hduser/studentsFromFile';
-    
+   -- what we have loaded from Sqoop into HDFS 
+   SELECT * FROM studentsFromFile LIMIT 10;
+   -- what we have loaded from Sqoop directly into hive 
    SELECT * FROM studentsFromMySQL LIMIT 10;
 !
 
