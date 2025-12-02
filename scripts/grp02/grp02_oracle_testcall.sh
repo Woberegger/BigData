@@ -26,6 +26,8 @@ UserName=$1
 Passwd=$UserName
 dbHost=${2:-datanode1}
 dbName=${3:-${UserName:0:3}}
+# where oracle searches for shared objects
+export LD_LIBRARY_PATH=/usr/local/instantclient_23_26/
 
 echo "try to connect to ORACLE service $dbName as user $UserName"
 
