@@ -7,7 +7,7 @@ su - hduser
 # Wichtig: port forward für mysql docker container auf 13306, native üblicherweise auf 3306
 export MYSQL_PORT=13306
 export MYSQL_USER=$(echo ${HOSTNAME//bigdata})
-export MYSQL_PASS=$MYSQL_USER
+export MYSQL_PASSWD=$MYSQL_USER
 export DATABASE_NAME=$MYSQL_USER
 export MYSQL_HOST=datanode1
 ~/BigData/scripts/grp02/grp02_mysql_testcall.sh $MYSQL_USER $MYSQL_HOST
@@ -16,7 +16,7 @@ export MYSQL_HOST=datanode1
 hdfs dfs -mkdir /user/${MYSQL_USER}
 hdfs dfs -chmod 777 /user/${MYSQL_USER}
 
-mysql --ssl=FALSE -u $MYSQL_USER -D $DATABASE_NAME -h $MYSQL_HOST -P 13306 --password=$MYSQL_PASS <<EOF
+mysql --ssl=FALSE -u $MYSQL_USER -D $DATABASE_NAME -h $MYSQL_HOST -P 13306 --password=$MYSQL_PASSWD <<EOF
 
 CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;
 use $DATABASE_NAME;
@@ -31,8 +31,10 @@ CREATE TABLE IF NOT EXISTS studentsMySQL (
 show tables;
 EOF
 
+# in eigener shell hiveserver starten, sollte er noch nicht laufen
+hive --service hiveserver2 --hiveconf hive.server2.thrift.port=10000
 # jetzt legen wir eine idente Tabelle in Hive an
-# wenn Hive-Server (hive --service hiveserver2 &) verwendet wird, dann muss der Connectstring so gesetzt sein, andernfalls leer
+
 export HIVE_CONNECT_STRING=localhost:10000
 beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    set hive.execution.engine=mr;
@@ -72,13 +74,6 @@ beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
 cp -p /usr/local/hadoop/share/hadoop/mapreduce/*.jar $SQOOP_HOME/lib/
 # weiters generiert Sqoop eine Klasse "students.jar" für den Import, die im ClassPath gefunden werden muss
 # Daher ist der Parameter --bindir auf z.B. /usr/local/hadoop/share/hadoop/common/lib zu setzen
-
-export DATABASE_NAME=swd
-# Wichtig: port forward für mysql docker container auf 13306, native auf 3306
-export MYSQL_PORT=13306
-export MYSQL_USER=root
-export MYSQL_PASSWD=my-secret-pw
-export DOCKER_CONTAINERNAME=swdMysql
 
 # liste auf, ob unsere Datenbank und unsere Tabelle "studentsMySQL" gefunden werden
 sqoop-list-databases --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}  --username $MYSQL_USER --password ${MYSQL_PASSWD}
