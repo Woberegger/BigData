@@ -2,23 +2,28 @@
 # VORSICHT: MySQL-Objekte sind per default case-sensitive, d.h. studentsMySQL != studentsmysql
 
 su - hduser
-
-# testweise mit mysql Docker container auf datanode1 verbinden
-# Wichtig: port forward für mysql docker container auf 13306, native üblicherweise auf 3306
-export MYSQL_PORT=13306
-export MYSQL_USER=$(echo ${HOSTNAME//bigdata})
-export MYSQL_PASS=$MYSQL_USER
-export DATABASE_NAME=$MYSQL_USER
-export MYSQL_HOST=datanode1
-~/BigData/scripts/grp02/grp02_mysql_testcall.sh $MYSQL_USER $MYSQL_HOST
-
 # Wichtig der MySQL user braucht ein Verzeichnis im hdfs, anderenfalls gibt es exception "java.io.IOException: java.lang.ClassNotFoundException: students"
+export MYSQL_USER=root
 hdfs dfs -mkdir /user/${MYSQL_USER}
 hdfs dfs -chmod 777 /user/${MYSQL_USER}
 
-mysql --ssl=FALSE -u $MYSQL_USER -D $DATABASE_NAME -h $MYSQL_HOST -P 13306 --password=$MYSQL_PASS <<EOF
+sudo -s
+export DOCKER_CONTAINERNAME=swdMysql
+export DATABASE_NAME=swd
+
+# prüfen, ob der Container "swdMysql" läuft, andernfalls mit "docker start swdMysql" starten
+docker ps
+
+# testweise mal mit dem docker container verbinden, den wir in Übung 4 für Metadatastore erstellt haben
+docker exec -it -u mysql ${DOCKER_CONTAINERNAME} /bin/bash
+
+# und mit "-i --tty=false" kann man dem Docker-Container ein Here-Dokument übergeben, da nicht interaktiv
+docker exec -i --tty=false -u mysql ${DOCKER_CONTAINERNAME} /bin/bash <<EOF
+# im Container wird dann folgender Block ausgeführt (als Passwort "my-secret-pw")
+mysql -u root -pmy-secret-pw <<!
 
 CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;
+show databases;
 use $DATABASE_NAME;
 
 CREATE TABLE IF NOT EXISTS studentsMySQL (
@@ -29,10 +34,12 @@ CREATE TABLE IF NOT EXISTS studentsMySQL (
     course VARCHAR(80) NOT NULL
 );
 show tables;
+!
 EOF
 
 # jetzt legen wir eine idente Tabelle in Hive an
 # wenn Hive-Server (hive --service hiveserver2 &) verwendet wird, dann muss der Connectstring so gesetzt sein, andernfalls leer
+su - hduser
 export HIVE_CONNECT_STRING=localhost:10000
 beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    set hive.execution.engine=mr;
@@ -81,21 +88,23 @@ export MYSQL_PASSWD=my-secret-pw
 export DOCKER_CONTAINERNAME=swdMysql
 
 # liste auf, ob unsere Datenbank und unsere Tabelle "studentsMySQL" gefunden werden
-sqoop-list-databases --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}  --username $MYSQL_USER --password ${MYSQL_PASSWD}
-sqoop-list-tables --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME} --username $MYSQL_USER --password ${MYSQL_PASSWD}
+sqoop-list-databases --connect jdbc:mysql://localhost:${MYSQL_PORT}  --username $MYSQL_USER --password ${MYSQL_PASSWD}
+sqoop-list-tables --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME} --username $MYSQL_USER --password ${MYSQL_PASSWD}
 
 # Exportiere Daten von Sqoop nach MySQL (ist eher nicht der übliche Anwendungszweck), aber auch möglich
 # -m 1 ... Anzahl an Mappern, hier derzeit immer 1
-sqoop export --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME}  \
+sqoop export --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  \
    --table studentsMySQL --username $MYSQL_USER --password ${MYSQL_PASSWD}  \
    --export-dir /user/hive/warehouse/fh.db/students --num-mappers 1  \
    --driver com.mysql.cj.jdbc.Driver  --input-fields-terminated-by ',' \
    --input-lines-terminated-by '\n' --bindir /usr/local/hadoop/share/hadoop/common/lib
 
 # prüfen in mySQL, ob die Daten vorhanden sind...
-mysql --ssl=FALSE -u $MYSQL_USER -D $DATABASE_NAME -h $MYSQL_HOST -P 13306 --password=$MYSQL_PASS <<EOF
+sudo docker exec -i --tty=false -u mysql ${DOCKER_CONTAINERNAME} /bin/bash <<EOF
+mysql -u $MYSQL_USER -p${MYSQL_PASSWD} <<!
 use $DATABASE_NAME;
 SELECT * FROM studentsMySQL LIMIT 10;
+!
 EOF
 
 # die andere Richtung am besten testen, indem eine 2. Tabelle in Hive angelegt wird
@@ -115,7 +124,7 @@ hdfs dfs -rm -R /user/hduser/studentsMySQL 2>/dev/null
 # !!! Wenn wir mySQL als Metadatenbank verwenden, dann ist dies nicht nötig !!!
 # kill $(ps aux | grep hiveserver2 | grep -v grep | awk '{ print $2}')
 
-sqoop import --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
+sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
    --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --hive-import --hive-database fh \
    --hive-table studentsFromMySQL --hive-overwrite --num-mappers 1  \
    --bindir /usr/local/hadoop/share/hadoop/common/lib
@@ -124,7 +133,7 @@ sqoop import --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME}
 # Dann müsste man jedoch die Tabelle StudentsFromFile neu definieren als "external table" (diese erlauben keine Constraints)
 
 # scheinbar muss man hier --query statt --table angeben, damit hier mit delimitern exportiert wird
-sqoop import --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
+sqoop import --connect jdbc:mysql://localhost:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
    --query "SELECT * FROM studentsMySQL WHERE \$CONDITIONS" --split-by , --driver com.mysql.cj.jdbc.Driver \
    --target-dir /user/hduser/studentsFromFile --fields-terminated-by , --as-textfile \
    --num-mappers 1 --bindir /usr/local/hadoop/share/hadoop/common/lib
