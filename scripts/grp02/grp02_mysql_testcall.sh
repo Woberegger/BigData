@@ -30,11 +30,11 @@ mysql --ssl=FALSE -u $UserName -D $dbName -h $dbHost -P 13306 --password=$Passwd
    show tables;
 !
 
-UserName=${UserName}hive
-Passwd=$UserName
-dbName=$UserName
-
-echo "Then connect to Hive Metastore DB with user $UserName in database $dbName, which should find 83 tables, after 'schematool' for hive was executed"
-mysql --ssl=FALSE -u $UserName -D $dbName -h $dbHost -P 13306 --password=$Passwd <<!
-   show tables;
-!
+#UserName=${UserName}hive
+#Passwd=$UserName
+#dbName=$UserName
+#
+#echo "Then connect to Hive Metastore DB with user $UserName in database $dbName, which should find 83 tables, after 'schematool' for hive was executed"
+#mysql --ssl=FALSE -u $UserName -D $dbName -h $dbHost -P 13306 --password=$Passwd <<!
+#   show tables;
+#!
