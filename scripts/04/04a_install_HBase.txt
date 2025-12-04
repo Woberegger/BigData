@@ -93,7 +93,6 @@ EOF
 #Testen von HBase
 #1.) Hadoop starten
 start-dfs.sh
-start-yarn.sh
 
 #mit jps testen, ob Hadoop erfolgreich gestartet
 

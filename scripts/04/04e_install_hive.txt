@@ -40,7 +40,6 @@ git pull
 # start HADOOP, if not running yet
 
 start-dfs.sh
-start-yarn.sh
 
 # create directories for Hive
 # if you see errors in $HADOOP_HOME/logs, if your Virtual disk is too small, in that case you should execute the following
