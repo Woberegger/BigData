@@ -36,7 +36,6 @@ export HADOOP_COMMON_HOME=/usr/local/hadoop
 export HADOOP_MAPRED_HOME=/usr/local/hadoop/share/hadoop/mapreduce
 export HBASE_HOME=/usr/local/HBase
 export HIVE_HOME=/usr/local/hive
--Dlog4j2.disable.jmx=true
 !
 
 # notwendig, andernfalls passiert beim Datenladen eine Warnung
