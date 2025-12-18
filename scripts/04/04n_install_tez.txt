@@ -113,8 +113,11 @@ cp tez-default-template.xml tez-site.xml
      <value>http://namenode:9001</value>
   </property>
 
-# danach DFS und YARN neu starten:
-stop-yarn.sh; stop-dfs.sh; start-dfs.sh; start-yarn.sh
+# lege die Verzeichnisse an, die für temporäre Dateien benötigt werden
+mkdir /tmp/hive-jars /tmp/hive-user
+# danach DFS und YARN neu starten (wenn wir hdfs im local mode betreiben, ist nur dfs start/stop nötig):
+stop-dfs.sh; start-dfs.sh
+#stop-yarn.sh; start-yarn.sh
 
 # Prüfen, ob das korrekt ist oder um andere HADOOP-Pfade wie $HADOOP_HOME/share/hadoop/common/lib bzw. HBASE_HOME/lib zu ergänzen wäre...
 #cat >> ${HIVE_HOME}/conf/hive-env.sh <<!
@@ -148,15 +151,19 @@ wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-runner/${JETTY_VERSI
 # Starte Webserver im Hintergrund - Port kann frei gewählt werden, auf Firewall-Rules achten
 java -jar $(ls jetty-runner*.jar) --port 8089 tez-ui-${TEZ_VERSION}.war &
 
+# ebenso Hive-Server neu starten
+pkill -f HiveServer2
+hive --service hiveserver2 --hiveconf hive.server2.thrift.port=10000 &
+
 # derzeit funktioniert das bei mir noch nicht, man sollte als ersten Schritt mal den Wordcount Job testen
 # entweder eigene Version mit Tez von z.B. https://github.com/apache/tez/blob/master/tez-examples/src/main/java/org/apache/tez/examples/WordCount.java runterladen
 # oder googeln, wie man Yarn dazu bekommt, dass er folgendes mit tez ausführt
 hadoop jar Hadoopwordcount.jar /input/Bibel.txt /output/Bibel.tez/
 
-# und wenn das funktioniert, die Anleitung zum Tez-Job in 04f_hive_commands.txt ausführen und danach nochmals in tez-Variante
+# und wenn das funktioniert, die Anleitung zum Tez-Job in 04l_hive_commands_part2.txt ausführen und danach nochmals in tez-Variante
 
 beeline --verbose -u jdbc:hive2://localhost:10000 scott tiger
-   -- important: use tez as execution engine for complex queries
+   -- important: use tez as execution engine for complex queries (when already set in hive-site.xml, this is not necessary)
    set hive.execution.engine=tez;
    set hive.metastore.warehouse.dir;
    show databases;
