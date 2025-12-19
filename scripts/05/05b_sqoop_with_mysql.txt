@@ -83,7 +83,7 @@ sqoop export --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME}
    --input-lines-terminated-by '\n' --bindir /usr/local/hadoop/share/hadoop/common/lib
 
 # prüfen in mySQL, ob die Daten vorhanden sind...
-mysql --ssl=FALSE -u $MYSQL_USER -D $DATABASE_NAME -h $MYSQL_HOST -P 13306 --password=$MYSQL_PASS <<EOF
+mysql --ssl=FALSE -u $MYSQL_USER -D $DATABASE_NAME -h $MYSQL_HOST -P 13306 --password=$MYSQL_PASSWD <<EOF
 use $DATABASE_NAME;
 SELECT * FROM studentsMySQL LIMIT 10;
 EOF
