@@ -1,9 +1,10 @@
 sudo -s
 cd /usr/local
 export SPARK_VERSION=3.5.3
-wget https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz
+wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz
 tar -xzf spark-${SPARK_VERSION}-bin-hadoop3.tgz
 ln -s spark-${SPARK_VERSION}-bin-hadoop3 spark
+rm spark-${SPARK_VERSION}-bin-hadoop3.tgz # to save space
 chown -R hduser:hadoop spark*
 # am einfachsten ist wohl, Spark Commandos in Python zu erstellen, daher wird pipx als Python-Paketverwaltung installiert
 apt install pipx
@@ -19,7 +20,9 @@ export PATH=\$PATH:\$HOME/.local/bin:\$SPARK_HOME/bin
 source ~/.bashrc
 
 # und dann zum Test eine netcat-Applikation
-# siehe https://spark.apache.org/docs/3.5.3/streaming-programming-guide.html#a-quick-example
+SPARK_VERSION=3.5.3
+siehe https://archive.apache.org/dist/spark/docs/${SPARK_VERSION}/streaming-programming-guide.html#a-quick-example
+#
 export SPARK_LOCAL_IP=127.0.0.1
 cd ~/BigData
 git pull
