@@ -38,23 +38,16 @@ cd ~/BigData
 git pull
 
 # start HADOOP, if not running yet
-
 start-dfs.sh
 
 # create directories for Hive
-# if you see errors in $HADOOP_HOME/logs, if your Virtual disk is too small, in that case you should execute the following
-#LC_ALL=C
-#growpart /dev/sda1
-#resize2fs /dev/sda1
-#hdfs dfsadmin -safemode leave|enter
 
-hdfs dfs -mkdir -p /tmp
+hdfs dfs -mkdir -p /tmp/hive-jars
+hdfs dfs -mkdir -p /user/hduser/.hiveJars
 hdfs dfs -mkdir -p /user/hive/warehouse
 hdfs dfs -mkdir -p /user/hduser/hive_external
 # normalerweise reicht ein "g+w", aber wenn hive Connect als "anonymous" passiert, müssen Rechte a+w sein
-hdfs dfs -chmod a+w /tmp
-hdfs dfs -chmod a+w /user/hive/warehouse
-hdfs dfs -chmod a+w /user/hduser/hive_external
+hdfs dfs -chmod a+w /tmp /tmp/hive-jars /user/hive/warehouse /user/hduser/hive_external /user/hduser/.hiveJars
 
 # adapt hive-site.xml (take care to not copy a config file from a different version, as they might not be compatible)
 
