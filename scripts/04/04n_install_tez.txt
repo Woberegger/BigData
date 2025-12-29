@@ -68,10 +68,6 @@ hdfs dfs -put share/tez.tar.gz /apps/tez-${TEZ_VERSION}/
 </property>
 <!--settings for Tez local mode -->
 <property>
-  <name>fs.default.name</name>
-  <value>file:///</value>
-</property>
-<property>
   <name>tez.local.mode</name>
   <value>true</value>
 </property>
