@@ -34,7 +34,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("Usage: network_wordcount.py <hostname> <port>", file=sys.stderr)
         sys.exit(-1)
-    sc = SparkContext(appName="PythonStreamingNetworkWordCount")
+    sc = SparkContext(master="local[2]", appName="PythonStreamingNetworkWordCount")
     ssc = StreamingContext(sc, 1)
 
     lines = ssc.socketTextStream(sys.argv[1], int(sys.argv[2]))
