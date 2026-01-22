@@ -1,19 +1,53 @@
-# mit diesem Script werden zuerst die nötigen Programme installiert, um innerhalb von WSL2 Docker-Container zu verwenden
-# docker in WSL aktivieren
+# BigData01 - prepare docker in WSL
+
+This script first installs the necessary programs to use Docker containers inside WSL2
+
+Enable Docker in WSL
+
+```bash
 apt-get update
-apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 apt-get update
 apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose make
-# Starten des Docker Services
-service docker start
-# Folgendes Kommando sollte dann funktionieren, jedoch noch nichts finden, da wir noch keine Container installiert haben
-docker ps -a
-# das Image und das Download-Command sowie Config-Anleitung findet man under https://hub.docker.com/search?q=nginx
-# Testweise installieren wir nginx webserver, dann sehen wir auch gleich, ob Ports vom container auf dem Host verwendet werden können
-docker pull nginx # lädt rund 48GB runter und erzeugt image mit 188MB, also nicht allzu groß - wir können es aber später löschen
-# vorher eventuell über "netstat -an" unter Windows prüfen, welche Ports durch sonstige Tools und Container belegt sind, 8080 ist oft belegt, daher habe ich 8081 verwendet
-docker run --name nginx -d -p 8081:80 nginx
+```
 
-# und dann bitte im Browser im Windows folgende Zeile eingeben, es sollte "Welcome to nginx!" anzeigen
-# http://localhost:8081/
+Start the Docker service
+
+```bash
+service docker start
+```
+
+The following command should then work, but will find nothing yet because we haven't installed any containers
+
+```bash
+docker ps -a
+```
+
+The image, the download command and configuration instructions can be found at [](https://hub.docker.com/search?q=nginx)
+
+As a test we install the nginx webserver so we can immediately see whether ports from the container can be used on the host
+
+```bash
+docker pull nginx
+```
+
+downloads around 48MB and creates an image of 188MB, so not too big - we can anyway delete it later
+
+Optionally check beforehand using
+```bash
+netstat -an
+```
+on Windows, which ports are occupied by other tools and containers; 8080 is often in use, so I used 8081
+
+```bash
+docker run --name nginx -d -p 8081:80 nginx
+```
+
+Then please enter the following line in the browser on Windows; it should display
+>"Welcome to nginx!"
+
+[](http://localhost:8081/)
+
+If this works, the Docker installation in WSL2 is successful and we can continue with the other exercises.
