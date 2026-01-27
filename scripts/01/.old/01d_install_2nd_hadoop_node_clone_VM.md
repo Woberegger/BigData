@@ -1,52 +1,79 @@
-## Anleitung, um einen 2. oder 3. Knoten aufzusetzen, die als reine Datanodes, d.h. Rechenknechte, dienen.
-# In virtualbox/VmWare am besten Snapshot erstellen und klonen (linked Clone, da kaum Speicher drauf geht) und dann am besten ein internes Netzwerk mit fixen IPs anlegen
-# die Anleitung beschreibt das Aufsetzen eines 2. Knotens mit Hostnamen "UbuntuBigDataNode1"
+# BigData01 - set up 2nd Hadoop node by cloning VM
 
-# WICHTIG: in dem Fall sollen auf diesem Knoten nur die Prozesse "DataNode" und "NodeManager" laufen, die alle vom PRIMÄREN Knoten über start_dfs.sh
-#          bzw. start_yarn.sh mitgestartet werden! Auf keinen Fall auf den geklonten Nodes die Prozesse starten (Autostartscript gegebenenfalls löschen)
+## Guide to set up a 2nd or 3rd node to serve as pure DataNodes (i.e. worker nodes)
 
-# auf DataNode: wir müssen einen anderen hostnamen vergeben, ein Aufruf von "hostname" allein reicht nicht.
+In VirtualBox/VMware it's best to create a snapshot and clone (linked clone to save space) and then create an internal network with fixed IPs.  
+This guide describes setting up a 2nd node with the hostname `UbuntuBigDataNode1`.
+
+**IMPORTANT:** On this node only the `DataNode` and `NodeManager` processes should run;
+they are started from the PRIMARY node via `start-dfs.sh` and `start-yarn.sh`.
+Do not start those processes on the cloned nodes (remove autostart scripts if present).
+
+On DataNode: we must assign a different hostname - calling `hostname` alone is not sufficient.
+
+```bash
 hostname UbuntuBigDataNode1
 echo "UbuntuBigDataNode1" >/etc/hostname
+```
 
-# auf NameNode und Datanode:
+On NameNode and DataNode:
+
+```bash
 sudo -s
 cat >>/etc/hosts <<!
 10.0.3.15 master namenode UbuntuBigData
 10.0.3.16 UbuntuBigDataNode1 datanode1
 !
+```
 
-# auf DataNode: normalerweise sollten die keys existieren, weil eben die Maschinen geklont wurden, andernfalls wechselseitig austauschen
+On DataNode: normally the SSH keys should exist because the machines were cloned;
+otherwise exchange them manually.
+
+```bash
 ssh-keygen -t rsa -P ""
 ssh-copy-id -i ~/.ssh/id_rsa.pub hduser@namenode
-# einmalig einloggen, um Abfrage wegzubekommen
+```
+
+Log in once to get rid of the prompt:
+
+```bash
 ssh hduser@namenode
+```
 
-# auf allen Nodes:
-#### for cluster zusätzliche config in yarn-site.xml ("UbuntuBigData" ist der Hostname, den mit dem Wert des Ressource Manager Hosts ersetzen):
-	<property>
-		<name>yarn.resourcemanager.resource-tracker.address</name>
-		<value>UbuntuBigData:8031</value>
-	</property>
-	<property>
-		<name>yarn.resourcemanager.scheduler.address</name>
-		<value>UbuntuBigData:8030</value>
-	</property>
-	<property>
-		<name>yarn.resourcemanager.address</name>
-		<value>UbuntuBigData:8032</value>
-	</property>
-## in hdfs-site.xml den Wert für dfs.replication auf 2 erhöhen
+On all nodes:
 
-# auf Namenode: und dem master alle workers bekanntmachen
-cat >$HADOOP_HOME/etc/hadoop/workers <<!
+For the cluster add the following configuration to `yarn-site.xml` (replace `UbuntuBigData` with the ResourceManager host):
+
+```vim
+ <property>
+  <name>yarn.resourcemanager.resource-tracker.address</name>
+  <value>UbuntuBigData:8031</value>
+ </property>
+ <property>
+  <name>yarn.resourcemanager.scheduler.address</name>
+  <value>UbuntuBigData:8030</value>
+ </property>
+ <property>
+  <name>yarn.resourcemanager.address</name>
+  <value>UbuntuBigData:8032</value>
+ </property>
+```
+
+In `hdfs-site.xml` set the value for `dfs.replication` to 2
+
+On NameNode: make the master aware of all workers
+
+```bash
+cat >`$HADOOP_HOME`/etc/hadoop/workers <<!
 namenode
 datanode1
 !
-echo "namenode" >$HADOOP_HOME/etc/hadoop/masters
+echo "namenode" >`$HADOOP_HOME`/etc/hadoop/masters
+```
 
-# auf allen Nodes:
-# und damit Dateien doppelt abgelegt werden, sollte man in hdfs-site.xml die Variable dfs.replication auf Wert 2 setzen
+On all nodes: to ensure files are stored twice, set `dfs.replication` to `2` in `hdfs-site.xml`:
+
+```vim
 <configuration>
         <property>
                 <name>dfs.replication</name>
@@ -65,30 +92,40 @@ echo "namenode" >$HADOOP_HOME/etc/hadoop/masters
                 <value>file:/usr/local/hadoop/hadoopdata/hdfs/datanode</value>
         </property>
 </configuration>
+```
 
-### auf NameNode: Test call	
+On NameNode: test call
 
-## NUR auf NameNode: Hadoop starten (als hduser) - auf den anderen Nodes sollte das autom. per pdsh mitgestartet werden.
+ONLY on NameNode: start Hadoop (as `hduser`) — on the other nodes it should be started automatically via `pdsh`.
+
+```bash
 start-dfs.sh
 start-yarn.sh
+```
 
-# erwartete Ausgabe des "jps" Kommandos auf den datanodes
+Expected output of the `jps` command on the datanodes:
+
+```bash
 jps
-#13076 DataNode --> wird über start-dfs.sh auf allen anderen Knoten mitgestartet
-#13401 Jps
-#13293 NodeManager --> wird über start-yarn.sh auf allen anderen Knoten mitgestartet
+```
 
+>13076 DataNode # started on other nodes via `start-dfs.sh`  
+>13401 Jps  
+>13293 NodeManager # started on other nodes via `start-yarn.sh`
 
-# das folgende erstellt HDFS-Verzeichnis und eine Datei   
+The following creates an HDFS directory and uploads a file:
+
+```bash
 hdfs dfs -mkdir -p /user/hduser/data
 hdfs dfs -put <myTestfile> /user/hduser/data
+```
 
-# im Browser im Folgenden Pfad zu finden - bitte prüfen, ob der "Replication" Wert dem Wert 2 entspricht
-firefox -new-tab http://localhost:9870/explorer.html#/user/hduser/data
+In the browser open the following path — please verify that the `Replication` value equals `2`:
+[](http://localhost:9870/explorer.html#/user/hduser/data)
 
-# Falls im Browser nur 1 aktiver Datanode zu sehen ist, dann in $HADOOP_HOME/logs nach Fehlermeldung suchen.
-# Meist ist einer der folgenden Gründe vorhanden:
-# 1. ssh-Key wurde nicht ausgetauscht --> Probieren von ssh-connect von namenode zu datanode und vice versa, beides sollte ohne Passwort funktionieren
-# 2. Namensauflösung passt nicht, "namenode" ist nicht konfiguriert
-# 3. Namenode lauscht nur auf localhost:9000, "telnet namenode 9000" funktioniert lokal aber nicht vom Datanode --> Alias "namenode" soll NICHT auf 127.0.0.1 zeigen!
-# 4. UID mismatch: Löschen von Daten auf Namenode: "rm -R /usr/local/hadoop/hadoopdata/*"
+If the browser shows only one active DataNode, check $HADOOP_HOME/logs for error messages. Common causes:
+
+- SSH key was not exchanged — test SSH from `namenode` to `datanode` and vice versa; both should work without a password.
+- Name resolution is incorrect — `namenode` is not configured.
+- NameNode is listening only on `localhost:9000` — `telnet namenode 9000` works locally but not from the DataNode. The alias `namenode` must NOT point to `127.0.0.1`.
+- UID mismatch: remove data on NameNode: `rm -R /usr/local/hadoop/hadoopdata/*`
