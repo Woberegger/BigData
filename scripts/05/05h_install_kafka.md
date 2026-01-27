@@ -20,6 +20,7 @@ start-hbase.sh
 netstat -an | grep 2181
 
 # eigenartigerweise funktioniert es nicht, wenn man $KAFKA_HOME/lib dazuhängt, daher besser komplett löschen, dann geht das
+# (weil scheinbar sonst Pfade von Flume verwendet werden mit Libraries, die nicht kompatibel sind)
 unset CLASSPATH
 $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties &
 
