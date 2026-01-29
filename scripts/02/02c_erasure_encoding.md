@@ -1,10 +1,15 @@
-# Zusatzaufgabe: Einstellen von Erasure Coding auf einem bestimmten Verzeichnis, nachdem dort einige sehr große Dateien abgelegt wurden. Was ändert sich am benötigten Space?
-# !!! ACHTUNG: Dies erfordert jedoch 3 Nodes Minimum (in 3 verschiedenen Racks), dass dies funktioniert!!!
-# siehe https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/RackAwareness.html
-# das Script in $NF funktioniert nur, wenn jeder Datanode eine eigene IP-Adresse bekommt, daher besser random-Wert
-cat >$HADOOP_HOME/bin/rack-topology.sh <<! 
+# BigData02 - Erasure Coding (voluntary task)
+
+Task: Configure Erasure Coding on a specific directory after placing some very large files there. <br>
+What changes can we find in the required HDD space?
+
+**IMPORTANT:** This requires at least 3 nodes (in 3 different racks) for this to work!
+
+Create the rack topology script `/usr/local/hadoop/bin/rack-topology.sh` with the following content:
+
+```bash
+cat >$HADOOP_HOME/bin/rack-topology.sh <<!
 #!/bin/bash
-# topology.sh - reads from a mapping file
 MAPFILE=\$HADOOP_CONF_DIR/topology.txt
 
 if [ -f \$MAPFILE ]; then
@@ -16,11 +21,13 @@ if [ -f \$MAPFILE ]; then
   done < \$MAPFILE
 fi
 
-# default
 echo "/dflt-rack"
 !
+```
 
-# scheinbar funktionieren hier nur IP-Adressen und keine Hostnamen. Also fügen wir eigene IP sowie die der beiden Datanodes ins Mappingfile ein
+Apparently only IP addresses work here and not hostnames. So we add our own IP and those of the two DataNodes into the mapping file.
+
+```bash
 MAPFILE=$HADOOP_CONF_DIR/topology.txt
 echo "$(hostname -I | cut -d' ' -f1) /rack0" >$MAPFILE
 echo "10.77.17.48 /rack1" >>$MAPFILE
@@ -29,44 +36,63 @@ echo "namenode /rack0" >>$MAPFILE
 echo "datanode1 /rack1" >>$MAPFILE
 echo "datanode2 /rack2" >>$MAPFILE
 
-
 chmod 755 $HADOOP_HOME/bin/rack-topology.sh
+```
 
-# Einfügen folgender Zeilen in core-site.xml
+Insert the following lines into `core-site.xml` (where to find the topology script):
+
+```vim
    <property>
       <name>net.topology.script.file.name</name>
       <value>/usr/local/hadoop/bin/rack-topology.sh</value>
    </property>
-# Danach hdfs neu starten
+```
+
+Then restart HDFS:
+
+```bash
 stop-dfs.sh
 start-dfs.sh
+```
 
+Print topology:
+
+```bash
 hdfs dfsadmin -printTopology
-# erwarteter Output
-#Rack: /rack0
-#   10.77.16.124:9866 (namenode) In Service
-#
-#Rack: /rack1
-#   10.77.17.48:50100 (datanode1) In Service
-#
-#Rack: /rack2
-#   10.77.18.25:50100 (datanode2) In Service
+```
 
+Expected output as shown below (IP addresses will vary):
 
-# Danach sollte es möglich sein, ein neues Verzeichnis anzulegen und dort die Policy zu ändern und zu überprüfen
+>Rack: /rack0<br>  
+>10.77.16.124:9866 (namenode) In Service<br>
+><br>
+>Rack: /rack1  <br>
+>10.77.17.48:50100 (datanode1) In Service<br>
+><br>
+>Rack: /rack2  <br>
+>10.77.18.25:50100 (datanode2) In Service<br>
 
-hdfs ec -listPolicies # welche Policies gibt es, wähle diejenige aus, die mit den wenigsten Datanodes auskommt (z.B. XOR-2-1-1024k)
+After that it should be possible to create a new directory and change/check the policy there.
+
+```bash
+hdfs ec -listPolicies
 hdfs ec -enablePolicy -policy <PolicyName>
 
 hdfs dfs -mkdir /ErasureCoding
 hdfs ec -setPolicy -path /ErasureCoding -policy <PolicyName>
+```
 
-# nachdem man eine grosse Datei reingestellt hat (1x in ein "normales" Verzeichnis und danach in ein ErasureCoding Verzeichnis,
-# sollte man diese über die Webseite ansehen.
-# Man sieht Replikationsfaktor 1, aber dennoch jeden Block auf allen 3 Datanodes
+After placing a large file there (once in a "normal" directory and then in an ErasureCoding directory), view it via the web UI.
+You will see replication factor 1 but still each block on all 3 DataNodes.
 
-# Der Anwachs der Größe ist eher schwierig, da müsste man davor und danach folgendes Kommando ausführen - es sollte nur um 50% der Dateigröße gewachsen sein:
+The growth of used space is somewhat tricky to measure; run the following before and after —
+it should only have grown by about 50% of the file size:
+
+```bash
 du -d1 /mnt/node1data/
+```
 
-# die folgende Warnung kann man ignorieren, es funktioniert trotzdem:
-# WARN erasurecode.ErasureCodeNative: Loading ISA-L failed: Failed to load libisal.so.2 (libisal.so.2: cannot open shared object file: No such file or directory)
+The following warning can be ignored - it should work nevertheless:
+
+>WARN erasurecode.ErasureCodeNative: Loading ISA-L failed: Failed to load libisal.so.2<br>
+> (libisal.so.2: cannot open shared object file: No such file or directory)

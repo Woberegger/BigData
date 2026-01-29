@@ -1,10 +1,15 @@
-# Zusatzaufgabe:
-# suche Möglichkeit, hdfs-Filesysteme z.B. in NFS zu mounten (Anleitung unter https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsNfsGateway.html)
-# oder per fuse über https://cwiki.apache.org/confluence/display/HADOOP2/MountableHDFS
+# BigData02 - HDFS NFS Mount (voluntary task)
 
-# folgende Anleitung sollte funktionieren, ev. mit "systemctl status rpcbind" oder "rpcinfo -p $(hostname)" Status abfragen
-# zuerst sind folgende Einträge in die Konfiguration einzutragen (möglichst offen für alle connects, um es einfach zu machen), danach dfs neu zu starten
+search for a possibility to mount hdfs filesystems e.g. in NFS<br>
+(instructions at [](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsNfsGateway.html)<br>
+or by using fuse as described under [](https://cwiki.apache.org/confluence/display/HADOOP2/MountableHDFS)
+
+the following howto was tested on openstack platform:
+
+the changes in the xml configuration files widely allow call connects (in a productive environment these should be restricted to specific hosts and groups)
+
 a) in core-site.xml
+```vim
 	<property>
 	  <name>hadoop.proxyuser.hduser.groups</name>
 	  <value>*</value>
@@ -21,9 +26,10 @@ a) in core-site.xml
 	  <name>hadoop.proxyuser.root.hosts</name>
 	  <value>*</value>
 	</property>
+```
 
 b) in hdfs-site.xml:
-
+```vim
 	<property>
 	  <name>dfs.namenode.accesstime.precision</name>
 	  <value>3600000</value>
@@ -44,21 +50,41 @@ b) in hdfs-site.xml:
 	  <name>nfs.port.monitoring.disabled</name>
 	  <value>false</value>
 	</property>
+```
 
+then install rpcbind and nfs-common packages, start rpcbind and nfs-common services
+```bash
 sudo apt install -y rpcbind
-sudo systemctl start rpcbind # sudo /etc/init.d/rpcbind start # (in WSL)
+sudo systemctl start rpcbind
 sudo apt install -y nfs-common
-sudo /etc/init.d/nfs-common start #(nötig in WSL)
-su - hduser
-   stop-dfs.sh
-   start-dfs.sh
-   hdfs --daemon start nfs3 # oder im Vordergrund über "hdfs nfs3" (vor allem, wenn folgendes jps Kommando keinen laufenden Prozess findet, sieht man hier die Fehlerausgabe)
-   jps | grep Nfs3 
+sudo /etc/init.d/nfs-common start
+rpcinfo -p $(hostname)
+```
 
+then restart hdfs, it should additionally start the nfs3 daemon
+```bash
+su - hduser
+stop-dfs.sh
+start-dfs.sh
+hdfs --daemon start nfs3
+```
+
+or optionally start in foreground using call "hdfs nfs3"
+(especially if the following call does not find anything, the start in the foreground will show the error output)
+```bash
+jps | grep Nfs3
+```
+
+finally mount the hdfs via nfs on the local machine
+```bash
 sudo mkdir /mnt/hdfs
 sudo mount -t nfs -o vers=3,proto=tcp,nolock,noacl,sync localhost:/ /mnt/hdfs
+```
 
-# dann sollte man Inhalte des HDFS im normalen Filesystem sehen (z.B. rekursiv das ganze HDFS-Filesystem)
-ls -lsR /mnt/hdfs 
+and you should be able to see the hdfs content there, e.g. recursively list the whole hdfs filesystem
+
+```bash
+ls -lsR /mnt/hdfs
+```
 
 
