@@ -156,7 +156,7 @@ hive --service hiveserver2 --hiveconf hive.server2.thrift.port=10000 &
 # oder googeln, wie man Yarn dazu bekommt, dass er folgendes mit tez ausführt
 hadoop jar Hadoopwordcount.jar /input/Bibel.txt /output/Bibel.tez/
 
-# und wenn das funktioniert, die Anleitung zum Tez-Job in 04l_hive_commands_part2.txt ausführen und danach nochmals in tez-Variante
+# und wenn das funktioniert, die Anleitung zum Tez-Job in 04l_hive_commands_part2.md ausführen und danach nochmals in tez-Variante
 
 beeline --verbose -u jdbc:hive2://localhost:10000 scott tiger
    -- important: use tez as execution engine for complex queries (when already set in hive-site.xml, this is not necessary)

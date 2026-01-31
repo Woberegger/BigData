@@ -13,4 +13,4 @@ hdfs dfs -put ~/BigData/data/sales_data.csv /user/hduser/hive_external/sales/
 # das sollte ja bereits existieren von anderen Tests
 #hdfs dfs -put ~/BigData/data/Bibel.txt /input
 
-### in weiterer Session die Kommandos lt. 04l_hive_commands_part2.txt eingeben ###
+### in weiterer Session die Kommandos lt. 04l_hive_commands_part2.md eingeben ###

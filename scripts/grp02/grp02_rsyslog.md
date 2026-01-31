@@ -61,7 +61,7 @@ logger 'testcall from client' && tail -n1 /var/log/syslog
 # danach ist das dann umzubauen, dass anstelle von Logger auf hive oder hdfs geschrieben wird
 # wegen der nötigen Parameter für Hive schaue https://community.cloudera.com/t5/Community-Articles/HiveSink-for-Flume/ta-p/245584 als Beispiel an
 # Eine einfachere Möglichkeit wäre, das einfach ins hdfs zu schreiben und dann das generierte File ähnlich wie File Bibel.txt in Script
-# 04_hive_commands.txt einzulesen und dann auszuwerten. Das folgende Beispiel schreibt Daten ins hdfs
+# 04_hive_commands.md einzulesen und dann auszuwerten. Das folgende Beispiel schreibt Daten ins hdfs
 
 hdfs dfs -mkdir -p hdfs://namenode:9000/user/hduser/syslog/
 

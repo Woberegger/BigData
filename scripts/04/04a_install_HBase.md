@@ -145,7 +145,7 @@ hbase shell
 # Befehl "status" sollte eine Ausgabe wie die folgende liefern
 # 1 active master, 0 backup masters, 1 servers, 0 dead, 3.0000 average load
 
-# Inhalt von 04b_HBase_Shell_commands.txt und 04c_HBase_Shell_split_table.txt ausführen
+# Inhalt von 04b_HBase_Shell_commands.md und 04c_HBase_Shell_split_table.md ausführen
 # Cheat Sheet für HBase shell commands z.B. unter https://sparkbyexamples.com/hbase/hbase-shell-commands-cheat-sheet/
 
 #6.) nach dem Anlegen der Tabellen sollten die auch in folgender Web-GUI sichtbar sein
@@ -159,7 +159,7 @@ Optionen:
 #   (Achtung: Die Numerierung im pdf ist um Wert 14 höher als die Seitenanzahl im Buch also, geht zu Seite 216 zur Anzeige von Seite 202)
 # "Big Data in der Praxis mit Hadoop" BigDataInderPraxis_Auflage1.pdf
 
-# Zum Laden in die Tabelle "peoples" bitte Datei ~/BigData/data/people.csv und script 04d_HBase_import.txt verwenden
+# Zum Laden in die Tabelle "peoples" bitte Datei ~/BigData/data/people.csv und script 04d_HBase_import.md verwenden
 
 # Wenn man gerade beim Datenladen einen Fehler wie den Folgenden bekommt, dann bitte mit "netstat -an | grep 16020" prüfen, ob der Regionserver nicht auf localhost nur lauscht
 # Einträge in /etc/hosts und in File "regionservers" kontrollieren.

@@ -47,4 +47,4 @@ sqoop version
 
 
 
-# bitte weitermachen mit script 05b_sqoop_with_mysql.txt
+# bitte weitermachen mit script 05b_sqoop_with_mysql.md

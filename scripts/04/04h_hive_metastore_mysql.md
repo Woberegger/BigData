@@ -19,7 +19,7 @@ netstat -an | grep 10000
 echo 'export HADOOP_CLIENT_OPTS="-Dhive.root.logger=console"' >$HIVE_HOME/conf/hive-env.sh
 
 # nach dem Starten des Hive-Servers, sollte der Status auch in folgender Web-GUI sichtbar sein
-# später nach dem Ausführen der ersten Kommandos über 04l_hive_commands_part2.txt scripts sieht man auch die Kommandohistorie
+# später nach dem Ausführen der ersten Kommandos über 04l_hive_commands_part2.md scripts sieht man auch die Kommandohistorie
 "%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://<nameNodeIP>:10002
 
 # !!! die folgenden Dinge besser in neuer Session eingeben, da sonst eventuelle Ausgaben von Hiveserver im Hintergrund verwirren !!!
@@ -32,4 +32,4 @@ beeline --verbose
 # Wenn obiges Prompt o.k. aussieht und nicht "closed" meldet, dann schaut Installation gut aus und man kann mal testweise Objekte anlegen 
 # mit "<Ctrl>c" verlässt man die beeline shell
 
-# weiter mit Script 04k_hive_commands_part1.txt
+# weiter mit Script 04k_hive_commands_part1.md

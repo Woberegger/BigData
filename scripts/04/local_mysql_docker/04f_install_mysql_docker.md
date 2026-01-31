@@ -27,4 +27,4 @@ mysql -u root -pmy-secret-pw <<!
 !
 EOF
 
-# weiter mit Script 04h_hive_metastore_local_mysql.txt
+# weiter mit Script 04h_hive_metastore_local_mysql.md

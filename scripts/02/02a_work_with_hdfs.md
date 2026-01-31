@@ -85,6 +85,6 @@ hdfs dfs -put ~/BigData/data/airline_delay_causes.csv /user/hduser/testdir/copy2
 
 ### put: Cannot create file/user/hduser/data/airline_delay_causes.csv._COPYING_. Name node is in safe mode. ###
 
-# optionale Zusatzaufgabe (für Zusatzpunkte) siehe Datei 02c_erasure_encoding.txt
+# optionale Zusatzaufgabe (für Zusatzpunkte) siehe Datei 02c_erasure_encoding.md
 
-# optionale Zusatzaufgabe (für Zusatzpunkte) siehe Datei 02d_nfs_mount.txt
+# optionale Zusatzaufgabe (für Zusatzpunkte) siehe Datei 02d_nfs_mount.md
