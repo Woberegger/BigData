@@ -1,7 +1,16 @@
-# Installation von HBase, basierend auf vorheriger Installation von Hadoop
+# BigData04 - installation of HBase
+
+## Installation of HBase, based on previous installation of Hadoop
+
+we install it to the same directory as our other Hadoop components
+```bash
 sudo -s
 cd /usr/local
-# Achtung, wenn die neueste Version sich ändert, kann sein, dass die ältere von diesem Link nicht mehr downloadbar ist
+```
+
+**Caution:** if the latest version changes, it is possible that the older version from this link is no longer downloadable
+
+```bash
 export HBASE_VERSION=2.5.13
 wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz
 wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz.sha512
@@ -9,8 +18,12 @@ shasum -a 512 hbase-${HBASE_VERSION}-bin.tar.gz; cat hbase-${HBASE_VERSION}-bin.
 tar -xzf hbase-${HBASE_VERSION}-bin.tar.gz
 chown -R hduser:hadoop /usr/local/hbase-${HBASE_VERSION}
 ln -s /usr/local/hbase-${HBASE_VERSION} HBase
+```
 
-# all other actions shall be done as hduser
+All other actions shall be done as user `hduser`
+
+first adapt the local environment variables for the user `hduser` (e.g. in `~/.bashrc`)
+```bash
 su - hduser
 
 cat >>~/.bashrc <<!
@@ -20,35 +33,66 @@ export PATH=\$PATH:\$HBASE_HOME/bin
 !
 
 source ~/.bashrc
+```
 
-# Ändern der Dateien $HBASE_HOME/conf/hbase-env.sh und ${HBASE_HOME}/conf/regionservers
-# (am besten durch Ausgabeumleitung wie im Folgenden)
+Change the files `$HBASE_HOME/conf/hbase-env.sh` and `${HBASE_HOME}/conf/regionservers` (best done via output redirection as follows)
+
+```bash
 cd $HBASE_HOME/conf
 export SSH_PORT=22
-#in Datei $HBASE_HOME/conf/hbase-env.sh das JAVA_HOME korrekt setzen, z.B.:
+```
+
+Set JAVA_HOME correctly in file `$HBASE_HOME/conf/hbase-env.sh`, e.g.:
+
+```bash
 echo "export JAVA_HOME=/usr/lib/jvm/temurin-11-jdk-$(dpkg --print-architecture)" >>${HBASE_HOME}/conf/hbase-env.sh
-#im selben File auch den ssh-Port angeben, wenn dieser von 22 abweicht:
+```
+
+In the same file, also specify the ssh port if it differs from 22:
+
+```bash
 echo "export HBASE_SSH_OPTS=\"-p $SSH_PORT -l hduser\"" >>${HBASE_HOME}/conf/hbase-env.sh
+```
 
-# besser auch das Regionserver File konfigurieren, falls später weitere Nodes dazukommen
+It is better to also configure the regionserver file in case additional nodes are added later
+
+```bash
 echo "export HBASE_REGIONSERVERS=${HBASE_HOME}/conf/regionservers" >>${HBASE_HOME}/conf/hbase-env.sh
+```
 
-# hier das eintragen, das man als Hostnamen mit "hdfs getconf -confKey fs.defaultFS | cut -d':' -f2 | cut -c3-" rausbekommt (sollte "namenode" sein)
+Enter here what you get as hostname with `hdfs getconf -confKey fs.defaultFS | cut -d':' -f2 | cut -c3-` (should be "namenode")
+
+```bash
 echo $(hdfs getconf -confKey fs.defaultFS | cut -d':' -f2 | cut -c3-) >${HBASE_HOME}/conf/regionservers
-# Kontrolle des Eintrags
+```
+
+Check the entry
+
+```bash
 cat ${HBASE_HOME}/conf/regionservers
+```
 
-#Sicherungskopie von hbase-site.xml anlegen und dann bearbeiten
+Create backup copy of hbase-site.xml and then edit
+
+```bash
 cp -p hbase-site.xml hbase-site.xml.orig
+```
 
-#Eventuell für Angabe in hbase-site.xml die URL and Port von HDFS checken (für hbase.rootdir property):
+Possibly check the URL and port of HDFS (for hbase.rootdir property) before specifying in hbase-site.xml:
+
+```bash
 hdfs getconf -confKey fs.defaultFS
- 
-#Verzeichnis für zookeeper-Daten und logs anlegen (der Ordner "hadoop" gehört ohnehin bereits dem hduser)
+```
+
+Create directory for zookeeper data and logs (the "hadoop" folder already belongs to hduser anyway)
+
+```bash
 mkdir $HADOOP_HOME/zookeeper
+```
 
-# Ändern der Datei $HBASE_HOME/conf/hbase-site.xml (existierende Einträge können gelöscht werden)
+Change the file `$HBASE_HOME/conf/hbase-site.xml` (existing entries can be deleted)
 
+```bash
 cat >$HBASE_HOME/conf/hbase-site.xml <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
@@ -63,22 +107,20 @@ cat >$HBASE_HOME/conf/hbase-site.xml <<EOF
    </property>
    <property>
       <name>hbase.rootdir</name>
-      <value>hdfs://namenode:9000/hbase</value> <!-- Ausgabe von hdfs getconf -confKey fs.defaultFS + "/hbase" -->
+      <value>hdfs://namenode:9000/hbase</value>
    </property>
    <property>
       <name>hbase.zookeeper.property.dataDir</name>
-      <!--wie oben mit mkdir angelegt -->
       <value>/usr/local/hadoop/zookeeper</value>
-   </property>   
+   </property>
    <property>
      <name>hbase.cluster.distributed</name>
      <value>true</value>
    </property>
    <property>
      <name>hbase.wal.provider</name>
-  	  <value>filesystem</value>
+     <value>filesystem</value>
    </property>
-   <!-- necessary, when multiple regionservers are used -->
    <property>
      <name>hbase.zookeeper.quorum</name>
      <value>namenode</value>
@@ -89,87 +131,144 @@ cat >$HBASE_HOME/conf/hbase-site.xml <<EOF
    </property>
 </configuration>
 EOF
-   
-#Testen von HBase
-#1.) Hadoop starten
+```
+
+## start and low-level test HBase
+
+1) Start Hadoop
+
+```bash
 start-dfs.sh
+```
 
-#mit jps testen, ob Hadoop erfolgreich gestartet
+Test with jps whether Hadoop started successfully
 
-# damit Warnung "duplicate implementation von log4j" nicht aufpoppt:
+To avoid the warning "duplicate implementation of log4j":
+
+```bash
 mv $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar.duplicate
- 
-#2.) HBase starten
+```
+
+2) Start HBase
+
+```bash
 $HBASE_HOME/bin/start-hbase.sh
+```
 
-# möglicherweise gibt es Fehler beim Hochstarten wie folgt:
-#a) /usr/local/hadoop/libexec/hadoop-functions.sh: line 2369: HADOOP_ORG.APACHE.HADOOP.HBASE.UTIL.GETJAVAPROPERTY_USER: invalid variable name 
-# Lösung: setze Folgendes in hbase-env.sh: export HBASE_DISABLE_HADOOP_CLASSPATH_LOOKUP="true"
-#b) Fehler mit ssh:
-# Lösung in hbase-env.sh: export HBASE_SSH_OPTS="-p 22 -l hduser"
-#c) Fehler wie folgt:
-# HADOOP_ORG.APACHE.HADOOP.HBASE.UTIL.GETJAVAPROPERTY_USER: invalid variable name
-# Lösung: ersetze Datei $HADOOP_HOME/libexec/hadoop-functions.sh durch folgende Version https://github.com/Woberegger/BigData/blob/main/scripts/04/hadoop-functions.sh
-#d) Fehler beim Starten oder bei Kommando "hbase classpath"
-# Error: Could not find or load main class org.apache.hadoop.hbase.util.GetJavaProperty
-# Lösung: ln -s $HBASE_HOME/lib/hbase-server-2.5.6.jar $HADOOP_HOME/share/hadoop/common/
-#e) wenn z.B. Prozesse immer schreiben, dass sie jars nicht finden, probier mal den jeweiligen Daemon in der entspr. Reihenfolge lt. start-hbase.sh einzeln zu starten, beginnend mit zookeeper:
-# hbase-daemons.sh --config $HBASE_HOME/conf start zookeeper
-# danach die Ausgaben in $HBASE_HOME/logs betrachten, ob hier Fehler zu sehen sind
+### troubleshooting hbase errors
 
+There may be errors when starting up as follows:
+
+a) `/usr/local/hadoop/libexec/hadoop-functions.sh: line 2369: HADOOP_ORG.APACHE.HADOOP.HBASE.UTIL.GETJAVAPROPERTY_USER: invalid variable name`
+
+Solution: Set the following in hbase-env.sh: `export HBASE_DISABLE_HADOOP_CLASSPATH_LOOKUP="true"`
+
+b) Error with ssh:
+
+Solution in hbase-env.sh: `export HBASE_SSH_OPTS="-p 22 -l hduser"`
+
+c) Error as follows: `HADOOP_ORG.APACHE.HADOOP.HBASE.UTIL.GETJAVAPROPERTY_USER: invalid variable name`
+
+Solution: Replace file `$HADOOP_HOME/libexec/hadoop-functions.sh` with the following version [hadoop-functions.sh](https://github.com/Woberegger/BigData/blob/main/scripts/04/hadoop-functions.sh)
+
+d) Error when starting or with command `hbase classpath`
+
+Error: Could not find or load main class org.apache.hadoop.hbase.util.GetJavaProperty
+
+Solution:
+
+```bash
+ln -s $HBASE_HOME/lib/hbase-server-2.5.6.jar $HADOOP_HOME/share/hadoop/common/
+```
+
+e) If, for example, processes always write that they cannot find jars, try starting the respective daemon in the corresponding order according to start-hbase.sh individually, starting with zookeeper:
+
+```bash
+hbase-daemons.sh --config $HBASE_HOME/conf start zookeeper
+```
+
+Then check the output in `$HBASE_HOME/logs` to see if there are any errors
+
+```bash
 jps | sort -k2
-# sollte die folgenden zusätzlichen Prozesse finden:
-#6511 HMaster
-#6413 HQuorumPeer
-#6623 HRegionServer
+```
 
-#3.) Prüfen ob HBase Ordner in HDFS angelegt wurden
+Should find the following additional processes (of course, the process IDs will differ):
+> 6511 HMaster<br>
+> 6413 HQuorumPeer<br>
+> 6623 HRegionServer<br>
+
+3) Check whether HBase folder was created in HDFS
+
+```bash
 hdfs dfs -ls /hbase
+```
 
-# andernfall händisch anlegen über
+Otherwise create manually via
+
+```bash
 hdfs dfs -mkdir /hbase
+```
 
-# wenn man später mal die Übung von vorne beginnen will, reicht es, folgendes auszuführen:
-# stop-hbase.sh; hdfs dfs -rm -R /hbase; rm -Rf $HADOOP_HOME/zookeeper/*
+If you later want to start the exercise from the beginning, it is sufficient to execute the following:
 
-# wenn es Meldung gibt, dass Namenode im save mode ist, dann wie folgt verlassen
+```bash
+stop-hbase.sh; hdfs dfs -rm -R /hbase; rm -Rf $HADOOP_HOME/zookeeper/*
+```
+
+If there is a message that `namenode is in save mode`, then exit save mode as described below:
+
+```bash
 hdfs dfsadmin -safemode leave
- 
-#4.) check status in web browserstatus
-"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://<namenodeIP>:16010/master-status
-firefox -new-tab http://<namenodeIP>:16010/master-status
+```
 
-#5.) HBase Shell öffnen und einfache Tabellen mit Daten anlegen
+4) Check status in web browser [](http://<namenodeIP>:16010/master-status)
+
+5) Open HBase Shell and create simple tables with data
+
+```bash
 hbase shell
+```
 
-# Befehl "status" sollte eine Ausgabe wie die folgende liefern
-# 1 active master, 0 backup masters, 1 servers, 0 dead, 3.0000 average load
+The `status` command in hbase shell should provide output like the following:
+> 1 active master, 0 backup masters, 1 servers, 0 dead, 3.0000 average load
 
-# Inhalt von 04b_HBase_Shell_commands.md und 04c_HBase_Shell_split_table.md ausführen
-# Cheat Sheet für HBase shell commands z.B. unter https://sparkbyexamples.com/hbase/hbase-shell-commands-cheat-sheet/
+## Hbase table creation, selection etc.
 
-#6.) nach dem Anlegen der Tabellen sollten die auch in folgender Web-GUI sichtbar sein
-"%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab http://<namenodeIP>:16010/master-status#userTables
-firefox -new-tab http://<namenodeIP>:16010/master-status#userTables
+Execute contents of 04b_HBase_Shell_commands.md and 04c_HBase_Shell_split_table.md
 
-#################################
-Optionen:
+Cheat sheet for HBase shell commands e.g. at [HBase Shell Commands Cheat Sheet](https://sparkbyexamples.com/hbase/hbase-shell-commands-cheat-sheet/)
 
-#a) weitere Beispiele, z.B. Anzeigen, Zählen oder zum Laden von Daten ausprobieren: Siehe Buch Seiten 202-203,207-209
-#   (Achtung: Die Numerierung im pdf ist um Wert 14 höher als die Seitenanzahl im Buch also, geht zu Seite 216 zur Anzeige von Seite 202)
-# "Big Data in der Praxis mit Hadoop" BigDataInderPraxis_Auflage1.pdf
+6) After creating the tables, they should also be visible in the following web GUI [](http://<namenodeIP>:16010/master-status#userTables)
 
-# Zum Laden in die Tabelle "peoples" bitte Datei ~/BigData/data/people.csv und script 04d_HBase_import.md verwenden
+## Additional Options
 
-# Wenn man gerade beim Datenladen einen Fehler wie den Folgenden bekommt, dann bitte mit "netstat -an | grep 16020" prüfen, ob der Regionserver nicht auf localhost nur lauscht
-# Einträge in /etc/hosts und in File "regionservers" kontrollieren.
-# Connection refused: <hostname>/<ip>:16020
+a) Further examples, e.g., displaying, counting or trying to load data: See book pages 202-203, 207-209
 
-#b) Wenn man mehrere Regionserver ausprobieren will, muss man auf allen hbase installieren und folgende Datei um die anderen Server erweitern (und hbase services neu starten)
+(Note: The numbering in the pdf is 14 higher than the page count in the book, so go to page 216 to view page 202)
+
+> Big Data in der Praxis mit Hadoop" BigDataInderPraxis_Auflage1.pdf
+
+To batch-load into the "peoples" table, please use the file `~/BigData/data/people.csv` and script 04d_HBase_import.md
+
+If you get an error while loading data like the following, please check with `netstat -an | grep 16020` whether the regionserver is not just listening on localhost
+
+Check entries in `/etc/hosts` and in file "regionservers" if you see an error like the following:
+
+> Connection refused: \<hostname\>/\<ip\>:16020
+
+b) If you want to try multiple regionservers, you must install hbase on all and expand the following file with the other servers (and restart hbase services)
+
+```bash
 $HBASE_HOME/conf/regionservers
+```
 
-# und auf den jeweiligen Knoten dann folgendes ausführen
+And on the respective nodes then execute the following
+
+```bash
 $HBASE_HOME/bin/hbase-daemon.sh --config $HBASE_HOME/conf start regionserver
+```
 
-#c) Hbase analog zu HDFS in Autostart reinhängen und ebenso stoppen beim Runterfahren der VM (systemctl Script unter /etc/systemd/system anlegen)
-# siehe z.B. Anleitung unter https://blog.hartinger.net/ubuntu-server-autostart-eines-commands-einrichten/
+c) Hang Hbase analogously to HDFS in autostart and also stop when the VM shuts down (create systemctl script under `/etc/systemd/system`)
+
+See e.g. instructions at [Ubuntu Server Autostart](https://blog.hartinger.net/ubuntu-server-autostart-eines-commands-einrichten/)
