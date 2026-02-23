@@ -33,7 +33,8 @@ jps | sort -k2 | awk '{ print $2}'
 > NodeManager<br>
 > ResourceManager<br>
 
-Check with 'docker ps' whether the Docker containers are all running; you should find historyserver, resourcemanager, nodemanager, namenode and 3x datanode.
+Check with 'docker ps' whether the Docker containers are all running;<br>
+you should find historyserver, resourcemanager, nodemanager, namenode and 3x datanode.
 
 ```bash
 docker ps
@@ -51,6 +52,8 @@ It may be necessary to open the ports via `iptables` if they are not automatical
 iptables -I INPUT 1 -p tcp --dport 8088 -j ACCEPT
 iptables -I INPUT 1 -p tcp --dport 9870 -j ACCEPT
 ```
+
+## test word-count program
 
 Copy the word-count program into the container (better: the one we build in lecture 3).
 
@@ -88,17 +91,6 @@ hdfs dfs -rm -R /output/elquijote
 hadoop jar Hadoopwordcount.jar /input/el_quijote.txt /output/elquijote
 ```
 
-If the following exception occurs, the `HadoopWordCount.jar` was compiled with a newer Java version; the container has Java 8 installed:
-
-> Exception in thread "main" java.lang.UnsupportedClassVersionError: at/fhj/WordCount has been compiled by a more recent version<br>
-> of the Java Runtime (class file version 55.0), this version of the Java Runtime only recognizes class file versions up to 52.0
-
-
-If the following error occurs, connect in a second session to the ResourceManager and start it there.
-
-> INFO ipc.Client: Retrying connect to server: resourcemanager/172.19.0.3:8032. Already tried 9 time(s);<br>
-> retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
-
 ```bash
 docker exec -i --tty=false resourcemanager bash <<!
    \$HADOOP_HOME/bin/yarn --config \$HADOOP_CONF_DIR resourcemanager &
@@ -107,7 +99,7 @@ docker exec -i --tty=false resourcemanager bash <<!
 
 If the last line prints 'Job was successful', then everything likely worked.
 
-You can view the file content via [http://localhost:9870/explorer.html#/output/elquijote](http://localhost:9870/explorer.html#/output/elquijote) or faster:
+You can view the file content via [](http://localhost:<VM-IP>/explorer.html#/output/elquijote) or faster:
 
 ```bash
 hdfs dfs -get /output/elquijote/part-r-00000 /tmp/wordcountresult.txt
@@ -142,3 +134,17 @@ docker container rm nodemanager
 docker container rm resourcemanager
 docker container rm historyserver
 ```
+
+## Troubleshooting
+
+If the following exception occurs, the `HadoopWordCount.jar` was compiled with a newer Java version; the container has Java 8 installed:
+
+> Exception in thread "main" java.lang.UnsupportedClassVersionError: at/fhj/WordCount has been compiled by a more recent version<br>
+> of the Java Runtime (class file version 55.0), this version of the Java Runtime only recognizes class file versions up to 52.0
+
+
+If the following error occurs, connect in a second session to the ResourceManager and start it there.
+
+> INFO ipc.Client: Retrying connect to server: resourcemanager/172.19.0.3:8032. Already tried 9 time(s);<br>
+> retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+

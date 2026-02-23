@@ -6,7 +6,7 @@ or by using fuse as described under [](https://cwiki.apache.org/confluence/displ
 
 the following howto was tested on openstack platform:
 
-the changes in the xml configuration files widely allow call connects (in a productive environment these should be restricted to specific hosts and groups)
+the changes in the xml configuration files widely allow all connects (in a productive environment these should be restricted to specific hosts and groups)
 
 a) in core-site.xml
 ```vim

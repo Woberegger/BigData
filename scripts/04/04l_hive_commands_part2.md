@@ -1,18 +1,29 @@
-# auszuführen in neuer Session, nachdem in anderer Session "hiveserver" gestartet wurde
+# BigData04 - Hive commands
 
-# Abhängig davon, ob man Hiveserver oder HiveEmbedded verwendet, ist unterschiedlicher connect-String zu verwenden (bei Embedded Mode ist die Variable leer)
+## connect to beeline CLI and do necessary initializations
+to be executed in new session, after "hiveserver" has been started in another session
+
+depending on whether you use HiveServer or HiveEmbedded, you need to use a different connect string (in Embedded Mode the variable is empty)
+```bash
 export HIVE_CONNECT_STRING=localhost:10000
+```
 
-# Hive Session beenden durch <Ctrl>c.
-# Kommentare in beeline starten mit '--'
+> **IMPORTANT:**<br>
+> - Hive/Beeline Session can be ended by <Ctrl>c.<br>
+> - comments in beeline start with `--` (similar to SQL)
 
-# testweise Tabellen anlegen
+do the following only once to connect to beeline, the other blocks are the HiveQL commands:
+```bash
 beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger
    set hive.execution.engine=mr;
    set hive.metastore.warehouse.dir;
    show databases;
    use default;
-   -- testweise mal eine Tabelle anlegen
+```
+
+## Beeline commands
+create some tables for tests
+```sql
 CREATE TABLE IF NOT EXISTS default.employee (
    id int,
    name string,
@@ -23,17 +34,14 @@ CREATE TABLE IF NOT EXISTS default.employee (
    FIELDS TERMINATED BY ',';
    --
    show tables;
+```
 
-   -- HIVE Import & Join ---
-   -- man sieht auch schön, dass im Hintergrund MapReduce Jobs laufen, da wir "set hive.execution.engine=mr" setzen.
+we will later see, that MapReduce jobs are running in the background, when we execute queries - this is because of:<br>
+"set hive.execution.engine=mr".
 
-   set hive.execution.engine=mr;
-   set hive.metastore.warehouse.dir;
-   show databases;
-   show tables;
-   use default;
-
--- diese 2 sind sogenannte "external tables"
+now we will create 2 so-called "external tables" and 2 "internal tables" with the same content,
+so that we can demonstrate the difference<br>
+```sql
 CREATE EXTERNAL TABLE IF NOT EXISTS adresses(
     cust_id INT, first_name STRING,last_name STRING,company_name STRING,address STRING,city STRING,county STRING,state STRING,zip STRING,phone1 STRING,phone2 STRING,email STRING,web STRING)
     COMMENT 'Adresses'
@@ -49,8 +57,10 @@ CREATE EXTERNAL TABLE IF NOT EXISTS sales(
     FIELDS TERMINATED BY ';'
     STORED AS TEXTFILE
     LOCATION '/user/hduser/hive_external/sales';
-    
--- und dann legen wir internal tables mit denselben Inhalten an (die werden unter /user/hive/warehouse angelegt)
+```
+
+and now we generate identical INTERNAL tables with identical content (under /user/hive/warehouse)
+```sql
 CREATE TABLE IF NOT EXISTS adresses_internal(
     cust_id INT, first_name STRING,last_name STRING,company_name STRING,address STRING,city STRING,county STRING,state STRING,zip STRING,phone1 STRING,phone2 STRING,email STRING,web STRING)
     COMMENT 'Adresses managed as internal table';
@@ -60,17 +70,23 @@ CREATE TABLE IF NOT EXISTS sales_internal(
 
 INSERT OVERWRITE TABLE adresses_internal SELECT * FROM adresses;
 INSERT OVERWRITE TABLE sales_internal SELECT * FROM sales;
+```
 
--- die einfache Abfrage auf nur 1 Tabelle (jeweils auf externe bzw. interne Tabelle)
+finally we do some joins and run the word-count task in HiveQL (similar to what we did in Java MapReduce implementation)
+```sql
+-- the simpliest join only involves 1 table (no matter, if external or internal)
 select s.cust_id, sum(s.sales) as summe from sales s group by cust_id limit 20;
 select s.cust_id, sum(s.sales) as summe from sales_internal s group by cust_id limit 20;
+```
 
--- wenn der folgende Befehl auf Fehler läuft (und es passiert auch, wenn man die internen Tabellen statt den externen verwendet),
--- dann muss man prüfen, ob in hive-site.xml das Property hive.auto.convert.join auf false gesetzt wurde - dann sollte es funktionieren
+if the following command ends with an exception (and the exception also happens when using the internal tables instead of the external ones),
+then you need to check if in hive-site.xml the property hive.auto.convert.join is set to false - then it should work
+```sql
 select a.last_name, sum(s.sales) as summe from sales s inner join adresses a on s.cust_id = a.cust_id group by a.last_name order by summe asc;
+```
 
---- WordCount (der INPATH ist in Pfad innerhalb von hdfs) ---
-
+WordCount (INPATH is the path inside of HDFS)
+```sql
 DROP TABLE IF EXISTS docs;
 DROP TABLE IF EXISTS word_counts;
 
@@ -82,6 +98,9 @@ SELECT word, count(1) AS count FROM
  (SELECT explode(split(line, ' ')) AS word FROM docs) temp
 GROUP BY temp.word
 ORDER BY temp.word;
+```
 
--- und das sollte die ersten 100 records finden, absteigend nach Vorkommen
+and that should find the first 100 records, descending by occurrence
+```sql
 SELECT * FROM word_counts ORDER BY count DESC, Word ASC LIMIT 100;
+```

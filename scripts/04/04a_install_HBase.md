@@ -8,7 +8,8 @@ sudo -s
 cd /usr/local
 ```
 
-**Caution:** if the latest version changes, it is possible that the older version from this link is no longer downloadable
+**Caution:** if the latest version changes, it is possible that the older versions are no longer downloadable from this link.<br>
+Use a download link in the archive instead.
 
 ```bash
 export HBASE_VERSION=2.5.13
@@ -20,7 +21,7 @@ chown -R hduser:hadoop /usr/local/hbase-${HBASE_VERSION}
 ln -s /usr/local/hbase-${HBASE_VERSION} HBase
 ```
 
-All other actions shall be done as user `hduser`
+All further actions shall be done as user `hduser`
 
 first adapt the local environment variables for the user `hduser` (e.g. in `~/.bashrc`)
 ```bash
@@ -66,7 +67,7 @@ Enter here what you get as hostname with `hdfs getconf -confKey fs.defaultFS | c
 echo $(hdfs getconf -confKey fs.defaultFS | cut -d':' -f2 | cut -c3-) >${HBASE_HOME}/conf/regionservers
 ```
 
-Check the entry
+Check the entry in the regionservers file
 
 ```bash
 cat ${HBASE_HOME}/conf/regionservers
@@ -193,6 +194,8 @@ Then check the output in `$HBASE_HOME/logs` to see if there are any errors
 jps | sort -k2
 ```
 
+## verify correct hbase startup
+
 Should find the following additional processes (of course, the process IDs will differ):
 > 6511 HMaster<br>
 > 6413 HQuorumPeer<br>
@@ -255,7 +258,7 @@ If you get an error while loading data like the following, please check with `ne
 
 Check entries in `/etc/hosts` and in file "regionservers" if you see an error like the following:
 
-> Connection refused: \<hostname\>/\<ip\>:16020
+> Connection refused: \<hostname\>:16020
 
 b) If you want to try multiple regionservers, you must install hbase on all and expand the following file with the other servers (and restart hbase services)
 
@@ -269,6 +272,6 @@ And on the respective nodes then execute the following
 $HBASE_HOME/bin/hbase-daemon.sh --config $HBASE_HOME/conf start regionserver
 ```
 
-c) Hang Hbase analogously to HDFS in autostart and also stop when the VM shuts down (create systemctl script under `/etc/systemd/system`)
+c) Activate Hbase autostart in analogy to HDFS autostart - and stop it, when the VM shuts down (create systemctl script under `/etc/systemd/system`)
 
 See e.g. instructions at [Ubuntu Server Autostart](https://blog.hartinger.net/ubuntu-server-autostart-eines-commands-einrichten/)
