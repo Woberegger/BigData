@@ -1,34 +1,48 @@
-# diese Anleitung zeigt, wie man rsyslogd aktiviert für Remote syslogging und dann über flume abgreift
-# Anleitung siehe z.B.: https://betterstack.com/community/guides/logging/how-to-configure-centralised-rsyslog-server/
-# (diese Anleitung beschreibt jedoch einen zentralen Server, wir wollen anstelle des zentralen Servers "flume" einsetzen)
+# BigDataGrp02 - activate rsyslogd
 
-# prüfe die aktuellen Einstellungen und ob rsyslogd installiert ist
-# (Configfile sollte auf /etc/rsyslog.conf gestellt sein)
+This howto shows, how to activate the `rsyslogd` for remote syslogging, allowing to collect the data with e.g. Flume
+Howto was adapted from [](https://betterstack.com/community/guides/logging/how-to-configure-centralised-rsyslog-server/),
+which describes the use of a central server - we however want to use Flume instead
+
+check current settings and whether `rsyslogd` is already installed
+The location of the configuration file is expected to be `/etc/rsyslog.conf`
+```bash
 sudo -s
 rsyslogd -v
+```
 
-# prüfen, ob Service läuft, gegebenenfalls über "enable" und "start" aktivieren
+check, if service runs, otherwise enable it by calling `enable` and `start`
+```bash
 systemctl status rsyslog
+```
 
-# aktiviere folgende Zeilen in /etc/rsyslog.conf, damit per udp auf höheren Port anstelle von Standardport 514 rausgeloggt wird
-# schreibe folgendes in Datei /etc/rsyslog.conf
+activate follwing lines in `/etc/rsyslog.conf`, which does UDP logging to a higher port (instead of standard port 514)
+```vim
 # log to different port than usual 514 to be able to use non-privileged user to read from it
 *.* @127.0.0.1:47111
+```
 
-# prüfen, dass z.B. folgende Zeile in /etc/rsyslog.d/50-default.conf aktiviert ist, somit sollten login Versuche getrackt werden
-# wenn man andere Dinge, wie z.B. sonstige Records in /var/log/messages tracken will, dann aktiviere die entspr. Zeilen mit Filter
+check, that following line in file `/etc/rsyslog.d/50-default.conf` is activated, which tracks login trials<br>
+If you should ant to track something else (e.g. other occurances in /var/log/messages), then additionally activate the other lines with the proper filter
+```vim
 auth,authpriv.*                 /var/log/auth.log
+```
 
-# und starte danach syslog daemon neu
+and then restart `syslogd`
+```bash
 systemctl restart rsyslog
+```
 
-# in neuer Shell als hduser einloggen
+log into new shall as user `hduser` for doing Flume configuration
+```bash
 su - hduser
 cd /usr/local/flume
-# flume config File erzeugen, in 1. Testansatz mal logging in Foreground 
+```
 
+generate a flume configuration file, in a first trial to simply log in foreground
+```bash
 cat >/usr/local/flume/conf/syslogudp.conf.logger_sink <<!
-# Name the components on this agent
+# Name the components on this agent "sysl"
 sysl.sources = syslog
 sysl.sinks = logger
 sysl.channels = memory
@@ -52,17 +66,27 @@ sysl.channels.memory.transactionCapacity = 100
 sysl.sources.syslog.channels = memory
 sysl.sinks.logger.channel = memory
 !
+```
+then start the flume agent with the newly generated configuration file
+```bash
 ./bin/flume-ng agent --conf conf/ -f conf/syslogudp.conf.logger_sink -n sysl -Dflume.root.logger=INFO,console
+```
 
-# testen, ob der Aufruf im syslog File erscheint und sollte dann auch bei Flume auftauchen
-# erwartete Ausgabe ca. "INFO  [SinkRunner-PollingRunner-DefaultSinkProcessor] sink.LoggerSink: Event: { ... body: 72 6F 6F 74 3A 20 74 65 73 74 63 61 6C 6C 20 66 root: testcall f }"
-logger 'testcall from client' && tail -n1 /var/log/syslog
+test, if the following call appears in `/var/log/syslog` and also in Flume
+```bash
+logger 'testcall from client' && sleep 1 && tail -n1 /var/log/syslog
+```
 
-# danach ist das dann umzubauen, dass anstelle von Logger auf hive oder hdfs geschrieben wird
-# wegen der nötigen Parameter für Hive schaue https://community.cloudera.com/t5/Community-Articles/HiveSink-for-Flume/ta-p/245584 als Beispiel an
-# Eine einfachere Möglichkeit wäre, das einfach ins hdfs zu schreiben und dann das generierte File ähnlich wie File Bibel.txt in Script
-# 04_hive_commands.md einzulesen und dann auszuwerten. Das folgende Beispiel schreibt Daten ins hdfs
+expected output in Flume is something similar to:
+> "INFO  [SinkRunner-PollingRunner-DefaultSinkProcessor] sink.LoggerSink: Event: { ... body: 72 6F 6F 74 3A 20 74 65 73 74 63 61 6C 6C 20 66 root: testcall f }"
 
+then finally change the Flume configuration instead of simple logging to write into Hive or HDFS:<br>
+For Hive parameters see example link [](https://community.cloudera.com/t5/Community-Articles/HiveSink-for-Flume/ta-p/245584)
+A more simple approach would be to simply direct the Flume sink into HDFS, and then load the generated file into Hive,<br>
+as we have shown in lecture 4 with external tables.
+
+The following example writes data into HDFS:
+```bash
 hdfs dfs -mkdir -p hdfs://namenode:9000/user/hduser/syslog/
 
 cat >/usr/local/flume/conf/syslogudp.conf.hdfs_sink <<!
@@ -101,32 +125,47 @@ sysl.channels.memory.transactionCapacity = 1000
 sysl.sources.syslog.channels = memory
 sysl.sinks.HDFS.channel = memory
 !
+```
+
+start the agent to use the different config file for HDFS sink
+```bash
 ./bin/flume-ng agent --conf conf/ -f conf/syslogudp.conf.hdfs_sink -n sysl
+```
 
-# um testweise etwas mehr an Logdaten im File zu sehen und auch zu prüfen, ob neue Files erstellt werden:
+In order to generate a few more data to see, if HDFS file was generated:
+```bash
 for ((i=0;i<=200;i++)); do logger "log msg nr $i"; done
+```
 
-# Betrachten der Daten über
-firefox --new-tab http://localhost:9870/explorer.html#/user/hduser/syslog
-# zur Info: das zuletzt erstellte File bekommt extension ".tmp", erst wenn obiges flume-ng Kommando beendet wird, bekommt es den endgültigen Namen
+Show the generated HDFS data using GUI under [](http://<namenodeIP>:9870/explorer.html#/user/hduser/syslog)
+(the most recently generated file gets extension `.tmp` and will only be renamed, once the flume-ng commando was stopped)
 
-# Wen man mit HDFS arbeiten will, dann einfach mal folgende Tabelle anlegen, das Laden muss halt hier interaktiv gemacht werden,
-# während bei direkter Verwendung von Hive als Datensenke das Flume eventgetrieben weiterbefüllen würde.
-# man kann hier den Pfad ohne einzelne Dateien angeben, dann können auch mehrere Dateien geladen werden.
-CREATE TABLE logevents (logline STRING);
-LOAD DATA INPATH '/user/hduser/syslog/' OVERWRITE INTO TABLE logevents;
+When working with HDFS and loading data with Hive from file, you can interactively load the data into Hive
+(writing data directly to Hive has the advantage, that it permanently adds newly occuring events
 
-# FLEISSAUFGABE: wenn das funktioniert, kann man das Configfile auf hive umstellen und eine Hive-Tabelle wie folgt anlegen:
-# der Einfachheit halber loggen wir ganze Zeilen in die Tabelle rein und joinen dann mit String-Operations
-beeline -u jdbc:hive2:// scott tiger
+do the following only once to connect to beeline, the other blocks are the HiveQL commands:
+```bash
+export HIVE_CONNECT_STRING=localhost:10000
+beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger
    set hive.execution.engine=mr;
    set hive.metastore.warehouse.dir;
    use default;
-   --
+```
+
+You can provide the path `/user/hduser/syslog/` without a particular file name, then more data files can be loaded at once
+```sql
+CREATE TABLE logevents (logline STRING);
+LOAD DATA INPATH '/user/hduser/syslog/' OVERWRITE INTO TABLE logevents;
+```
+
+additional task: if the above works, you can change the Flume configuration file to directly write into Hive.<br>
+In that case the Hive table has to be created with following syntax:<br>
+(for simplicity we load all records into the table and do join with string operations)
+
+```sql
    DROP TABLE logevents;
-   CREATE TABLE IF NOT EXISTS logevents (
-    logline STRING)
+   CREATE TABLE IF NOT EXISTS logevents (logline STRING)
     COMMENT 'Syslog events as complete line'
     STORED AS ORC
     LOCATION '/user/hduser/hive_external/logevents';
-!
+```

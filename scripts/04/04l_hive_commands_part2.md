@@ -17,7 +17,6 @@ do the following only once to connect to beeline, the other blocks are the HiveQ
 beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger
    set hive.execution.engine=mr;
    set hive.metastore.warehouse.dir;
-   show databases;
    use default;
 ```
 
