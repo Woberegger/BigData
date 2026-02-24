@@ -1,28 +1,52 @@
-# und damit man mit Sqoop auf Datenbanken zugreifen kann, braucht man z.B. einen entspr. JDBC Connector fuer mySQL
-# VORSICHT: MySQL-Objekte sind per default case-sensitive, d.h. studentsMySQL != studentsmysql
-# mysql-client - approx 86MB of size
+# BigData05 - use sqoop with MySQL
+
+We will use a MySQL installation on one of the datanodes.
+
+To allow Sqoop to access databases you need an appropriate JDBC connector for MySQL (for example).
+
+> **IMPORTANT:** MySQL objects are case-sensitive by default,<br>
+> i.e. studentsMySQL != studentsmysql
+
+Install the MySQL client (approx. 86 MB):
+
+```bash
 sudo apt install default-mysql-client
+```
 
+Switch to the `hduser` account.
+
+```bash
 su - hduser
+```
 
-# testweise mit mysql Docker container auf datanode1 verbinden
-# Wichtig: port forward für mysql docker container auf 13306, native üblicherweise auf 3306
+For testing, connect to the MySQL Docker container on `datanode1`.
+Important: the MySQL Docker container must forward its port to host port 13306; the native MySQL port is usually 3306.
+
+Set connection environment variables (the example derives the MySQL user from the hostname):
+
+```bash
 export MYSQL_PORT=13306
 export MYSQL_USER=$(echo ${HOSTNAME//bigdata})
 export MYSQL_PASSWD=$MYSQL_USER
 export DATABASE_NAME=$MYSQL_USER
 export MYSQL_HOST=datanode1
 ~/BigData/scripts/grp02/grp02_mysql_testcall.sh $MYSQL_USER $MYSQL_HOST
+```
 
-# Wichtig der MySQL user braucht ein Verzeichnis im hdfs, anderenfalls gibt es exception "java.io.IOException: java.lang.ClassNotFoundException: students"
+The MySQL user needs a directory in HDFS; otherwise Sqoop operations may raise exceptions like "java.io.IOException: java.lang.ClassNotFoundException: students".
+
+```bash
 hdfs dfs -mkdir /user/${MYSQL_USER}
 hdfs dfs -chmod 777 /user/${MYSQL_USER}
+```
 
+Create the test database and a `studentsMySQL` table in MySQL. Note: `entry_date` as DATE may cause issues with Sqoop export<br>
+--> use VARCHAR for this field in the MySQL table.
+
+```bash
 mysql --ssl=FALSE -u $MYSQL_USER -D $DATABASE_NAME -h $MYSQL_HOST -P 13306 --password=$MYSQL_PASSWD <<EOF
-
 CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;
 use $DATABASE_NAME;
-# entry_date as DATE does not work with sqoop export, so use VARCHAR for it.
 CREATE TABLE IF NOT EXISTS studentsMySQL (
     id INT PRIMARY KEY,
     first_name VARCHAR(80) NOT NULL,
@@ -32,11 +56,17 @@ CREATE TABLE IF NOT EXISTS studentsMySQL (
 );
 show tables;
 EOF
+```
 
-# in eigener shell hiveserver starten, sollte er noch nicht laufen
+Start HiveServer2 in a separate shell if it is not running yet (we set the Thrift port to 10000 here):
+
+```bash
 hive --service hiveserver2 --hiveconf hive.server2.thrift.port=10000
-# jetzt legen wir eine idente Tabelle in Hive an
+```
 
+Create an identical table in Hive (database `fh`) and prepare a table for data that will be imported back from MySQL.
+
+```bash
 export HIVE_CONNECT_STRING=localhost:10000
 beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    set hive.execution.engine=mr;
@@ -45,85 +75,105 @@ beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    show databases;
    use fh;
    show tables;
-   -- diese Tabelle kopieren wir von Hive nach mySQL
+   -- copy this table from Hive to MySQL
    DROP table students;
    CREATE TABLE IF NOT EXISTS students( id INT , first_name STRING, last_name STRING, entry_date DATE, course STRING)
       COMMENT 'Students to sync with mySQL'
       ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';
    describe students;
-   -- und in diese Tabelle wieder retour von MySQL
+   -- and back into this table from MySQL
    DROP table studentsFromMySQL;
    CREATE TABLE IF NOT EXISTS studentsFromMySQL ( id INT , first_name STRING, last_name STRING, entry_date DATE, course STRING)
-   COMMENT 'Students to sync with mySQL';
+   COMMENT 'Students to sync with MySQL';
 !
+```
 
-# wir können die Datei ins hdfs reinladen oder benutzen hier mal das "LOCAL INPATH" zum Laden von lokaler Datei
-# hdfs dfs -put BigData/data/students.csv /tmp/
+You can either upload a CSV file into HDFS or use Hive's `LOAD DATA LOCAL INPATH` to load a local file into the `students` table.
+
+```bash
+# optional: hdfs dfs -put BigData/data/students.csv /tmp/
 beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    use fh;
    LOAD DATA LOCAL INPATH '/home/hduser/BigData/data/students.csv' OVERWRITE INTO TABLE students;
    select * from students limit 10;
 !
+```
 
-# scheinbar muss man die mapreduce Jar Files rüberkopieren, andernfalls gibt es "ClassNotFound" exception
+You may need to copy the Hadoop MapReduce JAR files into the Sqoop lib directory to avoid ClassNotFound exceptions. Sqoop also generates a class JAR (e.g. `students.jar`) for imports that must be on the classpath—set `--bindir` accordingly (for example `/usr/local/hadoop/share/hadoop/common/lib`).
+
+```bash
 cp -p /usr/local/hadoop/share/hadoop/mapreduce/*.jar $SQOOP_HOME/lib/
-# weiters generiert Sqoop eine Klasse "students.jar" für den Import, die im ClassPath gefunden werden muss
-# Daher ist der Parameter --bindir auf z.B. /usr/local/hadoop/share/hadoop/common/lib zu setzen
+```
 
-# liste auf, ob unsere Datenbank und unsere Tabelle "studentsMySQL" gefunden werden
-sqoop-list-databases --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}  --username $MYSQL_USER --password ${MYSQL_PASSWD}
+List available databases and tables in the MySQL instance to verify connectivity.
+
+```bash
+sqoop-list-databases --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT} --username $MYSQL_USER --password ${MYSQL_PASSWD}
 sqoop-list-tables --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME} --username $MYSQL_USER --password ${MYSQL_PASSWD}
+```
 
-# Exportiere Daten von Sqoop nach MySQL (ist eher nicht der übliche Anwendungszweck), aber auch möglich
-# -m 1 ... Anzahl an Mappern, hier derzeit immer 1
+Export data from Hive to MySQL using Sqoop (exporting is less common but possible).
+Use `--num-mappers 1` to limit parallel connections.
+
+```bash
 sqoop export --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME}  \
    --table studentsMySQL --username $MYSQL_USER --password ${MYSQL_PASSWD}  \
    --export-dir /user/hive/warehouse/fh.db/students --num-mappers 1  \
    --driver com.mysql.cj.jdbc.Driver  --input-fields-terminated-by ',' \
    --input-lines-terminated-by '\n' --bindir /usr/local/hadoop/share/hadoop/common/lib
+```
 
-# prüfen in mySQL, ob die Daten vorhanden sind...
+Verify in MySQL that the exported data is present.
+
+```bash
 mysql --ssl=FALSE -u $MYSQL_USER -D $DATABASE_NAME -h $MYSQL_HOST -P 13306 --password=$MYSQL_PASSWD <<EOF
 use $DATABASE_NAME;
 SELECT * FROM studentsMySQL LIMIT 10;
 EOF
+```
 
-# die andere Richtung am besten testen, indem eine 2. Tabelle in Hive angelegt wird
-# Verzeichnis löschen, falls von vorigem Versuch noch was existiert
+To test the other direction (import from MySQL into Hive), remove any previous HDFS target directory from earlier attempts.
+
+```bash
 hdfs dfs -rm -R /user/hduser/studentsMySQL 2>/dev/null
-# möglicherweise gibt es Fehler, der jedoch üblicherweise eine Folgeerscheinung ist, weil die Java VM den Zugriff auf die Datei
-# /usr/local/hive/lib/derby-10.14.2.0.jar nicht erlaubt:
-#java.lang.NoClassDefFoundError: Could not initialize class org.apache.derby.jdbc.EmbeddedDriver
-# Daher Inhalt von File ../grp02/grp02_java_policy_to_add.txt am Beginn von Datei $JAVA_HOME/lib/security/default.policy
-# also z.B. /usr/lib/jvm/temurin-11-jdk-amd64/lib/security/default.policy einzutragen:
-# bzw. folgende Zeilen in den generischen grant { ... } Abschnitt am Ende der Datei:
-#    permission javax.management.MBeanTrustPermission "register";
-#    permission org.apache.derby.security.SystemPermission "engine", "usederbyinternals";
+```
 
-# ACHTUNG: Bei Verwendung von derby als Metadatenbank für Hive (=default) ist zu beachten, dass Derby keine
-#          konkurrierenden Zugriffe erlaubt, d.h. vor dem Sqoop-Import ist hive-server zu beenden
-# !!! Wenn wir mySQL als Metadatenbank verwenden, dann ist dies nicht nötig !!!
-# kill $(ps aux | grep hiveserver2 | grep -v grep | awk '{ print $2}')
+You may encounter errors because the Java VM disallows access to the Derby JAR used by Hive's default metastore (e.g. `/usr/local/hive/lib/derby-10.14.2.0.jar`), causing exceptions such as `NoClassDefFoundError: Could not initialize class org.apache.derby.jdbc.EmbeddedDriver`.
 
-# Wichtig ist auch, dass "-m 1" bzw. "--num-mappers 1" gesetzt wird, damit nur 1 Connection zu MySql geöffnet wird
+To fix permission issues, append the contents of `../grp02/grp02_java_policy_to_add.txt` at the start of `$JAVA_HOME/lib/security/default.policy` (for example `/usr/lib/jvm/temurin-11-jdk-amd64/lib/security/default.policy`), or add the following lines to the generic `grant { ... }` section at the end of the file:
 
+- permission javax.management.MBeanTrustPermission "register";
+- permission org.apache.derby.security.SystemPermission "engine", "usederbyinternals";
+
+**IMPORTANT:** When using Derby as the Hive metastore (the default), Derby does not allow concurrent access. Stop HiveServer2 before running a Sqoop import. If you use MySQL as Hive's metastore, this is not necessary.
+
+Also ensure `-m 1` or `--num-mappers 1` is set for Sqoop imports so only one connection is opened to MySQL.
+
+Import data from MySQL into Hive using Sqoop (creates `studentsFromMySQL` in database `fh`):
+
+```bash
 sqoop import --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
    --table studentsMySQL  --driver com.mysql.cj.jdbc.Driver  --hive-import --hive-database fh \
    --hive-table studentsFromMySQL --hive-overwrite -m 1  \
    --bindir /usr/local/hadoop/share/hadoop/common/lib
+```
 
-# Sollte obiger Befehl nicht funktionieren, kann man versuchen, die MySQL Daten zumindest ins HDFS abzuholen und nicht direkt in Hive reinschreiben.
-# Dann müsste man jedoch die Tabelle StudentsFromFile neu definieren als "external table" (diese erlauben keine Constraints)
+If the above command fails, as an alternative import the MySQL data into HDFS and then create an external Hive table pointing to that HDFS directory. External tables do not support constraints.
 
-# scheinbar muss man hier --query statt --table angeben, damit hier mit delimitern exportiert wird
+Sometimes `--query` must be used instead of `--table` to control delimiters and query behavior. The example below fetches rows from MySQL into an HDFS target directory as text files.
+
+```bash
 sqoop import --connect jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DATABASE_NAME}  --username $MYSQL_USER --password ${MYSQL_PASSWD} \
    --query "SELECT * FROM studentsMySQL WHERE \$CONDITIONS" --split-by , --driver com.mysql.cj.jdbc.Driver \
    --target-dir /user/hduser/studentsFromFile --fields-terminated-by , --as-textfile \
    -m 1 --bindir /usr/local/hadoop/share/hadoop/common/lib
-# prüfen, ob Daten korrekt vorhanden sind
+# Verify data
 hdfs dfs -cat /user/hduser/studentsFromFile/part* | head
+```
 
-# verifiziere die Inhalte
+Verify contents in Hive using Beeline.
+
+```bash
 export HIVE_CONNECT_STRING=localhost:10000
 beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    set hive.execution.engine=mr;
@@ -146,7 +196,10 @@ beeline -u jdbc:hive2://${HIVE_CONNECT_STRING} scott tiger <<!
    -- what we have loaded from Sqoop directly into hive 
    SELECT * FROM studentsFromMySQL LIMIT 10;
 !
+```
 
-# falls beide Tabellen leer sind, dann hat sqoop import nicht funktioniert und sind die Ausgaben zu kontrollieren.
-# für einen erneuten Versuch muss zuerst das Verzeichnis wieder gelöscht werden über
-# hdfs dfs -rm -R /user/hduser/studentsMySQL (bzw. /user/hduser/studentsFromFile)
+If both tables are empty, the Sqoop import did not work — check Sqoop output for errors. To retry, remove the HDFS directory first:
+
+```bash
+hdfs dfs -rm -R /user/hduser/studentsMySQL #(or /user/hduser/studentsFromFile)
+```
