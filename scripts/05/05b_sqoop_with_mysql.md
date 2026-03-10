@@ -1,8 +1,9 @@
 # BigData05 - use sqoop with MySQL
 
-We will use a MySQL installation on one of the datanodes.
+We will use a MySQL installation on one of the datanodes, preferably `datanode1`.<br>
+And then we will try to exchange data between Hive and a relational database (like MySQL) using Sqoop.
 
-To allow Sqoop to access databases you need an appropriate JDBC connector for MySQL (for example).
+To allow Sqoop to access databases you need an appropriate JDBC connector - in our case for MySQL.
 
 > **IMPORTANT:** MySQL objects are case-sensitive by default,<br>
 > i.e. studentsMySQL != studentsmysql

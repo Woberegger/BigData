@@ -1,13 +1,23 @@
-# Verifiziere nochmal, ob Flume funktioniert (bitte auch achten, dass dfs und yarn laufen)
-su - hduser
-flume-ng version
+# BigData05 - Flume netcat example
 
-# erzeuge netcat listener
-#(die Bezeichnungen a1, r1, k1 und c1 sind frei definierte Namen ohne Bedeutung - nur die Beziehung zueinander muss passen)
-# Man könnte das also wohl schöner bezeichnen mit AgentName, Source, Sink und Channel.
+we will install a simple Flume configuration to listen to a port and write the received data to the console.
+
+*IMPORTANT:* All commands are executed as user `hduser` - so make sure to switch to this user before executing the commands.
+
+verify again, that Flume works (and take care, that hdfs is running, too)
+```bash
+su - hduser
+start-dfs.sh
+flume-ng version
+```
+
+create netcat listener configuration:<br>
+the tags `a1`, `r1`, `k1` and `c1` are freely defined names without meaning - only the relationship to each other must fit.
+(one could probably name this more nicely with AgentName, Source, Sink and Channel)
+
+```bash
 cat >$FLUME_HOME/conf/example.conf <<!
 # example.conf: A single-node Flume configuration
-
 # Name the components on this agent
 a1.sources = r1
 a1.sinks = k1
@@ -30,11 +40,21 @@ a1.channels.c1.transactionCapacity = 100
 a1.sources.r1.channels = c1
 a1.sinks.k1.channel = c1
 !
+```
 
-# Testaufruf
+## session 1: test call for this agent
+```bash
 cd $FLUME_HOME
 bin/flume-ng agent -n a1 -c conf -f conf/example.conf
+```
 
-# in 2. Session telnet oder besser netcat starten - dort dann einfach versch. Strings eingeben und mit <ENTER> abschließen,
-# es passiert eine "OK"-Ausgabe und im Fenster des Agents scheinen die Eingaben auf
+## session 2: test connection to agent
+
+in 2nd session start `telnet` or better `netcat`/`nc` - there then simply enter various strings and finish with `ENTER` key.
+
+> an "OK" output is visible (session 2)<br>
+> and in the agent's window (session 1) the inputs appear as hex and plain text
+
+```bash
 netcat localhost 44444
+```

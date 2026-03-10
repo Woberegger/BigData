@@ -1,12 +1,19 @@
-# Verifiziere nochmal, ob Flume funktioniert (bitte auch achten, dass dfs und yarn laufen)
+# BigData05 - Flume sequence generator
+This example shall simply generate numbers from a sequence generator and write them to HDFS with Flume.
+
+*IMPORTANT:* All commands are executed as user `hduser` - so make sure to switch to this user before executing the commands.
+
+verify again, that Flume works (and take care, that hdfs is running, too)
+```bash
 su - hduser
+start-dfs.sh
 flume-ng version
+```
 
-# erzeuge Sequence Generator
+create Sequence Generator configuration file:
+```bash
 cat >$FLUME_HOME/conf/seq_gen.conf <<!
-
-# Naming the components on the current agent 
-
+# Naming the components on the current agent
 SeqGenAgent.sources = SeqSource   
 SeqGenAgent.channels = MemChannel 
 SeqGenAgent.sinks = HDFS 
@@ -32,21 +39,29 @@ SeqGenAgent.channels.MemChannel.transactionCapacity = 100
 SeqGenAgent.sources.SeqSource.channels = MemChannel
 SeqGenAgent.sinks.HDFS.channel = MemChannel
 !
+```
 
-# Testaufruf
+Test call for flume agent<br>
+(the parameters can be given in short or long form, e.g. -c or --conf)
+
+> the flume-ng command would run infinitely, so just wait for a few seconds and then stop it with `<Ctrl>c`
+```bash
 hdfs dfs -rm /user/hduser/sink/*
 cd $FLUME_HOME
-# Die Parameter können in kurzer oder langer Form stehen, also z.B. -c oder --conf
-
-### Das folgende Kommando würde endlos laufen, einfach nach einigen Sekunden mit <Ctrl>c abbrechen
 ./bin/flume-ng agent --conf conf/ -f conf/seq_gen.conf -n SeqGenAgent -Dflume.root.logger=INFO,console
+```
 
-
-# Dateien anzeigen 
+show generated files in HDFS:
+```bash
 hdfs dfs -ls -R /user/hduser/sink
+```
 
-# Inhalte der Dateien (am besten im Webbrowser oder wie folgt):
+show contents of those files (with the generated sequence numbers):
+```bash
 hdfs dfs -cat /user/hduser/sink/<FileName>
+```
 
-# wenn alles passt, anschließend die Dateien wieder löschen...
+if all is working, then you should delete the files again in order to free up space
+```bash
 hdfs dfs -rm /user/hduser/sink/log*
+```

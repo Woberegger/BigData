@@ -1,6 +1,7 @@
 # BigData05 - use sqoop with locally installed MySQL container
 
-Accessing databases with Sqoop requires an appropriate JDBC connector for MySQL (for example).
+**IMPORTANT** You should preferable use the other howto to use sqoop with MySQL on datanode1!
+
 > Note: MySQL object names are case-sensitive by default, i.e. studentsMySQL != studentsmysql
 
 Switch to the `hduser` account and prepare HDFS directories for the MySQL user.
