@@ -12,13 +12,15 @@ cd /usr/local
 Use a download link in the archive instead.
 
 ```bash
-export HBASE_VERSION=2.5.13
+export HBASE_VERSION=3.0.0 # previously used 2.5.13
 wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz
 wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz.sha512
 shasum -a 512 hbase-${HBASE_VERSION}-bin.tar.gz; cat hbase-${HBASE_VERSION}-bin.tar.gz.sha512
 tar -xzf hbase-${HBASE_VERSION}-bin.tar.gz
 chown -R hduser:hadoop /usr/local/hbase-${HBASE_VERSION}
 ln -s /usr/local/hbase-${HBASE_VERSION} HBase
+# gain space
+rm hbase-${HBASE_VERSION}-bin.tar.gz
 ```
 
 All further actions shall be done as user `hduser`
@@ -26,7 +28,9 @@ All further actions shall be done as user `hduser`
 first adapt the local environment variables for the user `hduser` (e.g. in `~/.bashrc`)
 ```bash
 su - hduser
+```
 
+```bash
 cat >>~/.bashrc <<!
 export HBASE_HOME=/usr/local/HBase
 #export HBASE_MASTER=namenode # only necessary on additional regionservers
@@ -46,7 +50,7 @@ export SSH_PORT=22
 Set JAVA_HOME correctly in file `$HBASE_HOME/conf/hbase-env.sh`, e.g.:
 
 ```bash
-echo "export JAVA_HOME=/usr/lib/jvm/temurin-11-jdk-$(dpkg --print-architecture)" >>${HBASE_HOME}/conf/hbase-env.sh
+echo "export JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-$(dpkg --print-architecture)" >>${HBASE_HOME}/conf/hbase-env.sh
 ```
 
 In the same file, also specify the ssh port if it differs from 22:
