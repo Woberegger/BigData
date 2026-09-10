@@ -409,9 +409,9 @@ expected output are the following 6 java processes (of course with different PID
 if there exists a problem like *No such rcmd module "ssh"* it may be necessary to additionally install package "pdsh-rcmd-ssh"!
 
 ### show status in Web GUI
-locally on your laptop start your preferred browser (replace "ip_of_VM" with your VM's particular IP address)
-a) for hadoop: [](http://<ip_of_VM>:9870)
-b) for yarn: [](http://<ip_of_VM>:8088)
+locally on your laptop start your preferred browser (replace "\<ip_of_VM\>" with your VM's particular IP address)<br>
+> hadoop: http://\<ip_of_VM\>:9870<br>
+> yarn: http://\<ip_of_VM\>:8088<br>
 
 in case of problems best look into the logfiles located under /usr/local/hadoop/logs
 
