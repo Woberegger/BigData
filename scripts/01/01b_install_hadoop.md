@@ -41,13 +41,13 @@ set environment variables in .bashrc of user "hduser"
 
 ```bash
 su - hduser
-export JAVA_FLAVOR=temurin-11-jdk
 ```
 
 fill environment file .bashrc with system variables
 >Question: What are the Backslash-Quotes used for?
 
 ```bash
+export JAVA_FLAVOR=temurin-17-jdk
 cat >>~/.bashrc <<EOF
 # Java (a copy of what is already in /etc/profile.d/java.sh)
 export JAVA_HOME=/usr/lib/jvm/${JAVA_FLAVOR}-$(dpkg --print-architecture)
@@ -74,6 +74,8 @@ we have to either re-login or read it with "source" command.
 
 ```bash
 source ~/.bashrc
+# we set this locally only, later this is overwritten in the individual environments
+export HADOOP_CONF_DIR=$HADOOP_INSTALL/etc/hadoop
 ```
 
 ### adapt Hadoop configuration files (as user "hduser")

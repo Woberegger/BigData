@@ -8,7 +8,7 @@ sudo -s
 ```
 
 ```bash
-echo "$(hostname -I | cut -d' ' -f1) namenode" >>/etc/hosts
+echo "$(hostname -I | cut -d' ' -f1) namenode $(hostname)" >>/etc/hosts
 ```
 
 the following 2 lines were already added in advance, when having created the base image
@@ -58,5 +58,7 @@ cat >>~/.bashrc <<EOF
 # specifically necessary because of shared datanodes
 export HADOOP_CONF_DIR=\$HADOOP_INSTALL/etc/datanode${NAMENODEIP}
 EOF
+
+source ~/.bashrc
 ```
 continue with script 01d_start_and_test_hadoop.md ...

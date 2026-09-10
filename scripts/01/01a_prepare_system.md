@@ -13,7 +13,6 @@ sudo -s
 
 ```bash
 apt update
-apt upgrade
 apt -y install pdsh
 ```
 
