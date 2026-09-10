@@ -39,7 +39,7 @@ b) in hdfs-site.xml:
 	  <value>/tmp/.hdfs-nfs</value>
 	</property>
 	<property>
-	  <name>dfs.nfs.exports.allowed.hosts</name>
+	  <name>nfs.exports.allowed.hosts</name>
 	  <value>* rw</value>
 	</property>
 	<property>

@@ -28,7 +28,7 @@ After installation and configuration, we want to evaluate where and how HDFS sto
 See list of commands at [Hadoop FileSystem Shell](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/FileSystemShell.html),
 e.g.: `hdfs dfs -ls` (the last commands with '-' prefix are similar to Linux OS commands)
 
-Optionally, you can view files/folders via [](http://namenode:9870/explorer.html#/)
+Optionally, you can view files/folders via [fileexplorer](http://namenode:9870/explorer.html#/)
 
 We have connected the HDFS filesystem at the following mount point. Check in between with the following command
 whether and on which node it changes after a "put" etc.<br>
@@ -70,6 +70,7 @@ hdfs dfs -setrep -R 2 /user/hduser
 ```
 
 Try to change the block size for individual files - preferably use a fairly large file where more than 2 blocks are created
+(in our default setup we have made the blocksize unrealistically small, as we have limited space only)
 
 ```bash
 hdfs dfs -D dfs.blocksize=1048576 -put ~/BigData/data/airline_delay_causes.csv /user/hduser/testdir/BlockSize1MB.csv
