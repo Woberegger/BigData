@@ -4,6 +4,7 @@ all actions in this file are executed as user "hduser" !!!
 
 ## initially only once (!) format the HDFS file system
 should only be called again, when deleting all data and starting from scratch(!!!)
+(in such a case completely remove $HADOOP_HOME/hadoopdata directory)
 
 ```bash
 su - hduser
