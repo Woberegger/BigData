@@ -27,7 +27,8 @@ cp ~/BigData/external_libs/mysql-connector-j-8.1.0.jar $HIVE_HOME/lib/
 
 In this case, it's best to use the one on datanode1, so you don't need a local MySQL<br>
 Tell the system, that it's type `mysql` (and not `derby`),<br>
-all other settings like username, password and port are already set in `hive-site.xml`
+all other settings like username, password and port are already set in `hive-site.xml`<br>
+(if you want to use a local mysql installation, then change propertiws `javax.jdo.option.ConnectionURL`, `javax.jdo.option.ConnectionUserName` and `javax.jdo.option.ConnectionPassword`)
 
 ```bash
 cd $HIVE_HOME/bin && ./schematool -initSchema -dbType mysql -verbose

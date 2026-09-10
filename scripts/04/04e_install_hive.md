@@ -12,17 +12,18 @@ Attention: Make sure your Hadoop version is compatible with the Hive version - s
 
 *Note*: Unfortunately the information there is incorrect. It's better to use the latest version 4.x.<br>
 Hive 3.1.3 does not seem to work with our Hadoop version. Version 4.0.1 has been tested and works with Hadoop 3.3.6.<br>
-Versions 4.0.1 and 4.1.0 should work with Hadoop 3.4.1.
+Versions 4.0.1 and 4.1.0 should work with Hadoop 3.4.1. and 4.2.1 with Hadopp 3.5.x
 
 ```bash
 cd /usr/local
-export HIVE_VERSION=4.0.1
-# We should not use 4.1.0, as it was compiled with Java17, so we would need an additional Java version for that, which differs from HDFS's Java
+export HIVE_VERSION=4.1.0 # 4.2.x require Java21 at least, which does not match the hadoop version's compatibility
 # If the certificate is not accepted (although we called update-ca-certificates), add parameter: --no-check-certificate
 wget https://archive.apache.org/dist/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz
 
 tar -xzf apache-hive-${HIVE_VERSION}-bin.tar.gz
 ln -s /usr/local/apache-hive-${HIVE_VERSION}-bin /usr/local/hive
+# free space
+rm apache-hive-${HIVE_VERSION}-bin.tar.gz
 ```
 
 Change ownership of our hive installation directory
@@ -104,7 +105,7 @@ ln -s $HADOOP_HOME/share/hadoop/hdfs/lib/guava-27.0-jre.jar $HIVE_HOME/lib/
 
 Remove log4j warnings by moving the following jar file to a different name:
 ```bash
-mv $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar $HIVE_HOME/lib/log4j-slf4j-impl-2.18.0.jar.wrong_version
+mv $HIVE_HOME/lib/log4j-slf4j-impl-2.24.3.jar $HIVE_HOME/lib/log4j-slf4j-impl-2.24.3.jar.wrong_version
 ```
 
 ## Test Hive
@@ -128,7 +129,7 @@ there is the following error that needs to be fixed manually
 
 Sometimes the first commands work fine and then suddenly there are errors in beeline.
 
-See [](https://issues.apache.org/jira/browse/HIVE-21302) - change the following 2 entries in hive-site.xml:
+See [bug-HIVE-21302](https://issues.apache.org/jira/browse/HIVE-21302) - change the following 2 entries in hive-site.xml:
 
 ```xml
 <property>

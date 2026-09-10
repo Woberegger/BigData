@@ -151,7 +151,7 @@ Test with jps whether Hadoop started successfully
 To avoid the warning "duplicate implementation of log4j":
 
 ```bash
-mv $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar.duplicate
+mv $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.25.4.jar $HBASE_HOME/lib/client-facing-thirdparty/log4j-slf4j-impl-2.25.4.jar.duplicate
 ```
 
 2) Start HBase
@@ -229,7 +229,7 @@ If there is a message that `namenode is in save mode`, then exit save mode as de
 hdfs dfsadmin -safemode leave
 ```
 
-4) Check status in web browser [](http://<namenodeIP>:16010/master-status)
+4) Check status in web browser [MasterStatus](http://<namenodeIP>:16010/master-status)
 
 5) Open HBase Shell and create simple tables with data
 
@@ -246,7 +246,7 @@ Execute contents of 04b_HBase_Shell_commands.md and 04c_HBase_Shell_split_table.
 
 Cheat sheet for HBase shell commands e.g. at [HBase Shell Commands Cheat Sheet](https://sparkbyexamples.com/hbase/hbase-shell-commands-cheat-sheet/)
 
-6) After creating the tables, they should also be visible in the following web GUI [](http://<namenodeIP>:16010/master-status#userTables)
+6) After creating the tables, they should also be visible in the following web GUI [HBaseUserTables](http://<namenodeIP>:16010/master-status#userTables)
 
 ## Additional Options
 

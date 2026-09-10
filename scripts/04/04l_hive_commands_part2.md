@@ -9,7 +9,7 @@ export HIVE_CONNECT_STRING=localhost:10000
 ```
 
 > **IMPORTANT:**<br>
-> - Hive/Beeline Session can be ended by <Ctrl>c.<br>
+> - Hive/Beeline Session can be ended by \<Ctrl\>c.<br>
 > - comments in beeline start with `--` (similar to SQL)
 
 do the following only once to connect to beeline, the other blocks are the HiveQL commands:
