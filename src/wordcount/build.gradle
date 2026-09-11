@@ -24,10 +24,10 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 // setting compatibility helps to build jar in proper version for the target platform, even when locally installed Java is a newer one
-// optionally you might want to set VERSION_1_8
+// optionally you might want to set VERSION_11
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 // Include dependent libraries in archive.
