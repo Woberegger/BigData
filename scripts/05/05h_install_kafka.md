@@ -7,11 +7,13 @@ see tutorial [Kafka-Quickstart](https://kafka.apache.org/quickstart)
 ```bash
 sudo -s
 cd /usr/local
-export KAFKA_VERSION=3.9.1
+export KAFKA_VERSION=4.3.1
 wget https://dlcdn.apache.org/kafka/${KAFKA_VERSION}/kafka_2.13-${KAFKA_VERSION}.tgz
 tar -xzf kafka_2.13-${KAFKA_VERSION}.tgz
 ln -s kafka_2.13-${KAFKA_VERSION} kafka
 chown -R hduser:hadoop kafka*
+# gain space
+rm kafka_2.13-${KAFKA_VERSION}.tgz
 ```
 
 set environment for Kafka for `hduser`

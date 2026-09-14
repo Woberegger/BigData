@@ -12,13 +12,16 @@ wget --no-check-certificate https://archive.apache.org/dist/flume/${FLUME_VERSIO
 tar -xzf apache-flume-${FLUME_VERSION}-bin.tar.gz
 ln -s apache-flume-${FLUME_VERSION}-bin flume
 chown -R hduser:hadoop apache-flume-${FLUME_VERSION}-bin flume
+# gain again free space
+rm apache-flume-${FLUME_VERSION}-bin.tar.gz
 ```
 
 ## set environment for Flume for hduser
 
 ```bash
 su - hduser
-
+```
+```bash
 cat >> ~/.bashrc <<!
 export FLUME_HOME=/usr/local/flume
 export PATH=\$PATH:\$FLUME_HOME/bin
@@ -34,7 +37,6 @@ source ~/.bashrc
 
 ## adapt Flume configuration by adapting the template files
 ```bash
-su - hduser
 cd $FLUME_HOME/conf
 cp -p flume-env.sh.template flume-env.sh
 cp -p flume-conf.properties.template flume-conf.properties
@@ -56,6 +58,8 @@ export FLUME_CLASSPATH="/usr/local/flume/lib/*"
 ```bash
 flume-ng version
 ```
+
+### possible errors
 
 In case of the following error in one of the following tests, the versions of the Guava libs do not match.
 

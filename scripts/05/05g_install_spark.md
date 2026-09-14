@@ -6,7 +6,7 @@ Spark is a powerful framework for distributed data processing and can be used fo
 ```bash
 sudo -s
 cd /usr/local
-export SPARK_VERSION=3.5.3
+export SPARK_VERSION=4.2.0
 wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz
 tar -xzf spark-${SPARK_VERSION}-bin-hadoop3.tgz
 ln -s spark-${SPARK_VERSION}-bin-hadoop3 spark

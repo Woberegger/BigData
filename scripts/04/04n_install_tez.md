@@ -9,17 +9,19 @@ download and install Tez
 ```bash
 sudo -s
 cd /usr/local
-export TEZ_VERSION=0.10.4
+export TEZ_VERSION=0.10.5
 wget https://dlcdn.apache.org/tez/${TEZ_VERSION}/apache-tez-${TEZ_VERSION}-bin.tar.gz
 tar -xzf apache-tez-${TEZ_VERSION}-bin.tar.gz
 ln -s apache-tez-${TEZ_VERSION}-bin tez
 chown -R hduser:hadoop apache-tez-${TEZ_VERSION}-bin
+# gain space again
+rm apache-tez-${TEZ_VERSION}-bin.tar.gz
 ```
 
 following actions done as user `hduser` (and not as root)
 ```bash
 su - hduser
-export TEZ_VERSION=0.10.4
+export TEZ_VERSION=0.10.5
 export TEZ_HOME=/usr/local/tez
 cd $TEZ_HOME
 ```
@@ -74,7 +76,7 @@ and following properties are required in hive-site.xml:
 ```xml
   <property>
     <name>tez.lib.uris</name>
-    <value>hdfs:///apps/tez-0.10.4</value>
+    <value>hdfs:///apps/tez-0.10.5</value>
   </property>
   <property>
     <name>hive.tez.container.size</name>
@@ -123,7 +125,7 @@ set the following in tez-site.xml (with correct TEZ-Version), which was loaded b
 ```xml
   <property>
      <name>tez.lib.uris</name>
-     <value>/apps/tez-0.10.4/tez.tar.gz</value>
+     <value>/apps/tez-0.10.5/tez.tar.gz</value>
      <type>string</type>
   </property>
   <property>
@@ -168,7 +170,7 @@ mv $TEZ_HOME/lib/slf4j-reload4j-*.jar /tmp/
 adapt user environment of `hduser`
 ```bash
 cat >> ~/.bashrc <<!
-export TEZ_VERSION=0.10.4
+export TEZ_VERSION=0.10.5
 export TEZ_HOME=/usr/local/tez
 export TEZ_CONF_DIR=\$TEZ_HOME/conf
 export TEZ_JARS=\$TEZ_HOME

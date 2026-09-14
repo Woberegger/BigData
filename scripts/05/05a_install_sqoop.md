@@ -12,10 +12,12 @@ wget https://archive.apache.org/dist/sqoop/${SQOOP_VERSION}/sqoop-${SQOOP_VERSIO
 tar -xzf sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz
 ln -s sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0 sqoop
 chown -R hduser:hadoop sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0
+# gain again free space
+rm sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz
 ```
 
 Important: add a permission line to the Java policy file used by your JVM to avoid exceptions during Sqoop import/export operations.
-Edit `/usr/lib/jvm/temurin-11-jdk-amd64/conf/security/java.policy` (path may vary for your JVM) and add the following permission inside a `grant { ... }` block:
+Edit `/usr/lib/jvm/temurin-17-jdk-amd64/conf/security/java.policy` (path may vary for your JVM) and add the following permission inside a `grant { ... }` block:
 
 ```vim
 permission javax.management.MBeanTrustPermission "register";
@@ -29,9 +31,9 @@ Switch to the `hduser` account and add Sqoop environment variables to the user's
 su - hduser
 cat >> ~/.bashrc <<!
 export SQOOP_HOME=/usr/local/sqoop
-export ACCUMULO_HOME=$SQOOP_HOME   # just to get rid of a warning; not actually needed
-export ZOOKEEPER_HOME=$HADOOP_HOME/zookeeper  # just to get rid of a warning
-export PATH=$PATH:$SQOOP_HOME/bin
+export ACCUMULO_HOME=\$SQOOP_HOME   # just to get rid of a warning; not actually needed
+export ZOOKEEPER_HOME=\$HADOOP_HOME/zookeeper  # just to get rid of a warning
+export PATH=\$PATH:\$SQOOP_HOME/bin
 !
 
 source ~/.bashrc
@@ -71,6 +73,18 @@ Verify the installation by printing the Sqoop version.
 
 ```bash
 sqoop version
+```
+## possible errors
+>  ERROR cli.SqoopParser: Could not load required method of Parser: java.lang.NoSuchMethodException: org.apache.commons.cli.Option.addValueForProcessing(java.lang.String)
+
+sqoop does not seem to work with latest hadoop, compiled with Java 17. The following howto might solve it, but currently not working
+```bash
+sudo -s
+cd /usr/local
+wget https://archive.apache.org/dist/commons/cli/binaries/commons-cli-1.2-bin.tar.gz
+tar -xzvf commons-cli-1.2-bin.tar.gz commons-cli-1.2/commons-cli-1.2.jar
+mv commons-cli-1.2/commons-cli-1.2.jar sqoop/lib/
+echo "export SQOOP_USER_CLASSPATH=$SQOOP_HOME/lib/commons-cli-1.2.jar:\$SQOOP_USER_CLASSPATH" >>$SQOOP_HOME/conf/sqoop-env.sh
 ```
 
 ## Notes and next steps
