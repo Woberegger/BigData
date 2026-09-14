@@ -54,11 +54,24 @@ locally on your laptop start your preferred browser (replace "\<ip_of_VM\>" with
 
 in case of problems best look into the logfiles located under /usr/local/hadoop/logs
 
+### test creation of directory and file upload
+```bash
+cd ~/BigData/data
+hdfs dfs -mkdir /input
+hdfs dfs -put Bibel.txt /input/
+hdfs dfs -ls /input/
+```
+you should find the file in the Web GUI under "Tools - Browse the file system".
+
+
+## stop the DFS and yarn processes again
 finally stop yarn and hadoop (as user "hduser")
 ```bash
 stop-yarn.sh 
 stop-dfs.sh
 ```
+
+> IMPORTANT: later we will not use yarn, so you should stop yarn and not start it for later lectures!
 
 again stopping (like starting) can also be done individually with each individual process daemon
 ```bash
