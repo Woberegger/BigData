@@ -26,6 +26,7 @@ let PortOffset=$2
 declare -i offset
 expectedName=bigdata${Study}
 grep $expectedName /etc/hosts >/tmp/bigdatahosts
+cp ~/BigData/scripts/01/datanode.env ~/.
 while read ip BDhost; do
    postfix=$(echo ${BDhost##${expectedName}})
    offset=$(printf %d ${postfix#0})
