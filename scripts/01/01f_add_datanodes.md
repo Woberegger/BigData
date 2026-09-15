@@ -8,6 +8,7 @@ stop-dfs.sh
 ```
 
 ## configure all datanodes
+per default this file only contains "localhost", but we want to have 2 more nodes (and use the hostnames)
 ```bash
 cat >$HADOOP_CONF_DIR/workers <<!
 namenode
@@ -24,8 +25,8 @@ Important is the fact, that the paths contain the hostname of the current nameno
 >datanode1: WARNING: /usr/local/hadoop/logs/datanode10.221.54.255 does not exist. Creating.<br>
 >datanode2: WARNING: /usr/local/hadoop/logs/datanode10.221.54.255 does not exist. Creating.<br>
 
-the Web GUI should now show all 3 datanodes as running.<br>
-> We will not use yarn anymore from now on
+the Web GUI http://\<NameNode-IP\>:9870/dfshealth.html#tab-datanode should now show all 3 datanodes as running.<br>
+> **IMPORTANT** We will not use yarn anymore from now on, so no start-yarn.sh needed
 
 ```bash
 start-dfs.sh
