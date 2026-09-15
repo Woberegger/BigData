@@ -108,7 +108,7 @@ cat >${HADOOP_CONF_DIR}/hdfs-site.xml <<EOF
       <value>2</value>
    </property>
    <property>
-      <name>dfs.permissions</name>
+      <name>dfs.permissions.enabled</name>
       <value>false</value>
    </property>
    <property>
@@ -125,8 +125,13 @@ cat >${HADOOP_CONF_DIR}/hdfs-site.xml <<EOF
       <description>Determines datanode heartbeat interval in milliseconds</description>
    </property>
    <property>
-      <name>dfs.block.size</name>
-      <value>2097152</value>
+      <!-- we use the minimum allowed limit, so that we do not consume too much space in our environment -->
+      <name>dfs.blocksize</name>
+      <value>131072</value>
+   </property>
+   <property>
+      <name>dfs.namenode.fs-limits.min-block-size</name>
+      <value>131072</value>
    </property>
    <property>
       <name>dfs.namenode.accesstime.precision</name>
