@@ -32,6 +32,15 @@ hdfs dfs -mkdir -p /apps/tez-${TEZ_VERSION}
 hdfs dfs -put share/tez.tar.gz /apps/tez-${TEZ_VERSION}/
 ```
 
+save previous version of file, if something should not work
+```bash
+cd /usr/local/hadoop/etc/hadoop
+cp -p hdfs-site.xml hdfs-site.xml.before_tez
+cp -p yarn-site.xml yarn-site.xml.before_tez
+cd /usr/local/hive/conf
+cp -p hive-site.xml hive-site.xml.before_tez
+```
+
 adapt file $HADOOP_HOME/etc/hadoop/hdfs-site.xml manually:
 ```xml
     <property>
@@ -121,7 +130,7 @@ cd ${TEZ_HOME}/conf
 cp tez-default-template.xml tez-site.xml
 ```
 
-set the following in tez-site.xml (with correct TEZ-Version), which was loaded before into HDFS
+set the following in tez-site.xml (with correct TEZ-Version), which was loaded before into HDFS (the first parameter needs to be replace, the second one added)
 ```xml
   <property>
      <name>tez.lib.uris</name>
@@ -186,17 +195,6 @@ fi
 source ~/.bashrc
 ```
 
-## Jetty GUI runner for TEZ GU
-(Jetty is an own small webserver) - *I'm not sure, if we need it of can skip this step completely!*
-```bash
-cd $TEZ_HOME
-wget https://repository.apache.org/content/repositories/releases/org/apache/tez/tez-ui/${TEZ_VERSION}/tez-ui-${TEZ_VERSION}.war
-export JETTY_VERSION=11.0.18
-wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-runner/${JETTY_VERSION}/jetty-runner-${JETTY_VERSION}.jar
-# start webserver in background - you can choose any not-used port, which is enabled on the firewall
-java -jar $(ls jetty-runner*.jar) --port 8089 tez-ui-${TEZ_VERSION}.war &
-```
-
 ## test Tez with Hive
 restart hiveserver to pick up all changes
 ```bash
@@ -221,7 +219,7 @@ beeline --verbose -u jdbc:hive2://localhost:10000 scott tiger
    -- the following seems to work, as no mr/tez is involved
    select * from sales limit 20;
    -- but the following 2 fail, when tez is not correctly configured
-   -- although heapsize was set in hive-site.xml I get error "java.lang.OutOfMemoryError: Java heap space"
+   -- when e.g. heapsize was not correctly set in hive-site.xml - in this case you might get error "java.lang.OutOfMemoryError: Java heap space"
    CREATE TABLE IF NOT EXISTS word_counts_tez AS
    SELECT word, count(1) AS count FROM
     (SELECT explode(split(line, ' ')) AS word FROM docs) temp
@@ -230,3 +228,14 @@ beeline --verbose -u jdbc:hive2://localhost:10000 scott tiger
    -- this however works, it does not need so much memory
    select s.cust_id, sum(s.sales) as summe from sales s group by cust_id limit 20;
 ```
+
+The output of the hive commands should look similar to the one shown below:
+>printed operations logs<br>
+>----------------------------------------------------------------------------------------------<br>
+>        VERTICES      MODE        STATUS  TOTAL  COMPLETED  RUNNING  PENDING  FAILED  KILLED<br>
+>----------------------------------------------------------------------------------------------<br>
+>Map 1 .......... container     SUCCEEDED      2          2        0        0       0       0<br>
+>Reducer 2 ...... container     SUCCEEDED      1          1        0        0       0       0<br>
+>Reducer 3 ...... container     SUCCEEDED      1          1        0        0       0       0<br>
+>----------------------------------------------------------------------------------------------<br>
+>VERTICES: 03/03  [==========================>>] 100%  ELAPSED TIME: 12.77 s<br>
