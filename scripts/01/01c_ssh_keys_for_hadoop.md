@@ -12,8 +12,8 @@ echo "$(hostname -I | cut -d' ' -f1) namenode $(hostname)" >>/etc/hosts
 ```
 
 the following 2 lines were already added in advance, when having created the base image
->echo "10.77.17.48 datanode1" >>/etc/hosts<br>
->echo "10.77.18.25 datanode2" >>/etc/hosts
+>echo "10.221.55.234 datanode1" >>/etc/hosts<br>
+>echo "10.221.53.130 datanode2" >>/etc/hosts
 
 it makes sense to clone the github repo to the OpenStack VM, as then all scripts, sources, config files etc. are there
 (in some howtos we will expect, that this is exactly located, where set here)
