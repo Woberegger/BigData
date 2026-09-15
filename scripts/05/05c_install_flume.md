@@ -46,7 +46,7 @@ Either append to the end of the file or better replace in the file at the approp
 
 ```bash
 cat >>flume-env.sh <<!
-export JAVA_HOME=/usr/lib/jvm/temurin-11-jdk-$(dpkg --print-architecture)
+export JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-$(dpkg --print-architecture)
 # Flume Channels might show errors that they overflow, therefore set Java memory options a bit higher
 export JAVA_OPTS="-Xms512m -Xmx1024m -Dcom.sun.management.jmxremote"
 export FLUME_CLASSPATH="/usr/local/flume/lib/*"
