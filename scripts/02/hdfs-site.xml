@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <configuration>
-	<property>
-		<name>dfs.replication</name>
-		<value>2</value>
-	</property>
-	<property>
-     <name>dfs.namenode.maintenance.replication.min</name>
-     <value>1</value>
+   <property>
+      <name>dfs.replication</name>
+      <value>2</value>
    </property>
    <property>
-     <name>dfs.namenode.hosts.provider.classname</name>
- 	  <value>org.apache.hadoop.hdfs.server.blockmanagement.CombinedHostFileManager</value>
+      <name>dfs.namenode.maintenance.replication.min</name>
+      <value>1</value>
+   </property>
+   <property>
+      <name>dfs.namenode.hosts.provider.classname</name>
+      <value>org.apache.hadoop.hdfs.server.blockmanagement.CombinedHostFileManager</value>
    </property>
    <property>
       <name>dfs.hosts</name>
       <value>/usr/local/hadoop/etc/hadoop/hosts</value>
    </property>
-	<property>
-		<name>dfs.permissions.enabled</name>
-		<value>false</value>
-	</property>
-	<property>
-		<name>dfs.namenode.name.dir</name>
-		<value>file:/usr/local/hadoop/hadoopdata/hdfs/namenode</value>
-	</property>
-	<property>
-		<name>dfs.datanode.data.dir</name>
-		<value>file:/usr/local/hadoop/hadoopdata/hdfs/datanode</value>
-	</property>
-	<property>
+   <property>
+      <name>dfs.permissions.enabled</name>
+      <value>false</value>
+   </property>
+   <property>
+      <name>dfs.namenode.name.dir</name>
+      <value>file:/usr/local/hadoop/hadoopdata/hdfs/namenode</value>
+   </property>
+   <property>
+      <name>dfs.datanode.data.dir</name>
+      <value>file:/usr/local/hadoop/hadoopdata/hdfs/datanode</value>
+   </property>
+   <property>
       <name>dfs.namenode.heartbeat.recheck-interval</name>
       <value>15000</value>
       <description>Determines datanode heartbeat interval in milliseconds</description>
@@ -39,8 +39,36 @@
       <name>dfs.blocksize</name>
       <value>131072</value>
    </property>
-   <property>      
+   <property>
       <name>dfs.namenode.fs-limits.min-block-size</name>
       <value>131072</value>
+   </property>
+   <property>
+      <name>dfs.namenode.accesstime.precision</name>
+      <value>3600000</value>
+   </property>
+   <property>
+      <name>dfs.nfs3.dump.dir</name>
+      <value>/tmp/.hdfs-nfs</value>
+   </property>
+   <property>
+      <name>nfs.exports.allowed.hosts</name>
+      <value>* rw</value>
+   </property>
+   <property>
+      <name>nfs.metrics.percentiles.intervals</name>
+      <value>100</value>
+   </property>
+   <property>
+      <name>nfs.port.monitoring.disabled</name>
+      <value>false</value>
+   </property>
+   <property>
+      <name>dfs.namenode.decommission.interval</name>
+      <value>30</value>
+   </property>
+   <property>
+      <name>dfs.client.datanode-restart.timeout</name>
+      <value>30</value>
    </property>
 </configuration>

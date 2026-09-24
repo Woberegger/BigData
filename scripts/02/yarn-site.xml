@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <configuration>
-	<property>
-		<name>yarn.nodemanager.aux-services</name>
-		<value>mapreduce_shuffle</value>
-	</property>
-	<property>
-		<name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+   <property>
+      <name>yarn.nodemanager.aux-services</name>
+      <value>mapreduce_shuffle</value>
+   </property>
+   <property>
+      <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
       <value>org.apache.hadoop.mapred.ShuffleHandler</value>
-	</property>
-	<property>
-		<name>yarn.nodemanager.vmem-pmem-ratio</name>
-		<value>3</value>
-	</property>
-	<property>
-		<name>yarn.nodemanager.delete.debug-delay-sec</name>
-		<value>600</value>
-	</property>
-	<property>
-		<name>yarn.nodemanager.vmem-check-enabled</name>
-		<value>false</value>
-	</property>
+   </property>
+   <property>
+      <name>yarn.nodemanager.vmem-pmem-ratio</name>
+      <value>3</value>
+   </property>
+   <property>
+      <name>yarn.nodemanager.delete.debug-delay-sec</name>
+      <value>600</value>
+   </property>
+   <property>
+      <name>yarn.nodemanager.vmem-check-enabled</name>
+      <value>false</value>
+   </property>
    <!-- IMPORTANT: set this parameter to use Yarn and not local mode for computation -->
    <property>
       <name>yarn.resourcemanager.hostname</name>
