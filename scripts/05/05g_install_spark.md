@@ -19,9 +19,11 @@ The easiest way is to create Spark commands in Python, so pipx is installed as t
 apt install pipx
 ```
 
-And then the "pyspark" package (*IMPORTANT:* as user `hduser` and not as root, because pipx installs the binaries and executable scripts to the home directory of the user)
+And then the "pyspark" package (*IMPORTANT:* as user `hduser` and not as root, because pipx installs the binaries and executable scripts to the home directory of the user into path ~/.local/bin)
 ```bash
 su - hduser
+# IMPORTANT: set $TMPDIR, otherwise it uses /tmp, which is a too small partition to take all pyspark installation files
+export TMPDIR=~/tmp
 pipx install pyspark
 ```
 
@@ -39,7 +41,7 @@ we will then test the similar netcat application as we did for Flume, but this t
 
 I have downloaded that example from following link (however you need not do it, you can use the one from github repo)
 
-> see [](https://archive.apache.org/dist/spark/docs/3.5.3/streaming-programming-guide.html#a-quick-example)
+> see [streaming-programming-guide](https://archive.apache.org/dist/spark/docs/3.5.3/streaming-programming-guide.html#a-quick-example)
 
 ## in session #1
 

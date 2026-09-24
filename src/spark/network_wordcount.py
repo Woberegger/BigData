@@ -21,9 +21,9 @@ r"""
    <hostname> and <port> describe the TCP server that Spark Streaming would connect to receive data.
 
  To run this on your local machine, you need to first run a Netcat server
-    `$ nc -lk 9999`
+    `nc -lk 44444`
  and then run the example
-    `$ $SPARK_HOME/bin/spark-submit network_wordcount.py localhost 9999`
+    `~hduser/.local/bin/spark-submit ~hduser/BigData/src/spark/network_wordcount.py localhost 44444`
 """
 import sys
 
@@ -35,6 +35,8 @@ if __name__ == "__main__":
         print("Usage: network_wordcount.py <hostname> <port>", file=sys.stderr)
         sys.exit(-1)
     sc = SparkContext(master="local[2]", appName="PythonStreamingNetworkWordCount")
+    # we avoid INFO output, otherwise our real information is hidden
+    sc.setLogLevel("ERROR")
     ssc = StreamingContext(sc, 1)
 
     lines = ssc.socketTextStream(sys.argv[1], int(sys.argv[2]))
