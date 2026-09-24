@@ -52,6 +52,7 @@ su - hduser
 netcat -lk 44444
 ```
 > enter e.g. `Hello Spark, the word Hello should appear twice`
+As soon as you click enter, you should see the output in the 2nd session, no matter if written before or after connection was established
 
 ## in session #2
 start spark streaming job
@@ -64,8 +65,13 @@ $SPARK_HOME/bin/spark-submit ~/BigData/src/spark/network_wordcount.py localhost 
 
 expected output in session #2:
 > 
-> Time: 2014-10-14 15:25:21
-> 
-> (Hello,2)<br>
-> (Spark,1)<br>
-> ...
+> -------------------------------------------<br>
+> Time: 2026-09-24 12:41:22<br>
+> -------------------------------------------<br>
+> ('Spark,', 1)<br>
+> ('word', 1)<br>
+> ('should', 1)<br>
+> ('twice', 1)<br>
+> ('Hello', 2)<br>
+> ('the', 1)<br>
+> ('appear', 1)<br>
