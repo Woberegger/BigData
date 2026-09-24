@@ -2,7 +2,7 @@
 
 this should stream Linux syslog events into Kafka consumer
 
-see example configuration from [](https://www.syslog-ng.com/community/b/blog/posts/kafka-destination-improved-with-template-support-in-syslog-ng)
+see example configuration from [kafka-destination-improved-with-template-support-in-syslog-ng](https://www.syslog-ng.com/community/b/blog/posts/kafka-destination-improved-with-template-support-in-syslog-ng)
 
 first install syslog-ng and the C++ library for Kafka integration
 ```bash
@@ -34,8 +34,7 @@ and then configure the Kafka connector
 ```bash
 cat >/etc/syslog-ng/conf.d/kafka.conf <<!
 destination d_kafka {
-  kafka-c(config(metadata.broker.list("localhost:9092")
-                   queue.buffering.max.ms("1000"))
+  kafka-c(config(queue.buffering.max.ms("1000"))
         topic("syslogcollect")
         bootstrap-servers("localhost:9092")
         message("\$(format-json --scope rfc5424 --scope nv-pairs)"));
@@ -48,10 +47,13 @@ log {
 !
 ```
 
-and then we enable and start the syslog-ng service
+and then we enable and start the syslog-ng service<br>
+(first set some empty SYSLOGNG_OPTIONS, otherwise `systemctl status syslog-ng` writes a warning)
 ```bash
+echo 'SYSLOGNG_OPTS=""' >> /etc/default/syslog-ng
 systemctl enable syslog-ng
 systemctl start syslog-ng
+systemctl status syslog-ng
 ```
 
 > if you encounter a problem, that the service is not starting, you can try following command:
@@ -72,7 +74,7 @@ And then we try to retrieve the Syslog events and write them to a file
 $KAFKA_HOME/bin/kafka-console-consumer.sh --topic syslogcollect --from-beginning --bootstrap-server localhost:9092
 ```
 
-Then simply trigger any Syslog event by, for example, executing "su - hduser" in another session:
+Then simply trigger any Syslog event by, for example, executing `su - hduser` in another session:
 
 Expected output similar to the following:
 

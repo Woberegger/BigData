@@ -55,7 +55,8 @@ netcat -lk 44444
 As soon as you click enter, you should see the output in the 2nd session, no matter if written before or after connection was established
 
 ## in session #2
-start spark streaming job
+start spark streaming job<br>
+(this is a wordcount task, which processes data during streaming, demonstrating the Spark realtime processing function)
 
 ```bash
 su - hduser

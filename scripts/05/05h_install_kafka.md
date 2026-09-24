@@ -39,7 +39,16 @@ sleep 3
 netstat -an | grep 2181
 ```
 
-> Strangely, it doesn't work if you append $KAFKA_HOME/lib, so it's better to completely unset it, then it works<br>
+If Kafka runs in KRaft mode, you first need to initialize the storage once<br>
+(we use a different logdir than /tmp, as /tmp partition is quite small)
+```bash
+sed -i 's#log.dirs=/tmp/kraft-combined-logs#log.dirs=/home/hduser/tmp/kraft-combined-logs#' $KAFKA_HOME/config/server.properties
+unset CLASSPATH
+KAFKA_CLUSTER_ID=$($KAFKA_HOME/bin/kafka-storage.sh random-uuid)
+$KAFKA_HOME/bin/kafka-storage.sh format -t $KAFKA_CLUSTER_ID -c $KAFKA_HOME/config/server.properties --standalone
+```
+
+> Strangely, it doesn't work if you append $KAFKA_HOME/lib to \$CLASSPATH, so it's better to completely unset it, then it works<br>
 > (because apparently Flume paths are used otherwise with libraries that are not compatible)
 
 ```bash
@@ -55,12 +64,13 @@ jps | grep Kafka
 > Possible problem: if Kafka was mistakenly started as root previously, <br>
 > then as root user delete the following directories:
 ```bash
-rm -Rf /tmp/kafka-logs/ /usr/local/kafka/logs/
+rm -Rf /tmp/kafka-logs/ /usr/local/kafka/logs/ /home/hduser/tmp/kraft-combined-logs /tmp/kraft-combined-logs
 ```
 
 ## sample topic
 Create a so-called "Topic" - in this case named "quickstart-events"
 ```bash
+unset CLASSPATH
 $KAFKA_HOME/bin/kafka-topics.sh --create --topic quickstart-events --bootstrap-server localhost:9092
 ```
 
@@ -88,7 +98,7 @@ $KAFKA_HOME/bin/kafka-topics.sh --create --topic streams-plaintext-input --boots
 $KAFKA_HOME/bin/kafka-topics.sh --create --topic streams-wordcount-output --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --config cleanup.policy=compact
 ```
 ```bash
-$KAFKA_HOME/bin/kafka-run-class.sh org.apache.kafka.streams.examples.wordcount.WordCountDemo
+$KAFKA_HOME/bin/kafka-run-class.sh org.apache.kafka.streams.examples.wordcount.WordCountDemo &
 ```
 
 and then we simply produce input for the wordcount
@@ -98,7 +108,9 @@ echo -e "Das Wort Das kommt doppelt vor im Text" | $KAFKA_HOME/bin/kafka-console
 ```
 and the consumer should then have received it
 ```bash
-$KAFKA_HOME/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic streams-wordcount-output --from-beginning --property print.key=true --property print.value=true --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer --property value.deserializer=org.apache.kafka.common.serialization.LongDeserializer
+$KAFKA_HOME/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic streams-wordcount-output --from-beginning \
+   --formatter-property print.key=true --formatter-property print.value=true --formatter-property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
+   --formatter-property value.deserializer=org.apache.kafka.common.serialization.LongDeserializer
 ```
 
 Expected output:
