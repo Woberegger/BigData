@@ -1,9 +1,14 @@
 # BigData02 - Erasure Coding (voluntary task)
 
 Task: Configure Erasure Coding on a specific directory after placing some very large files there. <br>
-What changes can we find in the required HDD space?
+What changes can we find in the required HDD space?<br>
+(all actions done as user "hduser")
 
 **IMPORTANT:** This requires at least 3 nodes (in 3 different racks) for this to work!
+
+```bash
+su - hduser
+```
 
 Create the rack topology script `/usr/local/hadoop/bin/rack-topology.sh` with the following content:
 
@@ -30,8 +35,8 @@ Apparently only IP addresses work here and not hostnames. So we add our own IP a
 ```bash
 MAPFILE=$HADOOP_CONF_DIR/topology.txt
 echo "$(hostname -I | cut -d' ' -f1) /rack0" >$MAPFILE
-echo "10.77.17.48 /rack1" >>$MAPFILE
-echo "10.77.18.25 /rack2" >>$MAPFILE
+echo "10.221.55.234 /rack1" >>$MAPFILE
+echo "10.221.53.130 /rack2" >>$MAPFILE
 echo "namenode /rack0" >>$MAPFILE
 echo "datanode1 /rack1" >>$MAPFILE
 echo "datanode2 /rack2" >>$MAPFILE
@@ -39,7 +44,7 @@ echo "datanode2 /rack2" >>$MAPFILE
 chmod 755 $HADOOP_HOME/bin/rack-topology.sh
 ```
 
-Insert the following lines into `core-site.xml` (where to find the topology script):
+Insert the following lines into `$HADOOP_CONF_DIR/core-site.xml` (where to find the topology script):
 
 ```vim
    <property>
@@ -76,6 +81,10 @@ After that it should be possible to create a new directory and change/check the 
 
 ```bash
 hdfs ec -listPolicies
+```
+
+Find proper policy, which you use for the following placeholder <Policyame>
+```bash
 hdfs ec -enablePolicy -policy <PolicyName>
 
 hdfs dfs -mkdir /ErasureCoding
@@ -89,7 +98,12 @@ The growth of used space is somewhat tricky to measure; run the following before
 it should only have grown by about 50% of the file size:
 
 ```bash
-du -d1 /mnt/node1data/
+du -d1 /usr/local/hadoop/hadoopdata/hdfs/datanode/
+```
+
+as we have configured a very small default block size and ErasureEncodingPolicy requires at least 1MB, we have to pass parameter dfs.blocksize
+```bash
+hdfs dfs -D dfs.blocksize=1048576 -put Bibel.txt  /ErasureCoding/
 ```
 
 The following warning can be ignored - it should work nevertheless:
