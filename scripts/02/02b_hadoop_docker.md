@@ -43,7 +43,7 @@ docker ps | cut -d' ' -f4 | sort
 Also check which IPs the containers received.
 
 ```bash
-docker network inspect docker-hadoop_default
+docker network inspect docker-hadoop_default | grep -E '"Name":|"IPv4Address"'
 ```
 
 It may be necessary to open the ports via `iptables` if they are not automatically exposed by the port mapping.

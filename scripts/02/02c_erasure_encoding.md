@@ -110,3 +110,5 @@ The following warning can be ignored - it should work nevertheless:
 
 >WARN erasurecode.ErasureCodeNative: Loading ISA-L failed: Failed to load libisal.so.2<br>
 > (libisal.so.2: cannot open shared object file: No such file or directory)
+
+check replication factor and blocks in web GUI `http://<NameNodeIP>:9870/explorer.html#/ErasureCoding`
