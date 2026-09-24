@@ -2,43 +2,43 @@
 
 Download sources from the GitHub repo if not already done.
 
-Container images are pulled from [](https://hub.docker.com/r/bde2020/hadoop-base]).
-The configuration from [](https://github.com/big-data-europe/docker-hadoop/tree/master) has been adapted for 2 (instead of 1) DataNodes.
+Container images are pulled from [https://hub.docker.com/r/bde2020/hadoop-base](https://hub.docker.com/r/bde2020/hadoop-base]).
+The configuration from [https://github.com/big-data-europe/docker-hadoop/tree/master](https://github.com/big-data-europe/docker-hadoop/tree/master) has been adapted for a total of 3 (instead of 2) DataNodes.
 
+clone git repo, if not yet done so in previous lecture...
 ```bash
+su - hduser
 cd ~
 git clone https://github.com/Woberegger/BigData/
+```
+
+ stop locally installed DFS, when using the docker version, as some ports might be shared
+```bash
+stop-dfs.sh
 ```
 
 Build Docker containers after downloading the sources (check the path and adjust if necessary).
 
 ```bash
-export HADOOPDOCKERDIR=~/BigData/src/docker-hadoop/
-cd $HADOOPDOCKERDIR
 sudo -s
+export HADOOPDOCKERDIR=~hduser/BigData/src/docker-hadoop/
+cd $HADOOPDOCKERDIR
+apt install docker-compose # if not yet installed
 docker-compose up -d
 ```
 
-The output of `jps` should look like this (3 DataNodes and 1 NameNode):
+The output of `docker ps | cut -d' ' -f4 | sort` should look like this (3 DataNodes and 1 NameNode, NodeManager, ResourceManager and HistoryServer):
 
 ```bash
-jps | sort -k2 | awk '{ print $2}'
+docker ps | cut -d' ' -f4 | sort
 ```
-> ApplicationHistoryServer<br>
-> DataNode<br>
-> DataNode<br>
-> DataNode<br>
-> Jps<br>
-> NameNode<br>
-> NodeManager<br>
-> ResourceManager<br>
-
-Check with 'docker ps' whether the Docker containers are all running;<br>
-you should find historyserver, resourcemanager, nodemanager, namenode and 3x datanode.
-
-```bash
-docker ps
-```
+> bde2020/hadoop-datanode:latest<br>
+> bde2020/hadoop-datanode:latest<br>
+> bde2020/hadoop-datanode:latest<br>
+> bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8<br>
+> bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8<br>
+> bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8<br>
+> bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8<br>
 
 Also check which IPs the containers received.
 
