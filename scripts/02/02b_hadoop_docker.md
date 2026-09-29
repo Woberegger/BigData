@@ -65,6 +65,7 @@ docker cp $HADOOPDOCKERDIR/../wordcount/Hadoopwordcount.jar namenode:/tmp/Hadoop
 Connect to the `namenode` container.
 
 ```bash
+docker cp ~hduser/BigData/data/el_quijote.txt /tmp
 docker exec -it namenode bash
 ```
 
@@ -72,7 +73,6 @@ Execute the following commands inside the container to download and run test dat
 
 ```bash
 cd /tmp
-curl -o el_quijote.txt https://gist.github.com/jsdario/6d6c69398cb0c73111e49f1218960f79#file-el_quijote-txt
 curl -o mapreduce.jar https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-mapreduce-examples/2.7.1/hadoop-mapreduce-examples-2.7.1-sources.jar
 ```
 
@@ -81,7 +81,7 @@ Create directories in HDFS.
 ```bash
 hdfs dfs -mkdir -p /input
 hdfs dfs -mkdir -p /output
-hdfs dfs -put ./el_quijote.txt /input/
+hdfs dfs -put /tmp/el_quijote.txt /input/
 ```
 
 If the directory exists from previous tests, delete it.
