@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 # call with:
-# ~hduser/.local/bin/spark-submit --master yarn \
-#  --deploy-mode client--jars \
-#  ~/BigData/external_libs/mysql-connector-j-8.1.0.jar ~/BigData/src/spark/spark_db.py
-#
-# to check DB connect interactively...
-# apt install default-mysql-client
-# echo "ssl-verify-server-cert = off" >>/etc/mysql/conf.d/mysql.cnf # to not ask for certificate
-# mysql --host=datanode1 --port=13306 --user=swd00 --password #--skip-ssl-verify-server-cert
+# ~hduser/.local/bin/spark-submit \
+#  --jars  ~/BigData/external_libs/mysql-connector-j-8.1.0.jar \
+#  ~hduser/BigData/scripts/05/05f_spark_read_from_rdbms_to_hdfs.py \
+#  --host datanode1 --port 13306 --database <swdXX|itmXX> --user <swdXX|itmXX> --password <swdXX|itmXX> \
+#  --hdfs_dir hdfs://namenode:9000/tmp/students
 
 import argparse
 from pyspark.sql import SparkSession
@@ -29,14 +26,7 @@ if args.user is None:
 if args.password is None:
    args.password = args.database
 
-# Spark Session mit Hive-Unterstützung
-spark = SparkSession.builder \
-    .appName("MySQL_to_Hive_Students") \
-    .config("spark.sql.warehouse.dir", "hdfs://namenode:9000/user/hive/warehouse") \
-    .enableHiveSupport() \
-    .getOrCreate()
-
-# Verbindungsdaten
+# connection data
 jdbc_url = "jdbc:mysql://"+args.host+":"+str(args.port)+"/"+args.database+"?useSSL=false&allowPublicKeyRetrieval=true"
 db_properties = {
     "user": args.user,
@@ -44,16 +34,15 @@ db_properties = {
     "driver": "com.mysql.cj.jdbc.Driver"
 }
 
-# Parallelisierung basierend auf der Spalte 'id'
-# 3. Parameter für die Parallelisierung (Sqoop Mapper-Äquivalent)
-# Um parallel zu lesen, benötigt Spark eine numerische/Datums-Spalte (z.B. die ID)
+# parallelising on column 'id' (needs to be a numeric or date column)
+# (used as Sqoop Mapper equivalent)
 target_table = "studentsMySQL"
 partition_column = "id"  # Sqoop: --split-by
-lower_bound = "1"        # Minimaler Wert der ID
-upper_bound = "1000000"  # Maximaler Wert der ID
-num_partitions = "4"     # Sqoop: -m 4 (Anzahl der parallelen Tasks)
+lower_bound = "1"        # Minimum value of ID
+upper_bound = "1000000"  # Maximum value of ID
+num_partitions = "4"     # Sqoop: -m 4 (number of parallel tasks)
 
-# 4. Daten über JDBC parallel einlesen
+# read data using JDBC
 print(f"read data from table {target_table}...")
 df = spark.read.jdbc(
     url=jdbc_url,
@@ -65,8 +54,8 @@ df = spark.read.jdbc(
     properties=db_properties
 )
 
-# 5. Daten im Hadoop HDFS speichern (Sqoop: --target-dir)
-# Parquet wird für Hadoop 3.x dringend empfohlen (komprimiert, spaltenbasiert, extrem schnell)
+# store data to HDFS (Sqoop: --target-dir)
+# 'parquet' mode is highly recommended for Hadoop 3.x (compressed, column-oriented, very fast)
 hdfs_target_path = args.hdfs_dir
 
 print(f"write data to HDFS: {hdfs_target_path}")
