@@ -43,8 +43,8 @@ For accessing X with rainbowstream, it is necessary to first activate the API to
 cd ~/rainbowstream
 cat >~/rainbowstream/rainbowstream/consumer.py <<!
 # Consumer information
-CONSUMER_KEY = 'Ho0rlPMpJKoKGzpZkU8I5qKqD' # Your Twitter application's API key
-CONSUMER_SECRET = 'G36p1Z9PI5COLlQr4hcmPjSalYEqXtq46CpB6iTiW3YWHCVmP8' # Your Twitter application's API secret
+CONSUMER_KEY = '<25chars>' # Your Twitter application's API key
+CONSUMER_SECRET = '<48chars>' # Your Twitter application's API secret
 #PCKT_CONSUMER_KEY = 'PocketAPIKey' # Your Pocket application's API key
 !
 ```
