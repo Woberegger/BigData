@@ -1,4 +1,4 @@
-# BigDate02 - Working with HDFS
+# BigData02 - Working with HDFS
 
 The tasks in this file are possible with 1 active datanode, although you will understand better how HDFS works if more than 1
 (ideally 3) datanodes are set up. Therefore, if enough time is available, activate additional datanodes beforehand using one of the instructions
