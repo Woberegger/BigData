@@ -15,11 +15,17 @@ the following 2 lines were already added in advance, when having created the bas
 >echo "10.221.55.234 datanode1" >>/etc/hosts<br>
 >echo "10.221.53.130 datanode2" >>/etc/hosts
 
+verify content of file /etc/hosts
+```bash
+cat /etc/hosts
+```
+
 it makes sense to clone the github repo to the OpenStack VM, as then all scripts, sources, config files etc. are there
 (in some howtos we will expect, that this is exactly located, where set here)
 ```bash
 su - hduser
 ```
+
 ```bash
 echo 'source /etc/vim/vimrc' >~/.vimrc
 git clone https://github.com/Woberegger/BigData
