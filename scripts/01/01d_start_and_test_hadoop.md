@@ -61,7 +61,7 @@ hdfs dfs -mkdir /input
 hdfs dfs -put Bibel.txt /input/
 hdfs dfs -ls /input/
 ```
-you should find the file in the Web GUI under "Tools - Browse the file system".
+you should find the file in the Web GUI under "Utilities - Browse the file system".
 
 
 ## stop the DFS and yarn processes again
