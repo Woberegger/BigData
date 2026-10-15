@@ -26,9 +26,14 @@ git clone https://github.com/Woberegger/BigData
 ```
 
 ## create and distribute SSH keys
-needed for communication between e.g. namenode and datanodes, even locally
+needed for communication between e.g. namenode and datanodes, even locally.
+
 ```bash
 ssh-keygen -t rsa -P ""
+```
+
+> IMPORTANT: If you are asked for "yes", please really type in "yes"
+```bash
 cat ~/.ssh/id_rsa.pub  > ~/.ssh/authorized_keys
 # copy keys to the 2 additional datanodes
 ssh-copy-id -i ~/.ssh/id_rsa.pub hduser@datanode1
