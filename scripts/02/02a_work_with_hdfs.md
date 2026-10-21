@@ -76,16 +76,22 @@ Try to change the block size for individual files - preferably use a fairly larg
 hdfs dfs -D dfs.blocksize=1048576 -put ~/BigData/data/airline_delay_causes.csv /user/hduser/testdir/BlockSize1MB.csv
 ```
 
-Check which parameter you can use to set when to react to a dead datanode.
+## reacting on dead datanode
+
+Check which parameter you can use to set when to react to a dead datanode.<br>
 Change to 60 seconds - see [HDFS Default Configuration](https://hadoop.apache.org/docs/r3.2.4/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml).<br>
 Shut down the assigned process of the 2nd node and see what happens to the replicas of that node after 60 seconds.<br>
 When are replicas transferred from one node to another so we have the desired number of 2 again?<br>
-Since we all work together on the further nodes, you must find the correct instance by passing the IP of the `namenode` to the grep command
+<br>
+Since we all work together on the further nodes, it is best to kill the local `datanode` instance.
+you must find the correct instance by passing the IP of the `namenode` to the grep command
 
 Either:
 
 ```bash
-kill $(jps -v | grep datanode<IP-Address> | cut -d' ' -f1)
+kill $(jps | grep DataNode | cut -d' ' -f1)
+# this would be the version for killing it on datanode1/datanode2 (instead of the local machine):
+# kill $(jps -v | grep datanode<IP-Address> | cut -d' ' -f1)
 ```
 
 Or:
@@ -94,11 +100,12 @@ Or:
 hdfs --daemon stop datanode
 ```
 
-Timeout equals to 2 * heartbeat.recheck.interval + 10 * heartbeat.interval. Default for heartbeat.interval is 3 seconds, default for recheck-interval is 300
+Timeout equals to 2 * heartbeat.recheck.interval + 10 * heartbeat.interval. Default for heartbeat.interval is 3 seconds, default for recheck-interval is 300<br>
+The 2 outcommented lines would be needed, when we restart the datanode on datanode1/datanode2 (and not on `namenode`)
 
 ```bash
-export SSH_CLIENT=<NameNode-IP-Address>
-source ~/datanode.env
+#export SSH_CLIENT=<NameNode-IP-Address>
+#source ~/datanode.env
 hdfs --daemon start datanode
 ```
 
