@@ -7,6 +7,12 @@ This script needs to be executed by each student individually, as it depends on 
 sudo -s
 ```
 
+as we want to use `ssh` as default shell for pdsh (Parallel Distributed Shell) for starting local and remote services, we have to set that
+explicitely, especially if we want to later start hadoop as systemD service in the background.
+```bash
+echo "ssh">/etc/pdsh/rcmd_default
+```
+
 ```bash
 echo "$(hostname -I | cut -d' ' -f1) namenode $(hostname)" >>/etc/hosts
 ```
