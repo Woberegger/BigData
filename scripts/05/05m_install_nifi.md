@@ -52,7 +52,7 @@ You should see your Nifi configuration page under following URL:
 
 It should look as below:
 
-![Nifi configuration page](image.png)
+![Nifi configuration page](images/nifistartpage.png)
 
 if you later want to stop `Nifi`, then simply call `nifi.sh stop`
 

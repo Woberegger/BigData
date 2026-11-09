@@ -27,24 +27,24 @@ hdfs dfs -chown nifi /user/hduser/hive_external/studentsNifi
 
 then we need to configure NiFi using Web GUI on port 8999/nifi:
 
-![open configuration screen](image-0.png)
+![open configuration screen](images/image-0.png)
 
 add a new controller service:<br>
 
-![add controller service](image-1.png)
+![add controller service](images/image-1.png)
 
 of type DBCPConnectionPool:<br>
 
-![set type of connection pool](image-2.png)
+![set type of connection pool](images/image-2.png)
 
 rename the pool to a meaningful value:<br>
 
-![set pool name](image-3.png)
+![set pool name](images/image-3.png)
 
 and set following properties (replace `swd00` by e.g. `itm01` or `swd01` inside of blue borders and take values in green borders as they are):<br>
 
-![set connection properties](image-4.png)
+![set connection properties](images/image-4.png)
 
 press the `flash` icon to enable the service:<br>
 
-![enable service](image-5.png)
+![enable service](images/image-5.png)
