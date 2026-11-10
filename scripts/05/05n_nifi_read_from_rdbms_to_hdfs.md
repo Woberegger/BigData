@@ -32,7 +32,7 @@ hdfs dfs -mkdir -p /user/hduser/hive_external/students
 hdfs dfs -chmod 777 /user/hduser/hive_external/students
 ```
 
-fill some test data into MySQL source table `studentsMySQL`:
+fill some test data into MySQL source table `studentsMySQL` (IMPORTANT: only necessary, when not yet done with Spark task):
 ```bash
 export MYSQL_USER=$(echo ${HOSTNAME//bigdata})
 export MYSQL_PASSWD=$MYSQL_USER
@@ -137,9 +137,9 @@ the graphical configuration can be exported using a template (IMPORTANT: the com
 and then download the created template:
 
 ![download template](images/image-18.png)
-## additional task: test incremental synchronisation
+## additional task: test incremental synchronisation (CDC)
 
-when inserting some additional records to source table with higher IDs, the cyclic refresh should find those
+when inserting some additional records to source table with higher IDs, the cyclic refresh should find those after the cyclic interval of 1 minute:
 
 ```bash
 export MYSQL_USER=$(echo ${HOSTNAME//bigdata})
@@ -158,3 +158,11 @@ COMMIT;
 after next run cycle you should see the ID being a higher value then 56, i.e. 66 after the following inserts:<br>
 
 ![maximum ID value](images/image-101.png)
+
+and then check the content of the destination table, if the additional 5 records are present in hive, too:<br>
+```bash
+export HIVE_CONNECT_STRING=localhost:10000
+beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger <<!
+select * from StudentsNifi;
+!
+```
