@@ -44,9 +44,10 @@ mysql --ssl=FALSE -u $MYSQLUSER -D $DATABASE_NAME  -h datanode1 -P 13306 --passw
 
 then we need to configure NiFi using Web GUI on port 8999/nifi:
 
-> you can skip all those steps, when loading xml file scripts/05/MySqlToHive_NifiTemplate.xml via the following icon
+> you can skip all those steps, when loading xml file scripts/05/MySqlToHive_NifiTemplate.xml via the following icon<br>
+> (and only change the database, password and user in the properties of the `QueryDatabaseTable` subprocess)
 
-![upload existing templatge](image-201.png)
+![upload existing templatge](images/image-201.png)
 
 Otherwise continue with the step-by-step guide...
 
@@ -131,11 +132,11 @@ select * from StudentsNifi;
 
 the graphical configuration can be exported using a template (IMPORTANT: the complete NiFi Flow should be shown - and not only one step):<br>
 
-![create template](image-17.png)
+![create template](images/image-17.png)
 
 and then download the created template:
 
-![download template](image-18.png)
+![download template](images/image-18.png)
 ## additional task: test incremental synchronisation
 
 when inserting some additional records to source table with higher IDs, the cyclic refresh should find those
