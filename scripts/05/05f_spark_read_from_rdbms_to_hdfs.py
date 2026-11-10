@@ -65,7 +65,7 @@ df.write \
     .mode("overwrite") \
     .parquet(hdfs_target_path)
 
-print("Data successfully imported!")
+print("Import from MySQL to HDFS successful!")
 
-# Spark Session sauber schließen
+# properly close spark session
 spark.stop()
