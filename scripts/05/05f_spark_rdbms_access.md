@@ -63,7 +63,7 @@ SELECT * FROM StudentsSpark;
 !
 ```
 
-## opposite way: read from Hive to MySql RDBMS
+## opposite way: read from Hdfs/Hive to MySql RDBMS
 The other direction is less common, but would generally work as well, when versions of Hive and Spark match.<br>
 However in our setup we use Hive version 4.1., whereas the Hive libraries in /usr/local/spark/jars/hive-* are assume version 2.3, which uses different metadata schema of hive, so it cannot read the table's data correctly (e.g. column DB_NAME is not present in new metadata definitions).<br>
 
@@ -74,7 +74,15 @@ jars directory.
 sudo cp ~/BigData/external_libs/mysql-connector-j-8.1.0.jar $SPARK_HOME/jars/
 ```
 
-but as stated above, still the following call does not work, but raises the exception as below:
+but as stated above, the direct access to hive does not work, but would raise following exception:
+
+> javax.jdo.JDOException: Exception thrown when executing query : SELECT 'org.apache.hadoop.hive.metastore.model.>MTableColumnStatistics' AS `NUCLEUS_TYPE`,`A0`.`AVG_COL_LEN`,`A0`.`COLUMN_NAME`,`A0`.`COLUMN_TYPE`,`A0`.`DB_NAME`,`A0`.>`BIG_DECIMAL_HIGH_VALUE`,`A0`.`BIG_DECIMAL_LOW_VALUE`,`A0`.`DOUBLE_HIGH_VALUE`,`A0`.`DOUBLE_LOW_VALUE`,`A0`.`LAST_ANALYZED`,>`A0`.`LONG_HIGH_VALUE`,`A0`.`LONG_LOW_VALUE`,`A0`.`MAX_COL_LEN`,`A0`.`NUM_DISTINCTS`,`A0`.`NUM_FALSES`,`A0`.`NUM_NULLS`,`A0`.>`NUM_TRUES`,`A0`.`TABLE_NAME`,`A0`.`CS_ID` FROM `TAB_COL_STATS` `A0` WHERE `A0`.`DB_NAME` = ''
+>NestedThrowables:
+>java.sql.SQLSyntaxErrorException: Unknown column 'A0.DB_NAME' in 'field list'
+
+The workaround is to access the HDFS file system instead, as anyway our data resides as external hive table, so we can call<br>
+and pass `--hdfs_dir` instead of `--hive_table` as parameter:
+
 ```bash
 export MYSQL_USER=$(echo ${HOSTNAME//bigdata})
 export MYSQL_PASSWD=$MYSQL_USER
@@ -82,12 +90,8 @@ export DATABASE_NAME=$MYSQL_USER
 ~hduser/.local/bin/spark-submit \
   ~hduser/BigData/scripts/05/05g_spark_write_to_rdbms.py \
   --host datanode1 --port 13306 --database $DATABASE_NAME --user $MYSQL_USER --password $MYSQL_PASSWD \
-  --hive_table studentsSpark
+  --hdfs_dir hdfs://namenode:9000/tmp/students
 ```
-
-> javax.jdo.JDOException: Exception thrown when executing query : SELECT 'org.apache.hadoop.hive.metastore.model.>MTableColumnStatistics' AS `NUCLEUS_TYPE`,`A0`.`AVG_COL_LEN`,`A0`.`COLUMN_NAME`,`A0`.`COLUMN_TYPE`,`A0`.`DB_NAME`,`A0`.>`BIG_DECIMAL_HIGH_VALUE`,`A0`.`BIG_DECIMAL_LOW_VALUE`,`A0`.`DOUBLE_HIGH_VALUE`,`A0`.`DOUBLE_LOW_VALUE`,`A0`.`LAST_ANALYZED`,>`A0`.`LONG_HIGH_VALUE`,`A0`.`LONG_LOW_VALUE`,`A0`.`MAX_COL_LEN`,`A0`.`NUM_DISTINCTS`,`A0`.`NUM_FALSES`,`A0`.`NUM_NULLS`,`A0`.>`NUM_TRUES`,`A0`.`TABLE_NAME`,`A0`.`CS_ID` FROM `TAB_COL_STATS` `A0` WHERE `A0`.`DB_NAME` = ''
->NestedThrowables:
->java.sql.SQLSyntaxErrorException: Unknown column 'A0.DB_NAME' in 'field list'
 
 
 ## Trouble shooting
