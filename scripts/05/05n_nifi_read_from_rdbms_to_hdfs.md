@@ -2,6 +2,8 @@
 
 we will use Nifi to read from MySQL database to Hive
 
+## prepare source and destination tables
+
 switch to `hduser`
 ```bash
 su - hduser
@@ -29,6 +31,16 @@ hdfs dfs -mkdir -p /user/hduser/hive_external/students
 # check, if necessary
 hdfs dfs -chmod 777 /user/hduser/hive_external/students
 ```
+
+fill some test data into MySQL source table `studentsMySQL`:
+```bash
+export MYSQL_USER=$(echo ${HOSTNAME//bigdata})
+export MYSQL_PASSWD=$MYSQL_USER
+export DATABASE_NAME=$MYSQL_USER
+mysql --ssl=FALSE -u $MYSQLUSER -D $DATABASE_NAME  -h datanode1 -P 13306 --password=$MYSQL_PASSWD < ~/BigData/scripts/05/insertstudentsMySQL.sql
+```
+
+## configure Nifi in Web GUI
 
 then we need to configure NiFi using Web GUI on port 8999/nifi:
 
@@ -69,7 +81,7 @@ then add processor to write the data from MySQL to HDFS:<br>
 
 ![ConvertRecord processor](images/image-9.png)
 
-and set the proper values for record reader and writer as below:<br>
+and set the proper values for record reader and writer as below (you can keep the default names or also give them meaningful values):<br>
 
 ![RecordReaderWriter](images/image-10.png)
 
@@ -105,16 +117,21 @@ hdfs dfs -ls /user/hduser/hive_external/students
 
 and then check the content of the destination table, which should find all records:<br>
 ```bash
+export HIVE_CONNECT_STRING=localhost:10000
 beeline --verbose -u jdbc:hive2://$HIVE_CONNECT_STRING scott tiger <<!
 select * from StudentsNifi;
 !
 ```
 
-## additional task: add some more records to source table with higher IDs
+## additional task: test incremental synchronisation
 
-when inserting
+when inserting some additional records to source table with higher IDs, the cyclic refresh should find those
+
 ```bash
-mysql --ssl=FALSE -u swd00 -D swd00 -h datanode1 -P 13306 --password=swd00 <<!
+export MYSQL_USER=$(echo ${HOSTNAME//bigdata})
+export MYSQL_PASSWD=$MYSQL_USER
+export DATABASE_NAME=$MYSQL_USER
+mysql --ssl=FALSE -u $MYSQLUSER -D $DATABASE_NAME  -h datanode1 -P 13306 --password=$MYSQL_PASSWD <<!
 INSERT INTO studentsMySQL VALUES (62, 'Tony', 'Anderson', '20221214', 'SWD');
 INSERT INTO studentsMySQL VALUES (63, 'Tim', 'Black', '20221215', 'SWD');
 INSERT INTO studentsMySQL VALUES (64, 'Jack', 'Ramez', '20230109', 'ITM');
