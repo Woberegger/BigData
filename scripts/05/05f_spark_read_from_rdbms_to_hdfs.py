@@ -20,11 +20,12 @@ parser.add_argument("--password", help="defaults to --database")
 
 args = parser.parse_args()
 
-if args.user is None:
-   args.user = args.database
- 
-if args.password is None:
-   args.password = args.database
+# Spark Session mit Hive-Unterstützung
+spark = SparkSession.builder \
+    .appName("MySQL_to_Hdfs_Students") \
+    .config("spark.sql.warehouse.dir", "hdfs://namenode:9000/user/hive/warehouse") \
+    .enableHiveSupport() \
+    .getOrCreate()
 
 # connection data
 jdbc_url = "jdbc:mysql://"+args.host+":"+str(args.port)+"/"+args.database+"?useSSL=false&allowPublicKeyRetrieval=true"
@@ -58,6 +59,7 @@ df = spark.read.jdbc(
 # 'parquet' mode is highly recommended for Hadoop 3.x (compressed, column-oriented, very fast)
 hdfs_target_path = args.hdfs_dir
 
+# output format is binary "parquet" format
 print(f"write data to HDFS: {hdfs_target_path}")
 df.write \
     .mode("overwrite") \
