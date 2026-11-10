@@ -23,7 +23,7 @@ args = parser.parse_args()
 # initialize Spark Session
 spark = SparkSession.builder \
     .appName("Hive_to_MySQL_Students") \
-    .config("spark.sql.warehouse.dir", "hdfs://namenode:9000/user/hive/warehouse") \  
+    .config("spark.sql.warehouse.dir", "hdfs://namenode:9000/user/hive/warehouse") \
     .enableHiveSupport() \
     .getOrCreate()
 
