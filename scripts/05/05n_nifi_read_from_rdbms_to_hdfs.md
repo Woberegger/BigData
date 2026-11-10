@@ -44,6 +44,12 @@ mysql --ssl=FALSE -u $MYSQLUSER -D $DATABASE_NAME  -h datanode1 -P 13306 --passw
 
 then we need to configure NiFi using Web GUI on port 8999/nifi:
 
+> you can skip all those steps, when loading xml file scripts/05/MySqlToHive_NifiTemplate.xml via the following icon
+
+![upload existing templatge](image-201.png)
+
+Otherwise continue with the step-by-step guide...
+
 ![open configuration screen](images/image-0.png)
 
 add a new controller service:<br>
@@ -123,6 +129,13 @@ select * from StudentsNifi;
 !
 ```
 
+the graphical configuration can be exported using a template (IMPORTANT: the complete NiFi Flow should be shown - and not only one step):<br>
+
+![create template](image-17.png)
+
+and then download the created template:
+
+![download template](image-18.png)
 ## additional task: test incremental synchronisation
 
 when inserting some additional records to source table with higher IDs, the cyclic refresh should find those
@@ -143,4 +156,4 @@ COMMIT;
 
 after next run cycle you should see the ID being a higher value then 56, i.e. 66 after the following inserts:<br>
 
-![maximum ID value](images/image-17.png)
+![maximum ID value](images/image-101.png)
