@@ -2,10 +2,10 @@
 
 postgresql-client - consumes only 12MB of size
 ```bash
-sudo apt install postgresql-client
+sudo apt install -y postgresql-client
 ```
 
 do test call against Postgres DB
 ```bash
-~hduser/BigData/grp02/grp02_postgres_testcall.sh <UserName>
+~hduser/BigData/scripts/grp02/grp02_postgres_testcall.sh <UserName>
 ```

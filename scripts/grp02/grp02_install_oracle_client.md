@@ -5,7 +5,9 @@ oracle basic client - consumes approx 132MB+6MB of size
 this library `libaio1t64`is used by sqlplus (should anyway be present already, but create link)
 ```bash
 sudo -s
-apt install libaio1t64
+```
+```bash
+apt install -y libaio1t64
 ln -s /usr/lib/x86_64-linux-gnu/libaio.so.1t64 /usr/lib/libaio.so.1
 ```
 
@@ -46,13 +48,20 @@ SWD =
 !
 ```
 
-optionally add this to PATH
+```bash
+su - hduser
+```
+
+add this to PATH (and LD_LIBRARY_PATH, otherwise `sqlplus` call would fail with following error:
+> sqlplus: error while loading shared libraries: libsqlplus.so: cannot open shared object file: No such file or directory
+
 ```bash
 echo "export PATH=\$PATH:/usr/local/instantclient_23_26" >>~/.bashrc
+echo "export LD_LIBRARY_PATH=/usr/local/instantclient_23_26" >>~/.bashrc
 source ~/.bashrc
 ```
 
 do test call against oracle DB
 ```bash
-~hduser/BigData/grp02/grp02_oracle_testcall.sh <UserName>
+~hduser/BigData/scripts/grp02/grp02_oracle_testcall.sh <UserName>
 ```

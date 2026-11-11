@@ -2,11 +2,11 @@
 
 mysql-client - consumes approx 86MB of size
 ```bash
-sudo apt install default-mysql-client
+sudo apt install -y default-mysql-client
 ```
 
 do test call against mySQL DB
 ```bash
-~hduser/BigData/grp02/grp02_mysql_testcall.sh <UserName>
+~hduser/BigData/scripts/grp02/grp02_mysql_testcall.sh <UserName>
 ```
 
