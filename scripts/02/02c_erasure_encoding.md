@@ -10,7 +10,8 @@ What changes can we find in the required HDD space?<br>
 su - hduser
 ```
 
-Create the rack topology script `/usr/local/hadoop/bin/rack-topology.sh` with the following content:
+Create the rack topology script `/usr/local/hadoop/bin/rack-topology.sh` with the following content:<br>
+the `getent` command to determine hostname for an IP address is due to the fact that HDFS passes IP addresses only as parameter to check against
 
 ```bash
 cat >$HADOOP_HOME/bin/rack-topology.sh <<!
@@ -19,7 +20,9 @@ MAPFILE=\$HADOOP_CONF_DIR/topology.txt
 
 if [ -f \$MAPFILE ]; then
   while read host rack; do
-    if [[ "\$host" == "\$1" ]]; then
+    # hadoop only interprets IP, so we change the passed IP to a hostname to compare against
+    thishost=\$(getent hosts "\$1" | awk '{print \$2}')
+    if [[ "\$host" == "\$thishost" ]]; then
       echo "\$rack"
       exit 0
     fi
@@ -30,14 +33,14 @@ echo "/dflt-rack"
 !
 ```
 
-Apparently only IP addresses work here and not hostnames. So we add our own IP and those of the two DataNodes into the mapping file.
+As we have used the `getent` command in the script above, we can configure hostnames and do not need to use IP addresses, which might change more regularly.<br>
+So we add our own hostname alias "namenode" and the two DataNodes into the mapping file.<br>
+(IMPORTANT: in order to work, it is important, that our line in /etc/hosts has "namenode" as first alias)
+> e.g. 10.221.54.255   namenode bigdataswd00 # (and not "10.221.54.255   bigdataswd00 namenode")
 
 ```bash
 MAPFILE=$HADOOP_CONF_DIR/topology.txt
-echo "$(hostname -I | cut -d' ' -f1) /rack0" >$MAPFILE
-echo "10.221.55.234 /rack1" >>$MAPFILE
-echo "10.221.53.130 /rack2" >>$MAPFILE
-echo "namenode /rack0" >>$MAPFILE
+echo "namenode /rack0" >$MAPFILE
 echo "datanode1 /rack1" >>$MAPFILE
 echo "datanode2 /rack2" >>$MAPFILE
 
