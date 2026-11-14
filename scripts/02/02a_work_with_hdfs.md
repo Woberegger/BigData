@@ -79,7 +79,7 @@ hdfs dfs -D dfs.blocksize=1048576 -put ~/BigData/data/airline_delay_causes.csv /
 ## reacting on dead datanode
 
 Check which parameter you can use to set when to react to a dead datanode.<br>
-Change to 60 seconds - see [HDFS Default Configuration](https://hadoop.apache.org/docs/r3.2.4/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml).<br>
+Change to 60 seconds - see [HDFS Default Configuration](https://hadoop.apache.org/docs/r3.5.0/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml).<br>
 Shut down the assigned process of the 2nd node and see what happens to the replicas of that node after 60 seconds.<br>
 When are replicas transferred from one node to another so we have the desired number of 2 again?<br>
 <br>
@@ -100,7 +100,7 @@ Or:
 hdfs --daemon stop datanode
 ```
 
-Timeout equals to 2 * heartbeat.recheck.interval + 10 * heartbeat.interval. Default for heartbeat.interval is 3 seconds, default for recheck-interval is 300<br>
+Timeout equals to 2 * heartbeatRecheckInterval + 10 * heartbeatInterval. Default for heartbeatInterval is 3 seconds, default for recheckInterval is 300<br>
 The 2 outcommented lines would be needed, when we restart the datanode on datanode1/datanode2 (and not on `namenode`)
 
 ```bash
