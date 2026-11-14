@@ -7,6 +7,10 @@ Type=oneshot
 User=hduser
 # optionally set this as default remote cmd for pdsh (or call: echo "ssh">/etc/pdsh/rcmd_default)
 Environment=PDSH_RCMD_TYPE=ssh
+Environment="JAVA_HOME=/usr/lib/jvm/java-17-jdk-amd64"
+Environment="HADOOP_HOME=/usr/local/hadoop"
+# set following line individually
+Environment="HADOOP_CONF_DIR=/usr/local/hadoop/etc/datanode<YourIPAddress>"
 ExecStart=/usr/local/hadoop/sbin/start-dfs.sh
 ExecStop=/usr/local/hadoop/sbin/stop-dfs.sh
 Restart=on-failure
