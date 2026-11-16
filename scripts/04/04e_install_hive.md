@@ -12,7 +12,11 @@ Attention: Make sure your Hadoop version is compatible with the Hive version - s
 
 *Note*: Unfortunately the information there is incorrect. It's better to use the latest version 4.x.<br>
 Hive 3.1.3 does not seem to work with our Hadoop version. Version 4.0.1 has been tested and works with Hadoop 3.3.6.<br>
-Versions 4.0.1 and 4.1.0 should work with Hadoop 3.4.1. and 4.2.1 with Hadopp 3.5.x
+Versions 4.0.1 and 4.1.0 should work with Hadoop 3.4.1. and 4.1.x/4.2.x with Hadoop 3.5.x
+
+*Note*: Sometimes hive download is very slow (maybe as this is not the latest release and therefore only accessible on archive server), <br>
+in such a case do the following to copy the file from datanode1 instead of the `wget` command:
+> scp hduser@datanode1:/usr/local/apache-hive-4.1.0-bin.tar.gz /usr/local/
 
 ```bash
 cd /usr/local
@@ -37,6 +41,8 @@ Connect as hduser (and do all following actions as this user)
 
 ```bash
 su - hduser
+```
+```bash
 cat >>~/.bashrc <<!
 export HIVE_HOME=/usr/local/hive
 export HCAT_HOME=\$HIVE_HOME/hcatalog

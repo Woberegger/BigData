@@ -5,22 +5,23 @@
 we install it to the same directory as our other Hadoop components
 ```bash
 sudo -s
-cd /usr/local
 ```
 
 **Caution:** if the latest version changes, it is possible that the older versions are no longer downloadable from this link.<br>
 Use a download link in the archive instead.
 
+**IMPORTANT:** we use the binary version hbase-byo-hadoop, which does not contain the hadoop libraries, which might cause conflicts, if different version
 ```bash
+cd /usr/local
 export HBASE_VERSION=3.0.0 # previously used 2.5.13
-wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz
-wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz.sha512
-shasum -a 512 hbase-${HBASE_VERSION}-bin.tar.gz; cat hbase-${HBASE_VERSION}-bin.tar.gz.sha512
-tar -xzf hbase-${HBASE_VERSION}-bin.tar.gz
-chown -R hduser:hadoop /usr/local/hbase-${HBASE_VERSION}
-ln -s /usr/local/hbase-${HBASE_VERSION} HBase
+wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-byo-hadoop-${HBASE_VERSION}-bin.tar.gz
+wget https://dlcdn.apache.org/hbase/${HBASE_VERSION}/hbase-byo-hadoop-${HBASE_VERSION}-bin.tar.gz.sha512
+shasum -a 512 hbase-byo-hadoop-${HBASE_VERSION}-bin.tar.gz; cat hbase-byo-hadoop-${HBASE_VERSION}-bin.tar.gz.sha512
+tar -xzf hbase-byo-hadoop-${HBASE_VERSION}-bin.tar.gz
+chown -R hduser:hadoop /usr/local/hbase-byo-hadoop-${HBASE_VERSION}
+ln -s /usr/local/hbase-byo-hadoop-${HBASE_VERSION} HBase
 # gain space
-rm hbase-${HBASE_VERSION}-bin.tar.gz
+rm hbase-byo-hadoop-${HBASE_VERSION}-bin.tar.gz
 ```
 
 All further actions shall be done as user `hduser`

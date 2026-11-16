@@ -18,6 +18,11 @@ hbase org.apache.hadoop.hbase.mapreduce.ImportTsv \
 hdfs://namenode:9000/import/input/people.csv
 ```
 
+if you should get an error like the following, then usually version of HBase libraries in `$HBASE_HOME/lib` does not match Hadoop's libraries with same name in `$HADOOP_HOME/lib`.<br>
+Usually the binary installation hbase-byo-hadoop should solve that problem.
+> Problematic frame: # V [libjvm.so+0x28cdb0] AccessInternal::PostRuntimeDispatch, (AccessInternal::BarrierType)2, 548964ul>::oop_access_barrier(void*)+0x0
+
+## verify proper bulk data loading
 you can see, that in the background a MapReduce job is executed
 
 expected output of `count`and `get`: 20000 rows total and row1 with data from "Eric Vogel".
